@@ -1,0 +1,21 @@
+{
+    "name": "distr-systems-hw-1",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "extensions": [
+        "ms-vscode.cpptools-extension-pack",
+        "cheshirekow.cmake-format",
+        "cschlosser.doxdocgen"
+    ],
+    "runArgs": [
+        "--name=distr-systems-hw-1",
+        "--net=host"
+    ],
+    "settings": {
+        "editor.formatOnSave": true,
+        "cmake.configureOnOpen": false,
+        "editor.renderWhitespace": "all",
+        "cmake.generator": "Ninja"
+    }
+}
