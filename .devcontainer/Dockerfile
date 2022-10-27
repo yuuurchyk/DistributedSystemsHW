@@ -206,5 +206,5 @@ FROM final AS deploy
 
 ARG DEBIAN_FRONTEND
 
-RUN apt-get install -y python3 python3-pip
+RUN apt-get install -y python3 python3-pip git nano
 RUN pip3 install cmake-format
