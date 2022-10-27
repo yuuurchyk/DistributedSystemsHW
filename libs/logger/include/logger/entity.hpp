@@ -7,9 +7,11 @@
 #include <boost/log/expressions/keyword.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/sources/severity_feature.hpp>
+#include <boost/log/utility/manipulators/add_value.hpp>
 
 #include "logger/detail/attributes.h"
 #include "logger/detail/entitybase.hpp"
+#include "logger/detail/extractbasename.hpp"
 #include "logger/idcounter.hpp"
 #include "logger/threadmodel.h"
 
@@ -56,6 +58,15 @@ public:
 
 }    // namespace logger
 
-#define EN_LOGI BOOST_LOG_SEV(this->entityLogger_, ::logger::Severity::Info)
-#define EN_LOGW BOOST_LOG_SEV(this->entityLogger_, ::logger::Severity::Warning)
-#define EN_LOGE BOOST_LOG_SEV(this->entityLogger_, ::logger::Severity::Error)
+#define _EN_LOGIMPL(severity)                                             \
+    BOOST_LOG_SEV(this->entityLogger_, ::logger::Severity::severity)      \
+        << boost::log::add_value(                                         \
+               ::logger::detail::attributes::kFilenameAttr,               \
+               ::logger::detail::attributes::file_name_t{ __FILENAME__ }) \
+        << boost::log::add_value(                                         \
+               ::logger::detail::attributes::kLineNumberAttr,             \
+               ::logger::detail::attributes::line_number_t{ __LINE__ })
+
+#define EN_LOGI _EN_LOGIMPL(Info)
+#define EN_LOGW _EN_LOGIMPL(Warning)
+#define EN_LOGE _EN_LOGIMPL(Error)

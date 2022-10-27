@@ -22,6 +22,12 @@ using num_id_t = logger::num_id_t;
 constexpr const char *kStringIdAttr{ "attr_string_id" };
 using string_id_t = std::string;
 
+constexpr const char *kFilenameAttr{ "attr_file_name" };
+using file_name_t = std::string_view;
+
+constexpr const char *kLineNumberAttr{ "attr_line_number" };
+using line_number_t = int;
+
 constexpr const char *kThreadIdAttr{ "ThreadID" };
 using thread_id_t = boost::log::thread_id;
 
