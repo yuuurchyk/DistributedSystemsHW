@@ -8,15 +8,13 @@
 #include <boost/asio.hpp>
 #include <boost/scope_exit.hpp>
 
-#include "logger/entity.hpp"
-#include "logger/setup.h"
+#include "logger/logger.h"
 
 using namespace boost::asio;
 using error_code = boost::system::error_code;
 
-class ClientSession
-    : public std::enable_shared_from_this<ClientSession>,
-      private logger::NumIdEntity<ClientSession, logger::single_thread_model>
+class ClientSession : public std::enable_shared_from_this<ClientSession>,
+                      private logger::IdEntity<ClientSession>
 {
 public:
     static std::shared_ptr<ClientSession> create(io_context        &context,
@@ -35,12 +33,12 @@ public:
             {
                 if (error)
                 {
-                    EN_LOGI << "Failed to connect to endpoint";
+                    ID_LOGI << "Failed to connect to endpoint";
                     return;
                 }
                 else
                 {
-                    EN_LOGI << "Successfully connected to endpoint";
+                    ID_LOGI << "Successfully connected to endpoint";
                     writeMessage();
                 }
             });
@@ -60,9 +58,9 @@ private:
 
     void writeMessage()
     {
-        EN_LOGI << "Sending message to server: "
+        ID_LOGI << "Sending message to server: "
                 << std::string_view{ message_.data(), messageSize_ };
-        EN_LOGI << "Last charater is newline: " << std::boolalpha
+        ID_LOGI << "Last charater is newline: " << std::boolalpha
                 << (message_[messageSize_ - 1] == '\n');
         async_write(socket_,
                     buffer(message_.data(), messageSize_),
@@ -77,7 +75,7 @@ private:
 
     void onWriteComplete()
     {
-        EN_LOGI << "waiting for " << messageSize_ << " bytes";
+        ID_LOGI << "waiting for " << messageSize_ << " bytes";
         async_read(
             socket_,
             mutable_buffer{ message_.data(), messageSize_ },
@@ -90,13 +88,13 @@ private:
     {
         if (error)
         {
-            EN_LOGI << "Failed to retrieve message from server";
+            ID_LOGI << "Failed to retrieve message from server";
             return;
         }
         else
         {
-            EN_LOGI << "Server returned " << bytes << " bytes";
-            EN_LOGI << "Message returned from server: "
+            ID_LOGI << "Server returned " << bytes << " bytes";
+            ID_LOGI << "Message returned from server: "
                     << std::string_view{ message_.data(), messageSize_ };
         }
     }

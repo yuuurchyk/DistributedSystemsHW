@@ -5,8 +5,8 @@
 
 #include <boost/log/attributes/current_thread_id.hpp>
 
-#include "logger/idcounter.hpp"
-#include "logger/severity.h"
+#include "logger/detail/idcounter.hpp"
+#include "logger/detail/severity.h"
 
 namespace logger::detail::attributes
 {
@@ -16,11 +16,8 @@ using program_name_t = std::string;
 constexpr const char *kEntityNameAttr{ "attr_entity_name" };
 using entity_name_t = std::string_view;
 
-constexpr const char *kNumIdAttr{ "attr_num_id" };
-using num_id_t = logger::num_id_t;
-
-constexpr const char *kStringIdAttr{ "attr_string_id" };
-using string_id_t = std::string;
+constexpr const char *kIdAttr{ "attr_id" };
+using logger_id_t = logger::detail::logger_id_t;
 
 constexpr const char *kFilenameAttr{ "attr_file_name" };
 using file_name_t = std::string_view;

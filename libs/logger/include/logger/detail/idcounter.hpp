@@ -1,21 +1,31 @@
 #pragma once
 
-#include <cstdint>
 #include <atomic>
+#include <cstddef>
 
-namespace logger
+namespace logger::detail
 {
-// we assume that we won't have many objects
-using num_id_t = uint16_t;
+using logger_id_t = size_t;
 
+/**
+ * @brief
+ *
+ * @tparam Entity_t
+ *
+ * @note make sure that the class that derives from
+ * IdCounter is final
+ */
 template <typename Entity_t>
 class IdCounter
 {
 public:
-    static num_id_t getNext() { return counter_.fetch_add(1, std::memory_order_relaxed); }
+    static logger_id_t getNext()
+    {
+        return counter_.fetch_add(1, std::memory_order_relaxed);
+    }
 
 private:
-    static inline std::atomic<num_id_t> counter_{};
+    static inline std::atomic<logger_id_t> counter_{};
 
     IdCounter()                             = delete;
     IdCounter(const IdCounter &)            = delete;
@@ -25,4 +35,4 @@ private:
     ~IdCounter()                            = delete;
 };
 
-}    // namespace logger
+}    // namespace logger::detail

@@ -10,16 +10,13 @@
 #include <boost/asio.hpp>
 #include <boost/scope_exit.hpp>
 
-#include "logger/entity.hpp"
-#include "logger/setup.h"
-#include "logger/translationunit.h"
+#include "logger/logger.h"
 
 using namespace boost::asio;
 using error_code = boost::system::error_code;
 
-class ServerSession
-    : public std::enable_shared_from_this<ServerSession>,
-      private logger::NumIdEntity<ServerSession, logger::single_thread_model>
+class ServerSession : public std::enable_shared_from_this<ServerSession>,
+                      private logger::IdEntity<ServerSession>
 {
 public:
     static std::shared_ptr<ServerSession> create(ip::tcp::socket socket)
@@ -29,7 +26,7 @@ public:
 
     void start()
     {
-        EN_LOGI << "ServerSession::start";
+        ID_LOGI << "ServerSession::start";
         async_read(
             socket_,
             mutable_buffer{ message_.data(), message_.size() },
@@ -45,43 +42,43 @@ private:
 
     size_t readCompletionHandler(const error_code &error, size_t bytesTransferred)
     {
-        EN_LOGI << "readCompletionHandler " << bytesTransferred;
+        ID_LOGI << "readCompletionHandler " << bytesTransferred;
         if (error)
         {
-            EN_LOGI << "error, return 0";
+            ID_LOGI << "error, return 0";
             return 0;
         }
 
         if (bytesTransferred == message_.size())
         {
-            EN_LOGI << "message too big, return 0";
+            ID_LOGI << "message too big, return 0";
             return 0;
         }
 
         for (; checkedOffset_ < message_.size() && checkedOffset_ < bytesTransferred;
              ++checkedOffset_)
         {
-            EN_LOGI << "checking offset " << checkedOffset_
+            ID_LOGI << "checking offset " << checkedOffset_
                     << ", character=" << message_[checkedOffset_];
             if (message_[checkedOffset_] == '\n')
             {
                 ++checkedOffset_;
-                EN_LOGI << "found newline, return 0";
+                ID_LOGI << "found newline, return 0";
                 return 0;
             }
         }
 
-        EN_LOGI << "need to reed one more character, return 1";
+        ID_LOGI << "need to reed one more character, return 1";
         return 1;
     }
 
     void readHandler(const error_code &error, size_t bytes)
     {
-        EN_LOGI << "inside read handler, text="
+        ID_LOGI << "inside read handler, text="
                 << std::string_view{ message_.data(), bytes };
         if (error)
         {
-            EN_LOGI << "error, returning";
+            ID_LOGI << "error, returning";
             return;
         }
 
@@ -97,11 +94,11 @@ private:
             {
                 if (error)
                 {
-                    EN_LOGI << "write failed";
+                    ID_LOGI << "write failed";
                 }
                 else
                 {
-                    EN_LOGI << "written " << bytes << " bytes back to client";
+                    ID_LOGI << "written " << bytes << " bytes back to client";
                 }
             });
     }
@@ -112,8 +109,7 @@ private:
     size_t                 checkedOffset_{};
 };
 
-class Server : public std::enable_shared_from_this<Server>,
-               private logger::StringIdEntity<Server, logger::multi_thread_model>
+class Server : public std::enable_shared_from_this<Server>
 {
 public:
     static std::shared_ptr<Server> create(io_context &context, unsigned short port)
@@ -125,16 +121,15 @@ public:
 
 private:
     Server(io_context &context, unsigned short port)
-        : logger::StringIdEntity<Server, logger::multi_thread_model>{ "Server" },
-          context_{ context },
+        : context_{ context },
           acceptor_{ context, ip::tcp::endpoint{ ip::tcp::v4(), port } }
     {
-        EN_LOGI << "Serving on port " << port;
+        LOGI << "Serving on port " << port;
     }
 
     void acceptOne()
     {
-        EN_LOGI << "start: creating socket";
+        LOGI << "start: creating socket";
 
         auto  socket    = std::make_unique<ip::tcp::socket>(context_);
         auto &socketRef = *socket;
@@ -144,15 +139,15 @@ private:
             [this, socket = std::move(socket), _thisCtx = shared_from_this()](
                 const error_code &error) mutable
             {
-                EN_LOGI << "start: async_accept handler";
+                LOGI << "start: async_accept handler";
 
                 if (error)
                 {
-                    EN_LOGI << "error occured, don't create session";
+                    LOGI << "error occured, don't create session";
                 }
                 else
                 {
-                    EN_LOGI << "all good, creating session";
+                    LOGI << "all good, creating session";
                     auto s = ip::tcp::socket{ std::move(*socket.release()) };
                     ServerSession::create(std::move(s))->start();
                 }
@@ -174,6 +169,7 @@ int main()
     }
     BOOST_SCOPE_EXIT_END
 
+    LOGI << "Setting up io context";
     auto context = io_context{};
 
     Server::create(context, 8001)->start();

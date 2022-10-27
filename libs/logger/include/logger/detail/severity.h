@@ -2,7 +2,7 @@
 
 #include <ostream>
 
-namespace logger
+namespace logger::detail
 {
 enum class Severity
 {
@@ -13,4 +13,4 @@ enum class Severity
 
 std::ostream &operator<<(std::ostream &, Severity);
 
-}    // namespace logger
+}    // namespace logger::detail
