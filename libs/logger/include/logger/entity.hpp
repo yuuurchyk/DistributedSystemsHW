@@ -30,7 +30,7 @@ public:
     NumIdEntity()
     {
         this->entityLogger_.add_attribute(
-            detail::tag::attr_num_id::get_name(),
+            detail::attributes::kNumIdAttr,
             boost::log::attributes::make_constant(IdCounter<Entity_t>::getNext()));
     }
 };
@@ -49,7 +49,7 @@ public:
     StringIdEntity(std::string id)
     {
         this->entityLogger_.add_attribute(
-            detail::tag::attr_string_id::get_name(),
+            detail::attributes::kStringIdAttr,
             boost::log::attributes::make_constant(std::move(id)));
     }
 };

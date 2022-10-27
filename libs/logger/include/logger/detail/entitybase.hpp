@@ -35,8 +35,7 @@ public:
             kEntityName
         };
 
-        entityLogger_.add_attribute(detail::tag::attr_entity_name::get_name(),
-                                    kEntityNameAttr);
+        entityLogger_.add_attribute(detail::attributes::kEntityNameAttr, kEntityNameAttr);
     }
 
 protected:

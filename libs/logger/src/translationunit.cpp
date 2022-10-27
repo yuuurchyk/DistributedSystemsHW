@@ -10,7 +10,7 @@ namespace logger
 {
 TranslationUnitLogger::TranslationUnitLogger(std::string_view moduleName)
 {
-    add_attribute(detail::tag::attr_entity_name::get_name(),
+    add_attribute(detail::attributes::kEntityNameAttr,
                   boost::log::attributes::make_constant(std::move(moduleName)));
 }
 

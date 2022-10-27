@@ -45,8 +45,9 @@ namespace logger
 {
 void formatter(const boost::log::record_view &rec, boost::log::formatting_ostream &strm)
 {
-    if (auto programNameIt = rec[detail::tag::attr_program_name::get_name()]
-                                 .extract<detail::tag::attr_program_name::value_type>())
+    using namespace detail::attributes;
+
+    if (auto programNameIt = rec[kProgramNameAttr].extract<program_name_t>())
     {
         strm << "[";
         trim(*programNameIt, 6, strm);
@@ -57,18 +58,16 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
         strm << std::setw(8) << "";
     }
 
-    if (auto threadIdIt = rec[detail::kThreadIdName].extract<boost::log::thread_id>())
+    if (auto threadIdIt = rec[kThreadIdAttr].extract<thread_id_t>())
     {
         strm << " [TRD" << std::hex << ((*threadIdIt).native_id() & (0xfffff)) << "]";
-        // strm << " [TRD" << *threadIdIt << "]";
     }
     else
     {
         strm << std::setw(11) << "";
     }
 
-    if (auto entityIt = rec[detail::tag::attr_entity_name::get_name()]
-                            .extract<detail::tag::attr_entity_name::value_type>())
+    if (auto entityIt = rec[kEntityNameAttr].extract<entity_name_t>())
     {
         strm << " [";
         trim(*entityIt, 15, strm);
@@ -81,7 +80,7 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
 
     static_assert(sizeof(num_id_t) <= 2,
                   "Formatter relies on the following constraint on num_id");
-    if (auto numIdIt = rec[detail::tag::attr_num_id::get_name()].extract<num_id_t>())
+    if (auto numIdIt = rec[kNumIdAttr].extract<num_id_t>())
     {
         static constexpr const char *kAlphabet =
             "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,";
@@ -101,8 +100,7 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
 
         strm << idRepresentation << " ]";
     }
-    else if (auto stringIdIt = rec[detail::tag::attr_string_id::get_name()]
-                                   .extract<detail::tag::attr_string_id::value_type>())
+    else if (auto stringIdIt = rec[kStringIdAttr].extract<string_id_t>())
     {
         strm << " [id=";
         trim(*stringIdIt, 5, strm);
@@ -113,7 +111,7 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
         strm << std::setw(11) << "";
     }
 
-    if (auto severityIt = rec[detail::kSeverityName].extract<::logger::Severity>())
+    if (auto severityIt = rec[kSeverityAttr].extract<::logger::Severity>())
     {
         strm << " [" << *severityIt << "]";
     }

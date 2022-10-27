@@ -4,22 +4,28 @@
 #include <string_view>
 
 #include <boost/log/attributes/current_thread_id.hpp>
-#include <boost/log/expressions/keyword.hpp>
 
 #include "logger/idcounter.hpp"
 #include "logger/severity.h"
 
-namespace logger::detail
+namespace logger::detail::attributes
 {
-BOOST_LOG_ATTRIBUTE_KEYWORD(attr_program_name, "attr_program_name", std::string)
-BOOST_LOG_ATTRIBUTE_KEYWORD(attr_entity_name, "attr_entity_name", std::string_view)
-BOOST_LOG_ATTRIBUTE_KEYWORD(attr_num_id, "attr_num_id", num_id_t)
-BOOST_LOG_ATTRIBUTE_KEYWORD(attr_string_id, "attr_string_id", std::string)
+constexpr const char *kProgramNameAttr{ "attr_program_name" };
+using program_name_t = std::string;
 
-constexpr const char *kThreadIdName{ "ThreadID" };
-using thread_id_t = boost::log::attributes::current_thread_id;
+constexpr const char *kEntityNameAttr{ "attr_entity_name" };
+using entity_name_t = std::string_view;
 
-constexpr const char *kSeverityName{ "Severity" };
-constexpr const char *kRecordIdName{ "RecordID" };
+constexpr const char *kNumIdAttr{ "attr_num_id" };
+using num_id_t = logger::num_id_t;
 
-}    // namespace logger::detail
+constexpr const char *kStringIdAttr{ "attr_string_id" };
+using string_id_t = std::string;
+
+constexpr const char *kThreadIdAttr{ "ThreadID" };
+using thread_id_t = boost::log::thread_id;
+
+constexpr const char *kSeverityAttr{ "Severity" };
+constexpr const char *kRecordIdAttr{ "RecordID" };
+
+}    // namespace logger::detail::attributes
