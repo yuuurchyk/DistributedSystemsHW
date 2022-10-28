@@ -9,6 +9,7 @@ Request::Request(Frame frame) : Frame{ std::move(frame) }
 {
     if (!valid())
         return;
+
     if (event() != codes::Event::REQUEST)
         invalidate();
 }

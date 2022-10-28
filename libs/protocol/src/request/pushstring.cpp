@@ -18,7 +18,8 @@ const std::string_view &PushString::string() const
 void PushString::decideOnValidity()
 {
     if (!valid())
-        return invalidate();
+        return;
+
     if (opCode() != codes::OpCode::PUSH_STRING)
         return invalidate();
 
