@@ -24,19 +24,11 @@ void PushString::decideOnValidity()
 
     const auto body = this->body();
 
-    if (body.size() < sizeof(size_t))
-        return invalidate();
-
-    const auto stringSize = *reinterpret_cast<const size_t *>(body.data());
-
-    const auto stringBegin = body.data() + sizeof(size_t);
-    const auto stringEnd   = body.data() + body.size();
-
-    if (stringEnd - stringBegin != stringSize)
-        return invalidate();
-
-    content_ =
-        std::string_view{ reinterpret_cast<const char *>(stringBegin), stringSize };
+    if (body.size() == 0)
+        content_ = "";
+    else
+        content_ =
+            std::string_view{ reinterpret_cast<const char *>(body.data()), body.size() };
 }
 
 }    // namespace protocol::request

@@ -6,7 +6,10 @@
 
 namespace protocol::request
 {
-
+/**
+ * @brief PushString request body:
+ * ... string to push
+ */
 class PushString : public Request
 {
 public:
