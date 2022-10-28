@@ -56,16 +56,16 @@ TEST(Frame, MemoryInspection)
     const auto buffer = frame.flushBuffer();
     ASSERT_FALSE(buffer.invalidated());
 
-    const auto expectedSize = sizeof(Frame::size_type) + sizeof(codes::Event) +
-                              sizeof(codes::OpCode) + sizeof(Frame::size_type) +
-                              sizeof(int) + 3 + sizeof(int);
+    const auto expectedSize = sizeof(size_t) + sizeof(codes::Event) +
+                              sizeof(codes::OpCode) + sizeof(size_t) + sizeof(int) + 3 +
+                              sizeof(int);
     ASSERT_EQ(buffer.size(), expectedSize);
 
     auto checker = MemoryChecker{ buffer.data() };
-    ASSERT_EQ(checker.checkAndAdvance<Frame::size_type>(), expectedSize);
+    ASSERT_EQ(checker.checkAndAdvance<size_t>(), expectedSize);
     ASSERT_EQ(checker.checkAndAdvance<codes::Event>(), codes::Event::REQUEST);
     ASSERT_EQ(checker.checkAndAdvance<codes::OpCode>(), codes::OpCode::GET_STRINGS);
-    ASSERT_EQ(checker.checkAndAdvance<Frame::size_type>(), 5);
+    ASSERT_EQ(checker.checkAndAdvance<size_t>(), 5);
     ASSERT_EQ(checker.checkAndAdvance<int>(), 1);
     ASSERT_EQ(checker.checkAndAdvance<char>(), 'a');
     ASSERT_EQ(checker.checkAndAdvance<char>(), 'b');

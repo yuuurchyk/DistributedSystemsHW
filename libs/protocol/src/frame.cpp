@@ -22,7 +22,7 @@ void Frame::decideOnValidity()
     if (buffer_.size() < kBodyOffset)
         return invalidate();
 
-    if (*reinterpret_cast<const size_type *>(buffer_.data() + kFrameSizeOffset) !=
+    if (*reinterpret_cast<const size_t *>(buffer_.data() + kFrameSizeOffset) !=
         buffer_.size())
         return invalidate();
 
@@ -48,12 +48,12 @@ codes::OpCode Frame::opCode() const
         return *reinterpret_cast<const codes::OpCode *>(buffer_.data() + kOpCodeOffset);
 }
 
-Frame::size_type Frame::requestId() const
+size_t Frame::requestId() const
 {
     if (!valid())
         return {};
     else
-        return *reinterpret_cast<const size_type *>(buffer_.data() + kRequestIdOffset);
+        return *reinterpret_cast<const size_t *>(buffer_.data() + kRequestIdOffset);
 }
 
 Buffer Frame::flushBuffer()

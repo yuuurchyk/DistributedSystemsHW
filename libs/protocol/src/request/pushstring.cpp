@@ -24,12 +24,12 @@ void PushString::decideOnValidity()
 
     const auto body = this->body();
 
-    if (body.size() < sizeof(Frame::size_type))
+    if (body.size() < sizeof(size_t))
         return invalidate();
 
-    const auto stringSize = *reinterpret_cast<const Frame::size_type *>(body.data());
+    const auto stringSize = *reinterpret_cast<const size_t *>(body.data());
 
-    const auto stringBegin = body.data() + sizeof(Frame::size_type);
+    const auto stringBegin = body.data() + sizeof(size_t);
     const auto stringEnd   = body.data() + body.size();
 
     if (stringEnd - stringBegin != stringSize)

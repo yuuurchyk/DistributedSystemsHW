@@ -20,8 +20,7 @@ namespace protocol
 class Frame
 {
 public:
-    using size_type = uint64_t;
-    static_assert(sizeof(size_type) >= sizeof(size_t));
+    static_assert(sizeof(size_t) == 8);
 
     Frame(Buffer);
 
@@ -39,7 +38,7 @@ public:
 
     codes::Event  event() const;
     codes::OpCode opCode() const;
-    size_type     requestId() const;
+    size_t        requestId() const;
 
     BufferView body() const;
     Buffer     flushBuffer();
@@ -49,10 +48,10 @@ protected:
 
 private:
     static constexpr size_t kFrameSizeOffset{ 0 };
-    static constexpr size_t kEventOffset{ kFrameSizeOffset + sizeof(size_type) };
+    static constexpr size_t kEventOffset{ kFrameSizeOffset + sizeof(size_t) };
     static constexpr size_t kOpCodeOffset{ kEventOffset + sizeof(codes::Event) };
     static constexpr size_t kRequestIdOffset{ kOpCodeOffset + sizeof(codes::OpCode) };
-    static constexpr size_t kBodyOffset{ kRequestIdOffset + sizeof(size_type) };
+    static constexpr size_t kBodyOffset{ kRequestIdOffset + sizeof(size_t) };
 
     void decideOnValidity();
 

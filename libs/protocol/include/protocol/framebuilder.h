@@ -11,12 +11,12 @@ namespace protocol
 class FrameBuilder
 {
 public:
-    FrameBuilder(codes::Event, codes::OpCode, Frame::size_type requestId);
+    FrameBuilder(codes::Event, codes::OpCode, size_t requestId);
     /**
      * @brief allows for faster construction when we know body size
      * beforehand
      */
-    FrameBuilder(codes::Event, codes::OpCode, Frame::size_type id, size_t bodySize);
+    FrameBuilder(codes::Event, codes::OpCode, size_t id, size_t bodySize);
 
     FrameBuilder(const FrameBuilder &)            = delete;
     FrameBuilder(FrameBuilder &&)                 = delete;
