@@ -26,16 +26,18 @@ class IdEntity
 public:
     IdEntity() : loggerId_{ detail::IdCounter<Entity_t>::getNext() } {}
 
+    IdEntity(const IdEntity &)            = delete;
+    IdEntity(IdEntity &&)                 = default;
+    IdEntity &operator=(const IdEntity &) = delete;
+    IdEntity &operator=(IdEntity &&)      = default;
+
+    ~IdEntity() = default;
+
 protected:
     detail::logger_id_t loggerId() const noexcept { return loggerId_; }
 
 private:
     const detail::logger_id_t loggerId_;
-
-    IdEntity(const IdEntity &)            = delete;
-    IdEntity(IdEntity &&)                 = default;
-    IdEntity &operator=(const IdEntity &) = delete;
-    IdEntity &operator=(IdEntity &&)      = delete;
 };
 
 }    // namespace logger
