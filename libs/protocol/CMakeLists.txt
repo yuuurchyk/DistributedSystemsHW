@@ -13,7 +13,6 @@ target_include_directories(
   ${PROJECT_NAME}
   PUBLIC include
   PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PUBLIC logger)
 set_target_properties(
   ${PROJECT_NAME}
   PROPERTIES CXX_STANDARD 17

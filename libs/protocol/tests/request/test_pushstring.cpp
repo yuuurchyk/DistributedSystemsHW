@@ -10,7 +10,6 @@ using namespace protocol;
 
 namespace
 {
-
 TEST(RequestPushString, ValidFormulation)
 {
     {
