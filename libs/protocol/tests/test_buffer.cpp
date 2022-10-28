@@ -5,7 +5,6 @@
 #include <gtest/gtest.h>
 
 #include "protocol/buffer.h"
-
 #include "utils/memorychecker.h"
 
 using namespace protocol;

@@ -1,36 +1,32 @@
 #pragma once
 
 #include <cstdint>
+#include <ostream>
 
-/**
- * @brief Structure of Frame:
- * 8 bytes: frame size
- * 1 byte:  EventType
- * 1 byte:  RequestType | ResponseType
- * 8 bytes: id (for request: request id, for response: id of the incoming request)
- * body     request/response specific payload
- */
 namespace protocol::codes
 {
-enum class EventType : uint8_t
+enum class Event : uint8_t
 {
     REQUEST = 0,
     RESPONSE,
     ERROR
 };
+std::ostream &operator<<(std::ostream &, Event);
 
-enum class RequestType : uint8_t
+enum class OpCode : uint8_t
 {
-    REQUEST_PUSH_STRING = 0,
-    REQUEST_GET_STRINGS,
+    PUSH_STRING = 0,
+    GET_STRINGS,
     ERROR
 };
+std::ostream &operator<<(std::ostream &, OpCode);
 
-enum class ResponseType : uint8_t
+enum class Response : uint8_t
 {
-    REPONSE_PUSH_STRING = 0,
-    RESPONSE_GET_STRINGS,
+    SUCCESS = 0,
+    FAILURE,
     ERROR
 };
+std::ostream &operator<<(std::ostream &, Response);
 
 }    // namespace protocol::codes
