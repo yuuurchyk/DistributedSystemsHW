@@ -9,6 +9,11 @@ Frame::Frame(Buffer buffer) : buffer_{ std::move(buffer) }
     decideOnValidity();
 }
 
+bool Frame::valid() const noexcept
+{
+    return valid_;
+}
+
 void Frame::decideOnValidity()
 {
     if (buffer_.invalidated())
@@ -56,7 +61,7 @@ Buffer Frame::flushBuffer()
     return std::move(buffer_);
 }
 
-BufferView Frame::body()
+BufferView Frame::body() const
 {
     if (!valid())
         return BufferView{ nullptr, 0 };

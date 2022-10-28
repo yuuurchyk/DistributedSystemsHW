@@ -35,17 +35,17 @@ public:
     /**
      * @note frame body should be checked separately
      */
-    bool valid() const;
+    bool valid() const noexcept;
 
     codes::Event  event() const;
     codes::OpCode opCode() const;
     size_type     requestId() const;
 
-    Buffer flushBuffer();
+    BufferView body() const;
+    Buffer     flushBuffer();
 
 protected:
-    void       invalidate();
-    BufferView body();
+    void invalidate();
 
 private:
     static constexpr size_t kFrameSizeOffset{ 0 };
