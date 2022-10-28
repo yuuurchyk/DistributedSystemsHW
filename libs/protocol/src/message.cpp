@@ -6,7 +6,7 @@
 
 namespace protocol
 {
-const Message::size_type kInvalidMessage{};
+const Message::size_type Message::kInvalidMessage{};
 
 Message::Message()
 {

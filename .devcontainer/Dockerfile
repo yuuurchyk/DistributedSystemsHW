@@ -26,7 +26,13 @@ ARG NINJA_VERSION_MAJOR="1"
 ARG NINJA_VERSION_MINOR="11"
 ARG NINJA_VERSION_PATCH="1"
 
+ARG ENABLE_GTEST="true"
+ARG GTEST_VERSION_MAJOR="1"
+ARG GTEST_VERSION_MINOR="12"
+ARG GTEST_VERSION_PATCH="1"
+
 # TODO:
+# * tbb
 # * poco
 # * cppcheck
 
@@ -229,6 +235,46 @@ FROM ninja_${ENABLE_NINJA} AS ninja
 # ninja installation ends
 # ----------------------
 
+# ----------------------
+# gtest installation starts
+# ----------------------
+FROM ubuntu:${UBUNTU_VERSION} AS gtest_true
+
+ARG DEBIAN_FRONTEND
+ARG GTEST_VERSION_MAJOR
+ARG GTEST_VERSION_MINOR
+ARG GTEST_VERSION_PATCH
+ARG GTEST_VERSION="${GTEST_VERSION_MAJOR}.${GTEST_VERSION_MINOR}.${GTEST_VERSION_PATCH}"
+ARG GTEST_ARCHIVE_NAME="release-${GTEST_VERSION}.tar.gz"
+ARG GTEST_FOLDER="googletest-release-${GTEST_VERSION}"
+ARG GTEST_LINK="https://github.com/google/googletest/archive/refs/tags/${GTEST_ARCHIVE_NAME}"
+
+RUN apt-get update
+RUN apt-get install -y build-essential cmake wget
+
+RUN mkdir -p /tmp/gtest
+RUN mkdir -p /install/gtest
+
+WORKDIR /tmp/gtest
+RUN wget ${GTEST_LINK}
+RUN tar -xf ${GTEST_ARCHIVE_NAME}
+RUN rm -rf ./${GTEST_ARCHIVE_NAME}
+WORKDIR /tmp/gtest/${GTEST_FOLDER}
+
+RUN cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Release -DBUILD_GMOCK=OFF \
+    -DCMAKE_INSTALL_PREFIX=/install/gtest
+RUN cmake --build build --target install -- -j$(nproc)
+
+FROM ubuntu:${UBUNTU_VERSION} AS gtest_false
+
+RUN mkdir -p /install/gtest/bin
+
+FROM gtest_${ENABLE_GTEST} AS gtest
+# ----------------------
+# gtest installation ends
+# ----------------------
+
 FROM ubuntu:${UBUNTU_VERSION} AS final
 
 ARG DEBIAN_FRONTEND
@@ -241,6 +287,7 @@ COPY --from=clang_format /install/clang_format /install/clang_format
 COPY --from=boost /install/boost /install/boost
 COPY --from=ninja /install/ninja /install/ninja
 COPY --from=tbb /install/tbb /install/tbb
+COPY --from=gtest /install/gtest /install/gtest
 # TODO: add other packages
 
 RUN rsync -a /install/cmake/* /usr/local
@@ -248,6 +295,7 @@ RUN rsync -a /install/clang_format/* /usr/local
 RUN rsync -a /install/boost/* /usr/local
 RUN rsync -a /install/ninja/* /usr/local
 RUN rsync -a /install/tbb/* /usr/local
+RUN rsync -a /install/gtest/* /usr/local
 # TODO: add other packages
 
 RUN rm -rf ./install

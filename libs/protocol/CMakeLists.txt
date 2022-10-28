@@ -14,3 +14,12 @@ target_include_directories(
   PUBLIC include
   PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PUBLIC logger)
+set_target_properties(
+  ${PROJECT_NAME}
+  PROPERTIES CXX_STANDARD 17
+             CXX_STANDARD_REQUIRED ON
+             CXX_EXTENSIONS OFF)
+
+if(HW1-build-tests)
+  add_subdirectory(tests)
+endif()
