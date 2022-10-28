@@ -16,15 +16,24 @@ ARG BOOST_VERSION_MAJOR="1"
 ARG BOOST_VERSION_MINOR="80"
 ARG BOOST_VERSION_PATCH="0"
 
+ARG ENABLE_TBB="true"
+ARG TBB_VERSION_MAJOR="2021"
+ARG TBB_VERSION_MINOR="6"
+ARG TBB_VERSION_PATCH="0"
+
 ARG ENABLE_NINJA="true"
 ARG NINJA_VERSION_MAJOR="1"
 ARG NINJA_VERSION_MINOR="11"
 ARG NINJA_VERSION_PATCH="1"
 
+# TODO:
+# * poco
+# * cppcheck
+
 # ----------------------
 # cmake installation starts
 # ----------------------
-FROM ubuntu:${UBUNTU_VERSION} as cmake_true
+FROM ubuntu:${UBUNTU_VERSION} AS cmake_true
 
 ARG DEBIAN_FRONTEND
 ARG CMAKE_VERSION_MAJOR
@@ -53,7 +62,7 @@ RUN make install
 
 FROM ubuntu:${UBUNTU_VERSION} AS cmake_false
 
-RUN mkdir -p /install/cmake/
+RUN mkdir -p /install/cmake/bin
 
 FROM cmake_${ENABLE_CMAKE} AS cmake
 # ----------------------
@@ -94,7 +103,7 @@ RUN cp ./build/bin/clang-format /install/clang_format/bin
 
 FROM ubuntu:${UBUNTU_VERSION} AS clang_format_false
 
-RUN mkdir -p /install/clang_format/
+RUN mkdir -p /install/clang_format/bin
 
 FROM clang_format_${ENABLE_CLANG_FORMAT} AS clang_format
 # ----------------------
@@ -134,11 +143,50 @@ RUN ./b2 -j$(nproc) install
 
 FROM ubuntu:${UBUNTU_VERSION} AS boost_false
 
-RUN mkdir -p /install/boost
+RUN mkdir -p /install/boost/bin
 
 FROM boost_${ENABLE_BOOST} AS boost
 # ----------------------
 # boost installation ends
+# ----------------------
+
+# ----------------------
+# tbb installation starts
+# ----------------------
+FROM ubuntu:${UBUNTU_VERSION} AS tbb_true
+
+ARG DEBIAN_FRONTEND
+ARG TBB_VERSION_MAJOR
+ARG TBB_VERSION_MINOR
+ARG TBB_VERSION_PATCH
+ARG TBB_VERSION="${TBB_VERSION_MAJOR}.${TBB_VERSION_MINOR}.${TBB_VERSION_PATCH}"
+ARG TBB_ARCHIVE_NAME="v${TBB_VERSION}.zip"
+ARG TBB_LINK="https://github.com/oneapi-src/oneTBB/archive/refs/tags/${TBB_ARCHIVE_NAME}"
+ARG TBB_EXTRACTED_FOLDER="oneTBB-${TBB_VERSION}"
+
+RUN apt-get update
+RUN apt-get install -y build-essential cmake unzip wget
+
+RUN mkdir -p /tmp/tbb
+RUN mkdir -p /install/tbb
+
+WORKDIR /tmp/tbb
+RUN wget ${TBB_LINK}
+RUN unzip ${TBB_ARCHIVE_NAME}
+RUN rm -rf ./${TBB_ARCHIVE_NAME}
+WORKDIR /tmp/tbb/${TBB_EXTRACTED_FOLDER}
+
+RUN cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/install/tbb -DTBB_TEST=OFF
+RUN cmake --build build --target install -- -j$(nproc)
+
+FROM ubuntu:${UBUNTU_VERSION} AS tbb_false
+
+RUN mkdir -p /install/tbb/bin
+
+FROM tbb_${ENABLE_TBB} AS tbb
+# ----------------------
+# tbb installation ends
 # ----------------------
 
 # ----------------------
@@ -174,7 +222,7 @@ RUN cmake --build build --target install -- -j$(nproc)
 
 FROM ubuntu:${UBUNTU_VERSION} AS ninja_false
 
-RUN mkdir -p /install/ninja
+RUN mkdir -p /install/ninja/bin
 
 FROM ninja_${ENABLE_NINJA} AS ninja
 # ----------------------
@@ -192,12 +240,14 @@ COPY --from=cmake /install/cmake /install/cmake
 COPY --from=clang_format /install/clang_format /install/clang_format
 COPY --from=boost /install/boost /install/boost
 COPY --from=ninja /install/ninja /install/ninja
+COPY --from=tbb /install/tbb /install/tbb
 # TODO: add other packages
 
 RUN rsync -a /install/cmake/* /usr/local
 RUN rsync -a /install/clang_format/* /usr/local
 RUN rsync -a /install/boost/* /usr/local
 RUN rsync -a /install/ninja/* /usr/local
+RUN rsync -a /install/tbb/* /usr/local
 # TODO: add other packages
 
 RUN rm -rf ./install
