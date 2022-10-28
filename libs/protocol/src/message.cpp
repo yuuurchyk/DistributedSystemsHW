@@ -1,6 +1,7 @@
-#include "protocol/message/message.h"
+#include "protocol/message.h"
 
 #include <cstring>
+#include <limits>
 #include <new>
 #include <utility>
 
@@ -17,6 +18,8 @@ Message::Message()
     }
     else
     {
+        *reinterpret_cast<size_type *>(rawMemory_.get()) = 0;
+
         size_     = sizeof(size_type);
         capacity_ = size_;
     }
@@ -33,6 +36,10 @@ void Message::reserveSpaceFor(size_t bytesNum)
 
     const auto needToAdditionallyAllocate = bytesNum - left;
 
+    // capacity_ + needToAdditionallyAllocate <= std::numeric_limits::max()
+    if (needToAdditionallyAllocate > std::numeric_limits<size_t>::max() - capacity_)
+        return invalidate();
+
     auto newMemory = std::unique_ptr<std::byte[]>{ new (
         std::nothrow) std::byte[capacity_ + needToAdditionallyAllocate] };
     if (newMemory == nullptr)
@@ -41,20 +48,6 @@ void Message::reserveSpaceFor(size_t bytesNum)
     std::memcpy(newMemory.get(), rawMemory_.get(), size_);
     rawMemory_.swap(newMemory);
     capacity_ += needToAdditionallyAllocate;
-}
-
-Message &Message::operator<<(const std::string &s)
-{
-    addMemoryChunk(reinterpret_cast<const std::byte *>(s.data()),
-                   s.size() * sizeof(char));
-    return *this;
-}
-
-Message &Message::operator<<(const std::string_view &s)
-{
-    addMemoryChunk(reinterpret_cast<const std::byte *>(s.data()),
-                   s.size() * sizeof(char));
-    return *this;
 }
 
 bool Message::valid() const noexcept
@@ -104,6 +97,7 @@ void Message::addMemoryChunk(const std::byte *start, size_t size)
     std::memcpy(rawMemory_.get() + size_, start, size);
     size_ += size;
     payloadSize_ += size;
+    *reinterpret_cast<size_type *>(rawMemory_.get()) += size;
 }
 
 }    // namespace protocol

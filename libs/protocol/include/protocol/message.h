@@ -32,6 +32,7 @@ class Message
 {
 public:
     using size_type = uint64_t;
+    static_assert(sizeof(size_type) >= sizeof(size_t));
 
     Message();
 
@@ -50,8 +51,10 @@ public:
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     Message &operator<<(T val);
 
-    Message &operator<<(const std::string &s);
-    Message &operator<<(const std::string_view &s);
+    template <typename Str,
+              typename = std::enable_if_t<std::is_same_v<Str, std::string> ||
+                                          std::is_same_v<Str, std::string_view>>>
+    Message &operator<<(const Str &s);
 
     bool valid() const noexcept;
 
@@ -84,5 +87,21 @@ auto protocol::Message::operator<<(T val) -> Message &
 {
     static_assert(std::is_integral_v<T>, "only for integral types");
     addMemoryChunk(reinterpret_cast<const std::byte *>(&val), sizeof(val));
+    return *this;
+}
+
+template <typename Str, typename>
+auto protocol::Message::operator<<(const Str &s) -> Message &
+{
+    static_assert(std::is_same_v<Str, std::string> ||
+                  std::is_same_v<Str, std::string_view>);
+
+    reserveSpaceFor(sizeof(size_type) + s.size());
+
+    const auto sSize = static_cast<size_type>(s.size());
+    addMemoryChunk(reinterpret_cast<const std::byte *>(&sSize), sizeof(size_type));
+    addMemoryChunk(reinterpret_cast<const std::byte *>(s.data()),
+                   s.size() * sizeof(char));
+
     return *this;
 }
