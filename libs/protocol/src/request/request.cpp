@@ -5,13 +5,18 @@
 namespace protocol::request
 {
 
-Request::Request(Frame frame) : Frame{ std::move(frame) }
+Request::Request(Frame &&frame) : Frame{ std::move(frame) }
+{
+    decideOnValidity();
+}
+
+void Request::decideOnValidity()
 {
     if (!valid())
         return;
 
     if (event() != codes::Event::REQUEST)
-        invalidate();
+        return invalidate();
 }
 
 }    // namespace protocol::request

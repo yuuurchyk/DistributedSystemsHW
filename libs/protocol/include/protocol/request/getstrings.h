@@ -8,7 +8,7 @@ namespace protocol::request
 class GetStrings : public Request
 {
 public:
-    GetStrings(Request);
+    GetStrings(Request &&);
 
 private:
     void decideOnValidity();

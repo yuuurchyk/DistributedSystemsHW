@@ -8,7 +8,10 @@ namespace protocol::request
 class Request : public Frame
 {
 public:
-    Request(Frame frame);
+    Request(Frame &&frame);
+
+private:
+    void decideOnValidity();
 };
 
 }    // namespace protocol::request

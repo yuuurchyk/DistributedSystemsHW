@@ -13,7 +13,7 @@ namespace protocol::request
 class PushString : public Request
 {
 public:
-    PushString(Request);
+    PushString(Request &&);
 
     const std::string_view &string() const;
 

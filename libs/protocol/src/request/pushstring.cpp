@@ -5,7 +5,7 @@
 namespace protocol::request
 {
 
-PushString::PushString(Request request) : Request{ std::move(request) }
+PushString::PushString(Request &&request) : Request{ std::move(request) }
 {
     decideOnValidity();
 }

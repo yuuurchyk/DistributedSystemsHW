@@ -5,7 +5,7 @@
 namespace protocol::request
 {
 
-GetStrings::GetStrings(Request request) : Request{ std::move(request) }
+GetStrings::GetStrings(Request &&request) : Request{ std::move(request) }
 {
     decideOnValidity();
 }
