@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  server-node:
+    build:
+      context: "."
+      target: "deploy"
+      args:
+        ENABLE_CMAKE: "true"
+        ENABLE_BOOST: "true"
+        ENABLE_TBB: "true"
+        ENABLE_NINJA: "true"
+    entrypoint: "server"
+    # ports:
+    #   - "8001:8001"
+  
+  client-node:
+    scale: 2
+    build:
+      context: "."
+      target: "deploy"
+      args:
+        ENABLE_CMAKE: "true"
+        ENABLE_BOOST: "true"
+        ENABLE_TBB: "true"
+        ENABLE_NINJA: "true"
+    entrypoint: "client"
+    # ports:
+    #   - "8001:8001"
