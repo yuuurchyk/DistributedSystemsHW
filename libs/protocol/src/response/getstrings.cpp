@@ -77,6 +77,8 @@ void GetStrings::decideOnValidity()
                 strings_.push_back(
                     std::string_view{ reinterpret_cast<const char *>(l), size });
             }
+
+            l += size;
         }
     }
     catch (const std::exception &)
