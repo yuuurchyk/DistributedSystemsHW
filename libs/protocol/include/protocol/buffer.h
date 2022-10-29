@@ -38,8 +38,14 @@ public:
     Buffer &operator<<(const Str &s);
 
     size_t           size() const noexcept;
+    size_t           capacity() const noexcept;
     std::byte       *data() noexcept;
     const std::byte *data() const noexcept;
+
+    /**
+     * @brief treat @p newSize bytes of the buffer as data
+     */
+    void setSize(size_t newSize);
 
 private:
     void invalidate();

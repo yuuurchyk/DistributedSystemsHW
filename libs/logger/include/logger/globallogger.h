@@ -29,4 +29,4 @@ BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
 
 #define LOGI _LOGIMPL(Info)
 #define LOGW _LOGIMPL(Warning)
-#define LOGR _LOGIMPL(Error)
+#define LOGE _LOGIMPL(Error)

@@ -53,7 +53,7 @@ TEST(Frame, MemoryInspection)
 
     ASSERT_TRUE(frame.valid());
 
-    const auto buffer = frame.flushBuffer();
+    const auto &buffer = frame.buffer();
     ASSERT_FALSE(buffer.invalidated());
 
     const auto expectedSize = sizeof(size_t) + sizeof(codes::Event) +

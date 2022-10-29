@@ -1,5 +1,6 @@
 #include "protocol/buffer.h"
 
+#include <algorithm>
 #include <cstring>
 #include <limits>
 
@@ -55,13 +56,28 @@ size_t Buffer::size() const noexcept
 {
     return size_;
 }
+
+size_t Buffer::capacity() const noexcept
+{
+    return capacity_;
+}
+
 std::byte *Buffer::data() noexcept
 {
     return rawMemory_.get();
 }
+
 const std::byte *Buffer::data() const noexcept
 {
     return rawMemory_.get();
+}
+
+void Buffer::setSize(size_t newSize)
+{
+    if (invalidated())
+        return;
+    newSize = std::min(newSize, capacity());
+    size_   = newSize;
 }
 
 void Buffer::invalidate()

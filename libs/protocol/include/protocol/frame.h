@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <ostream>
 
 #include "utils/copymove.h"
 
@@ -34,8 +35,8 @@ public:
     codes::OpCode opCode() const;
     size_t        requestId() const;
 
-    BufferView body() const;
-    Buffer     flushBuffer();
+    BufferView    body() const;
+    const Buffer &buffer() const;
 
 protected:
     void invalidate();
@@ -53,5 +54,7 @@ private:
     Buffer buffer_;
     bool   valid_{ true };
 };
+
+std::ostream &operator<<(std::ostream &, const Frame &);
 
 }    // namespace protocol

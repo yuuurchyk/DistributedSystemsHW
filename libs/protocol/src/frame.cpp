@@ -56,11 +56,6 @@ size_t Frame::requestId() const
         return *reinterpret_cast<const size_t *>(buffer_.data() + kRequestIdOffset);
 }
 
-Buffer Frame::flushBuffer()
-{
-    return std::move(buffer_);
-}
-
 BufferView Frame::body() const
 {
     if (!valid())
@@ -69,9 +64,24 @@ BufferView Frame::body() const
         return BufferView{ buffer_.data() + kBodyOffset, buffer_.size() - kBodyOffset };
 }
 
+const Buffer &Frame::buffer() const
+{
+    return buffer_;
+}
+
 void Frame::invalidate()
 {
     valid_ = false;
+}
+
+std::ostream &operator<<(std::ostream &strm, const Frame &frame)
+{
+    if (!frame.valid())
+        return strm << "Frame(invalid)";
+    else
+        return strm << "Frame(" << frame.event() << ", " << frame.opCode()
+                    << ", requestId=" << frame.requestId()
+                    << ", bodyLen=" << frame.body().size() << ")";
 }
 
 }    // namespace protocol

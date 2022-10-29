@@ -5,137 +5,258 @@
 #include <boost/system/error_code.hpp>
 
 #include "logger/logger.h"
+#include "protocol/buffer.h"
 
 using namespace boost::asio;
 using namespace protocol;
 using error_code = boost::system::error_code;
 
 std::shared_ptr<CommunicationEndpoint>
-    CommunicationEndpoint::create(io_context                           &context,
-                                  ip::tcp::socket                       socket,
-                                  std::function<void(request::Request)> requestCallback)
+    CommunicationEndpoint::create(io_context         &context,
+                                  ip::tcp::socket     socket,
+                                  request_callback_fn requestCallback)
 {
     return std::shared_ptr<CommunicationEndpoint>{ new CommunicationEndpoint{
         context, std::move(socket), std::move(requestCallback) } };
 }
 
-void CommunicationEndpoint::start()
+void CommunicationEndpoint::run()
 {
-    // TODO: implement
+    readFrameSize();
 }
 
-void CommunicationEndpoint::sendRequest(request::Request     request,
-                                        response_callback_fn responseCallback,
+size_t CommunicationEndpoint::getNextRequestId()
+{
+    return requestIdCounter_.fetch_add(1, std::memory_order_relaxed);
+}
+
+void CommunicationEndpoint::sendRequest(request::Request     arg_request,
+                                        response_callback_fn arg_responseCallback,
                                         const boost::posix_time::milliseconds &timeout)
 {
-    if (!request.valid())
+    if (!arg_request.valid() ||
+        pendingRequests_.find(arg_request.requestId()) != pendingRequests_.end())
     {
-        LOGI << "request" << request.requestId()
-             << " is not valid, creating response callback right away without sending";
-        if (responseCallback != nullptr)
-            responseCallback(/* response */ {}, std::move(request));
+        ID_LOGE << "Invalid request, executing response callback right away";
+        if (arg_responseCallback != nullptr)
+            arg_responseCallback(/* response */ {}, std::move(arg_request));
+        return;
+    }
+
+    LOGI << "Sending request: " << arg_request;
+
+    const auto id             = arg_request.requestId();
+    auto       pendingRequest = PendingRequest::create(
+        context_, std::move(arg_request), std::move(arg_responseCallback));
+
+    // NOTE: don't use arg_* variables from now on
+
+    pendingRequests_.insert({ id, pendingRequest });
+
+    async_write(
+        socket_,
+        buffer(pendingRequest->request.buffer().data(),
+               pendingRequest->request.buffer().size()),
+        [this, self = shared_from_this(), pendingRequest](const error_code &error, size_t)
+        {
+            if (error)
+            {
+                ID_LOGE << "Failed to write request frame";
+            }
+        });
+
+    pendingRequest->timeoutTimer.expires_from_now(timeout);
+    pendingRequest->timeoutTimer.async_wait(
+        [this, self = shared_from_this(), pendingRequest = std::move(pendingRequest), id](
+            const error_code &error)
+        {
+            if (!error)
+                return;
+
+            ID_LOGW << "timeout expired for request with id=" << id;
+
+            if (pendingRequest->responseCallback != nullptr)
+            {
+                pendingRequest->responseCallback(/* response */ {},
+                                                 std::move(pendingRequest->request));
+            }
+
+            if (auto it = pendingRequests_.find(id); it != pendingRequests_.end())
+                pendingRequests_.erase(it);
+        });
+}
+
+void CommunicationEndpoint::sendResponse(response::Response response)
+{
+    ID_LOGI << "sending response: " << response;
+
+    if (!response.valid())
+    {
+        ID_LOGW << "response is not valid, exiting";
+        return;
+    }
+
+    auto  frameOwner = std::make_unique<Frame>(std::move(response));
+    auto &frame      = *frameOwner;
+
+    async_write(socket_,
+                buffer(frame.buffer().data(), frame.buffer().size()),
+                [this, self = shared_from_this(), frameOwner = std::move(frameOwner)](
+                    const error_code &error, size_t)
+                {
+                    if (error)
+                    {
+                        ID_LOGE << "Failed to write response frame";
+                    }
+                });
+}
+
+CommunicationEndpoint::CommunicationEndpoint(io_context         &context,
+                                             ip::tcp::socket     socket,
+                                             request_callback_fn requestCallback)
+    : context_{ context },
+      socket_{ std::move(socket) },
+      requestCallback_{ std::move(requestCallback_) }
+{
+}
+
+void CommunicationEndpoint::readFrameSize()
+{
+    ID_LOGI << "Reading frame size";
+    async_read(socket_,
+               buffer(reinterpret_cast<void *>(frameSize_), sizeof(size_t)),
+               transfer_exactly(sizeof(size_t)),
+               [this, self = shared_from_this()](const error_code &error, size_t)
+               {
+                   if (error)
+                   {
+                       ID_LOGE << "Failed to read from socket";
+                       return;
+                   }
+
+                   ID_LOGI << "Frame size read: " << frameSize_;
+                   readFrame();
+               });
+}
+
+void CommunicationEndpoint::readFrame()
+{
+    const auto desiredCapacity = sizeof(size_t) + frameSize_;
+
+    auto  bufOwner = std::make_unique<Buffer>(desiredCapacity);
+    auto &buf = *bufOwner;    // note: this is needed since arguments evaluation order in
+                              // async_read() is undefined
+
+    if (buf.invalidated())
+    {
+        ID_LOGE << "Failed to allocate buffer";
+        return;
+    }
+
+    *reinterpret_cast<size_t *>(buf.data()) = frameSize_;
+
+    async_read(socket_,
+               buffer(buf.data(), buf.capacity()),
+               transfer_exactly(frameSize_),
+               [this, self = shared_from_this(), bufOwner = std::move(bufOwner)](
+                   const error_code &error, size_t)
+               {
+                   if (error)
+                   {
+                       ID_LOGE << "Failed to read frame";
+                   }
+                   else
+                   {
+                       ID_LOGI << "Read into buffer successfully";
+
+                       bufOwner->setSize(bufOwner->capacity());
+                       parseBuffer(std::move(*bufOwner));
+
+                       readFrameSize();
+                   }
+               });
+}
+
+void CommunicationEndpoint::parseBuffer(Buffer buffer)
+{
+    ID_LOGI << "parsing buffer, creating frame";
+
+    auto frame = Frame{ std::move(buffer) };
+    if (!frame.valid())
+    {
+        ID_LOGW << "invalid frame, exiting";
         return;
     }
     else
     {
-                return sendValidRequestImpl(
-            std::make_shared<request::Request>(std::move(request)),
-            std::make_shared<response_callback_fn>(std::move(responseCallback)),
-            timeout);
+        ID_LOGI << "incoming frame: " << frame;
+    }
+
+    switch (frame.event())
+    {
+    case codes::Event::REQUEST:
+    {
+        if (requestCallback_ != nullptr)
+            requestCallback_(request::Request{ std::move(frame) });
+        break;
+    }
+    case codes::Event::RESPONSE:
+    {
+        parseResponse(response::Response{ std::move(frame) });
+        break;
+    }
     }
 }
 
-void CommunicationEndpoint::sendValidRequestImpl(
-    std::shared_ptr<request::Request>      request,
-    std::shared_ptr<response_callback_fn>  responseCallback,
-    const boost::posix_time::milliseconds &timeout)
+void CommunicationEndpoint::parseResponse(response::Response response)
 {
-    auto timeoutTimer = std::make_shared<deadline_timer>(context_);
-    timeoutTimer->expires_from_now(timeout);
-    timeoutTimer->async_wait(
-        [timeoutTimer, endpoint = shared_from_this(), request](const error_code &error)
-        {
-            if (error)
-                return;
+    ID_LOGI << "parsing response for " << response;
 
-            LOGI << "timer expired for request "
-        });
+    if (!response.valid())
+    {
+        ID_LOGW << "invalid response, exiting";
+        return;
+    }
 
-    const auto requestId = request.requestId();
+    auto it = pendingRequests_.find(response.requestId());
 
-    auto it = pendingRequests_.insert_or_assign(
-        requestId,
-        PendingRequest::create(*this, timeout, requestPtr, std::move(responseCallback)));
+    if (it == pendingRequests_.end())
+    {
+        ID_LOGI << "Could not find pending request for response, exiting";
+        return;
+    }
 
-    const auto requestBuffer = requestPtr->buffer();
-    async_write(socket_,
-                buffer(requestBuffer.data(), requestBuffer.size()),
-                [requestPtr](const error_code &error)
-                {
-                    if (error)
-                        LOGI << "failed to write request " << requestPtr->requestId()
-                             << " through network";
-                    else
-                        LOGI << "successfully wrote request " << requestPtr->requestId()
-                             << " though network";
-                });
+    auto pendingRequest = std::move(it->second);
+    pendingRequests_.erase(it);
+
+    ID_LOGI << "Found pending request";
+    ID_LOGI << "pending request: " << pendingRequest->request;
+    ID_LOGI << "response       : " << response;
+
+    if (pendingRequest->responseCallback != nullptr)
+    {
+        pendingRequest->responseCallback(std::move(response),
+                                         std::move(pendingRequest->request));
+    }
+
+    pendingRequest->timeoutTimer.cancel();
 }
 
-CommunicationEndpoint::CommunicationEndpoint(boost::asio::io_context     &context,
-                                             boost::asio::ip::tcp::socket socket,
-                                             request_callback_fn          requestCallback)
-    : context_{ context },
-      socket_{ std::move(socket) },
-      requestCallback_{ std::move(requestCallback) }
+auto CommunicationEndpoint::PendingRequest::create(io_context          &context,
+                                                   request::Request     request,
+                                                   response_callback_fn responseCallback)
+    -> std::shared_ptr<PendingRequest>
 {
+    return std::shared_ptr<PendingRequest>{ new PendingRequest{
+        context, std::move(request), responseCallback } };
 }
 
 CommunicationEndpoint::PendingRequest::PendingRequest(
-    CommunicationEndpoint                 &endpoint,
-    const boost::posix_time::milliseconds &timeout,
-    std::shared_ptr<request::Request>      request,
-    response_callback_fn                   responseCallback)
+    io_context          &context,
+    request::Request     request,
+    response_callback_fn responseCallback)
     : request{ std::move(request) },
       responseCallback{ std::move(responseCallback) },
-      timer{ endpoint.context_ }
+      timeoutTimer{ context }
 {
-    init(endpoint, timeout);
-}
-
-void CommunicationEndpoint::PendingRequest::init(
-    CommunicationEndpoint                 &endpoint,
-    const boost::posix_time::milliseconds &timeout)
-{
-    if (!request->valid())
-        return;
-    LOGI << "request is valid, sending through";
-
-    timer.expires_from_now(timeout);
-    timer.async_wait(
-        [endpoint  = endpoint.shared_from_this(),
-         requestId = request->requestId(),
-         request   = this->request](const error_code &error) mutable
-        {
-            if (error)
-                return;
-            LOGI << "timer expired for request " << requestId;
-
-            const auto it = endpoint->pendingRequests_.find(requestId);
-
-            if (it == endpoint->pendingRequests_.end())
-            {
-                LOGI << "could not find request in pending, exiting";
-                return;
-            }
-            else
-            {
-                auto responseCallback = std::move(it->second.responseCallback);
-                auto request          = std::move(it->second.request);
-
-                endpoint->pendingRequests_.erase(it);
-                endpoint.reset();
-
-                responseCallback(/* response */ {}, std::move(request));
-            }
-        });
 }
