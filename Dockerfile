@@ -1,45 +1,51 @@
 ARG DEBIAN_FRONTEND=noninteractive
 ARG UBUNTU_VERSION="22.04"
 
-ARG ENABLE_CMAKE="true"
+ARG ENABLE_CMAKE="false"
 ARG CMAKE_VERSION_MAJOR="3"
 ARG CMAKE_VERSION_MINOR="22"
 ARG CMAKE_VERSION_PATCH="3"
 
-ARG ENABLE_CLANG_FORMAT="true"
+ARG ENABLE_CLANG_FORMAT="false"
 ARG CLANG_FORMAT_LLVM_VERSION_MAJOR="11"
 ARG CLANG_FORMAT_LLVM_VERSION_MINOR="1"
 ARG CLANG_FORMAT_LLVM_VERSION_PATCH="0"
 
-ARG ENABLE_BOOST="true"
+ARG ENABLE_BOOST="false"
 ARG BOOST_VERSION_MAJOR="1"
 ARG BOOST_VERSION_MINOR="80"
 ARG BOOST_VERSION_PATCH="0"
 
-ARG ENABLE_TBB="true"
+ARG ENABLE_TBB="false"
 ARG TBB_VERSION_MAJOR="2021"
 ARG TBB_VERSION_MINOR="6"
 ARG TBB_VERSION_PATCH="0"
 
-ARG ENABLE_NINJA="true"
+ARG ENABLE_NINJA="false"
 ARG NINJA_VERSION_MAJOR="1"
 ARG NINJA_VERSION_MINOR="11"
 ARG NINJA_VERSION_PATCH="1"
 
-ARG ENABLE_GTEST="true"
+ARG ENABLE_GTEST="false"
 ARG GTEST_VERSION_MAJOR="1"
 ARG GTEST_VERSION_MINOR="12"
 ARG GTEST_VERSION_PATCH="1"
 
 # TODO:
-# * tbb
 # * poco
 # * cppcheck
+
+FROM ubuntu:${UBUNTU_VERSION} AS impl_essentials
+
+ARG DEBIAN_FRONTEND
+
+RUN apt-get update
+RUN apt-get install -y build-essential cmake wget unzip
 
 # ----------------------
 # cmake installation starts
 # ----------------------
-FROM ubuntu:${UBUNTU_VERSION} AS cmake_true
+FROM impl_essentials AS cmake_true
 
 ARG DEBIAN_FRONTEND
 ARG CMAKE_VERSION_MAJOR
@@ -50,8 +56,7 @@ ARG CMAKE_ARCHIVE_BASENAME="cmake-${CMAKE_VERSION}"
 ARG CMAKE_ARCHIVE_NAME="${CMAKE_ARCHIVE_BASENAME}.tar.gz"
 ARG CMAKE_LINK="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/${CMAKE_ARCHIVE_NAME}"
 
-RUN apt-get update
-RUN apt-get install -y build-essential libssl-dev wget
+RUN apt-get install -y libssl-dev
 
 RUN mkdir -p /tmp/cmake
 RUN mkdir -p /install/cmake
@@ -78,7 +83,7 @@ FROM cmake_${ENABLE_CMAKE} AS cmake
 # ----------------------
 # clang-format installation starts
 # ----------------------
-FROM ubuntu:${UBUNTU_VERSION} AS clang_format_true
+FROM impl_essentials AS clang_format_true
 
 ARG DEBIAN_FRONTEND
 ARG CLANG_FORMAT_LLVM_VERSION_MAJOR
@@ -88,8 +93,7 @@ ARG CLANG_FORMAT_LLVM_VERSION="${CLANG_FORMAT_LLVM_VERSION_MAJOR}.${CLANG_FORMAT
 ARG LLVM_ARCHIVE_NAME="llvmorg-${CLANG_FORMAT_LLVM_VERSION}.zip"
 ARG LLVM_LINK="https://github.com/llvm/llvm-project/archive/refs/tags/${LLVM_ARCHIVE_NAME}"
 
-RUN apt-get update
-RUN apt-get install -y build-essential cmake python3 wget unzip
+RUN apt-get install -y python3
 
 RUN mkdir -p /tmp/llvm
 RUN mkdir -p /install/clang_format/bin
@@ -119,7 +123,7 @@ FROM clang_format_${ENABLE_CLANG_FORMAT} AS clang_format
 # ----------------------
 # boost installation starts
 # ----------------------
-FROM ubuntu:${UBUNTU_VERSION} AS boost_true
+FROM impl_essentials AS boost_true
 
 ARG DEBIAN_FRONTEND
 ARG BOOST_VERSION_MAJOR
@@ -130,9 +134,6 @@ ARG BOOST_VERSION_DOT="${BOOST_VERSION_MAJOR}.${BOOST_VERSION_MINOR}.${BOOST_VER
 ARG BOOST_ARCHIVE_BASENAME="boost_${BOOST_VERSION_UNDERSCORE}"
 ARG BOOST_ARCHIVE_NAME="${BOOST_ARCHIVE_BASENAME}.tar.gz"
 ARG BOOST_LINK="https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION_DOT}/source/${BOOST_ARCHIVE_NAME}"
-
-RUN apt-get update
-RUN apt-get install -y build-essential wget
 
 RUN mkdir -p /tmp/boost
 RUN mkdir -p /install/boost
@@ -159,7 +160,7 @@ FROM boost_${ENABLE_BOOST} AS boost
 # ----------------------
 # tbb installation starts
 # ----------------------
-FROM ubuntu:${UBUNTU_VERSION} AS tbb_true
+FROM impl_essentials AS tbb_true
 
 ARG DEBIAN_FRONTEND
 ARG TBB_VERSION_MAJOR
@@ -169,9 +170,6 @@ ARG TBB_VERSION="${TBB_VERSION_MAJOR}.${TBB_VERSION_MINOR}.${TBB_VERSION_PATCH}"
 ARG TBB_ARCHIVE_NAME="v${TBB_VERSION}.zip"
 ARG TBB_LINK="https://github.com/oneapi-src/oneTBB/archive/refs/tags/${TBB_ARCHIVE_NAME}"
 ARG TBB_EXTRACTED_FOLDER="oneTBB-${TBB_VERSION}"
-
-RUN apt-get update
-RUN apt-get install -y build-essential cmake unzip wget
 
 RUN mkdir -p /tmp/tbb
 RUN mkdir -p /install/tbb
@@ -198,7 +196,7 @@ FROM tbb_${ENABLE_TBB} AS tbb
 # ----------------------
 # ninja installation starts
 # ----------------------
-FROM ubuntu:${UBUNTU_VERSION} AS ninja_true
+FROM impl_essentials AS ninja_true
 
 ARG DEBIAN_FRONTEND
 ARG NINJA_VERSION_MAJOR
@@ -208,9 +206,6 @@ ARG NINJA_VERSION="${NINJA_VERSION_MAJOR}.${NINJA_VERSION_MINOR}.${NINJA_VERSION
 ARG NINJA_ARCHIVE_BASENAME="v${NINJA_VERSION}"
 ARG NINJA_ARCHIVE_NAME="${NINJA_ARCHIVE_BASENAME}.zip"
 ARG NINJA_LINK="https://github.com/ninja-build/ninja/archive/refs/tags/${NINJA_ARCHIVE_NAME}"
-
-RUN apt-get update
-RUN apt-get install -y build-essential cmake wget unzip
 
 RUN mkdir -p /tmp/ninja
 RUN mkdir -p /install/ninja
@@ -238,7 +233,7 @@ FROM ninja_${ENABLE_NINJA} AS ninja
 # ----------------------
 # gtest installation starts
 # ----------------------
-FROM ubuntu:${UBUNTU_VERSION} AS gtest_true
+FROM impl_essentials AS gtest_true
 
 ARG DEBIAN_FRONTEND
 ARG GTEST_VERSION_MAJOR
@@ -248,9 +243,6 @@ ARG GTEST_VERSION="${GTEST_VERSION_MAJOR}.${GTEST_VERSION_MINOR}.${GTEST_VERSION
 ARG GTEST_ARCHIVE_NAME="release-${GTEST_VERSION}.tar.gz"
 ARG GTEST_FOLDER="googletest-release-${GTEST_VERSION}"
 ARG GTEST_LINK="https://github.com/google/googletest/archive/refs/tags/${GTEST_ARCHIVE_NAME}"
-
-RUN apt-get update
-RUN apt-get install -y build-essential cmake wget
 
 RUN mkdir -p /tmp/gtest
 RUN mkdir -p /install/gtest
@@ -290,6 +282,7 @@ COPY --from=tbb /install/tbb /install/tbb
 COPY --from=gtest /install/gtest /install/gtest
 # TODO: add other packages
 
+ENV LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
 RUN rsync -a /install/cmake/* /usr/local
 RUN rsync -a /install/clang_format/* /usr/local
 RUN rsync -a /install/boost/* /usr/local
@@ -300,9 +293,25 @@ RUN rsync -a /install/gtest/* /usr/local
 
 RUN rm -rf ./install
 
-FROM final AS deploy
+# ----------------------
+# terminal stages start
+# ----------------------
+FROM final AS development
 
 ARG DEBIAN_FRONTEND
 
 RUN apt-get install -y python3 python3-pip git nano
 RUN pip3 install cmake-format
+
+FROM final AS deploy
+
+COPY . /app
+
+WORKDIR /app
+RUN cmake -S . -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -Dlogreplication-build-tests=OFF
+RUN cmake --build build --target install
+# ----------------------
+# terminal stages end
+# ----------------------

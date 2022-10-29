@@ -1,7 +1,16 @@
 {
     "name": "distr-systems-hw-1",
     "build": {
-        "dockerfile": "Dockerfile"
+        "dockerfile": "../Dockerfile",
+        "target": "development",
+        "args": {
+            "ENABLE_CMAKE": "true",
+            "ENABLE_CLANG_FORMAT": "true",
+            "ENABLE_BOOST": "true",
+            "ENABLE_TBB": "true",
+            "ENABLE_NINJA": "true",
+            "ENABLE_GTEST": "true"
+        }
     },
     "extensions": [
         "ms-vscode.cpptools-extension-pack",
