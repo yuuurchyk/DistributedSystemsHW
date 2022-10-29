@@ -41,7 +41,7 @@ public:
     size_t        requestId() const;
 
     BufferView body() const;
-    Buffer     flushBuffer();
+    BufferView buffer() const;
 
 protected:
     void invalidate();
