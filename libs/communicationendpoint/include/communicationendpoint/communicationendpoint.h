@@ -4,7 +4,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
-#include <unordered_map>
+#include <unordered_set>
 
 #include <boost/asio.hpp>
 
@@ -47,43 +47,30 @@ private:
         boost::asio::ip::tcp::socket                    socket,
         std::function<void(protocol::request::Request)> requestCallback);
 
-    struct PendingRequest : public std::enable_shared_from_this<PendingRequest>
-    {
-        static std::shared_ptr<PendingRequest>
-            create(CommunicationEndpoint                      &endpoint,
-                   const boost::posix_time::milliseconds      &timeout,
-                   std::shared_ptr<protocol::request::Request> request,
-                   response_callback_fn                        responseCallback);
-
-        std::shared_ptr<protocol::request::Request> request;
-        response_callback_fn                        responseCallback;
-        boost::asio::deadline_timer                 timer;
-
-    private:
-        PendingRequest(CommunicationEndpoint                      &endpoint,
-                       const boost::posix_time::milliseconds      &timeout,
-                       std::shared_ptr<protocol::request::Request> request,
-                       response_callback_fn                        responseCallback);
-
-        void init(CommunicationEndpoint                 &endpoint,
-                  const boost::posix_time::milliseconds &timeout);
-
-        PendingRequest(const PendingRequest &)            = delete;
-        PendingRequest(PendingRequest &&)                 = delete;
-        PendingRequest &operator=(const PendingRequest &) = delete;
-        PendingRequest &operator=(PendingRequest &&)      = delete;
-    };
-    friend class PendingRequest;
+    void sendValidRequestImpl(std::shared_ptr<protocol::request::Request> request,
+                              std::shared_ptr<response_callback_fn>  responseCallback,
+                              const boost::posix_time::milliseconds &timeout);
 
     boost::asio::io_context     &context_;
     boost::asio::ip::tcp::socket socket_;
     const request_callback_fn    requestCallback_;
 
-    // request id to PendingRequest struct
-    std::unordered_map<size_t, std::shared_ptr<PendingRequest>> pendingRequests_;
+    std::unordered_set<size_t> pendingRequests_;
+
+    struct PendingRequest
+    {
+        protocol::request::Request  request;
+        response_callback_fn        responseCallback;
+        boost::asio::deadline_timer timeoutTimer;
+    };
+    friend bool operator==(const CommunicationEndpoint::PendingRequest &lhs,
+                           const CommunicationEndpoint::PendingRequest &rhs);
 
     CommunicationEndpoint(const CommunicationEndpoint &)            = delete;
     CommunicationEndpoint(CommunicationEndpoint &&)                 = delete;
     CommunicationEndpoint &operator=(const CommunicationEndpoint &) = delete;
     CommunicationEndpoint &operator=(CommunicationEndpoint &&)      = delete;
 };
+
+bool operator==(const CommunicationEndpoint::PendingRequest &lhs,
+                const CommunicationEndpoint::PendingRequest &rhs);

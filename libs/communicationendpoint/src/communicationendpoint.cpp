@@ -36,9 +36,32 @@ void CommunicationEndpoint::sendRequest(request::Request     request,
             responseCallback(/* response */ {}, std::move(request));
         return;
     }
+    else
+    {
+                return sendValidRequestImpl(
+            std::make_shared<request::Request>(std::move(request)),
+            std::make_shared<response_callback_fn>(std::move(responseCallback)),
+            timeout);
+    }
+}
 
-    const auto requestId  = request.requestId();
-    auto       requestPtr = std::make_shared<request::Request>(std::move(request));
+void CommunicationEndpoint::sendValidRequestImpl(
+    std::shared_ptr<request::Request>      request,
+    std::shared_ptr<response_callback_fn>  responseCallback,
+    const boost::posix_time::milliseconds &timeout)
+{
+    auto timeoutTimer = std::make_shared<deadline_timer>(context_);
+    timeoutTimer->expires_from_now(timeout);
+    timeoutTimer->async_wait(
+        [timeoutTimer, endpoint = shared_from_this(), request](const error_code &error)
+        {
+            if (error)
+                return;
+
+            LOGI << "timer expired for request "
+        });
+
+    const auto requestId = request.requestId();
 
     auto it = pendingRequests_.insert_or_assign(
         requestId,
