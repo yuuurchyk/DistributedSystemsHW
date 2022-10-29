@@ -19,9 +19,9 @@ public:
     FrameBuilder(codes::Event, codes::OpCode, size_t id, size_t bodySize);
 
     FrameBuilder(const FrameBuilder &)            = delete;
-    FrameBuilder(FrameBuilder &&)                 = delete;
+    FrameBuilder(FrameBuilder &&)                 = default;
     FrameBuilder &operator=(const FrameBuilder &) = delete;
-    FrameBuilder &operator=(FrameBuilder &&)      = delete;
+    FrameBuilder &operator=(FrameBuilder &&)      = default;
     ~FrameBuilder()                               = default;
 
     template <typename T>
