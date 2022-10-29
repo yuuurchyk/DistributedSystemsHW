@@ -69,14 +69,6 @@ BufferView Frame::body() const
         return BufferView{ buffer_.data() + kBodyOffset, buffer_.size() - kBodyOffset };
 }
 
-BufferView Frame::buffer() const
-{
-    if (!valid())
-        return BufferView{ nullptr, 0 };
-    else
-        return BufferView{ buffer_.data(), buffer_.size() };
-}
-
 void Frame::invalidate()
 {
     valid_ = false;

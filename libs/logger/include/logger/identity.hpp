@@ -6,6 +6,8 @@
 
 #include <boost/log/utility/manipulators/add_value.hpp>
 
+#include "utils/copymove.h"
+
 #include "logger/detail/attributes.h"
 #include "logger/detail/entityname.hpp"
 #include "logger/detail/idcounter.hpp"
@@ -23,15 +25,10 @@ namespace logger
 template <typename Entity_t>
 class IdEntity
 {
+    DISABLE_COPY(IdEntity);
+
 public:
     IdEntity() : loggerId_{ detail::IdCounter<Entity_t>::getNext() } {}
-
-    IdEntity(const IdEntity &)            = delete;
-    IdEntity(IdEntity &&)                 = default;
-    IdEntity &operator=(const IdEntity &) = delete;
-    IdEntity &operator=(IdEntity &&)      = default;
-
-    ~IdEntity() = default;
 
 protected:
     detail::logger_id_t loggerId() const noexcept { return loggerId_; }

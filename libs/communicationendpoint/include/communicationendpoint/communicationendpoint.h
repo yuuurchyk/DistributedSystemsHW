@@ -8,6 +8,8 @@
 
 #include <boost/asio.hpp>
 
+#include "utils/copymove.h"
+
 #include "protocol/request/request.h"
 #include "protocol/response/response.h"
 
@@ -21,6 +23,8 @@
  */
 class CommunicationEndpoint : public std::enable_shared_from_this<CommunicationEndpoint>
 {
+    DISABLE_COPY_MOVE(CommunicationEndpoint);
+
 public:
     // when the endpoint recieved a request from the net
     using request_callback_fn = std::function<void(protocol::request::Request request)>;
@@ -65,12 +69,4 @@ private:
     };
     friend bool operator==(const CommunicationEndpoint::PendingRequest &lhs,
                            const CommunicationEndpoint::PendingRequest &rhs);
-
-    CommunicationEndpoint(const CommunicationEndpoint &)            = delete;
-    CommunicationEndpoint(CommunicationEndpoint &&)                 = delete;
-    CommunicationEndpoint &operator=(const CommunicationEndpoint &) = delete;
-    CommunicationEndpoint &operator=(CommunicationEndpoint &&)      = delete;
 };
-
-bool operator==(const CommunicationEndpoint::PendingRequest &lhs,
-                const CommunicationEndpoint::PendingRequest &rhs);

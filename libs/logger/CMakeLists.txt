@@ -16,7 +16,7 @@ target_include_directories(
   ${PROJECT_NAME}
   PUBLIC include
   PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::log Boost::log_setup)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::log Boost::log_setup utils)
 
 set_target_properties(
   ${PROJECT_NAME}

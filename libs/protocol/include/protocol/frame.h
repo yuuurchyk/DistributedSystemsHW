@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <memory>
 
+#include "utils/copymove.h"
+
 #include "protocol/buffer.h"
 #include "protocol/codes.h"
 
@@ -20,16 +22,8 @@ namespace protocol
 class Frame
 {
 public:
-    static_assert(sizeof(size_t) == 8);
-
     Frame(Buffer);
-
-    Frame(const Frame &)            = delete;
-    Frame(Frame &&)                 = default;
-    Frame &operator=(const Frame &) = delete;
-    Frame &operator=(Frame &&)      = default;
-
-    ~Frame() = default;
+    DISABLE_COPY_DEFAULT_MOVE(Frame);
 
     /**
      * @note frame body should be checked separately
@@ -41,12 +35,13 @@ public:
     size_t        requestId() const;
 
     BufferView body() const;
-    BufferView buffer() const;
+    Buffer     flushBuffer();
 
 protected:
     void invalidate();
 
 private:
+    static_assert(sizeof(size_t) == 8);
     static constexpr size_t kFrameSizeOffset{ 0 };
     static constexpr size_t kEventOffset{ kFrameSizeOffset + sizeof(size_t) };
     static constexpr size_t kOpCodeOffset{ kEventOffset + sizeof(codes::Event) };

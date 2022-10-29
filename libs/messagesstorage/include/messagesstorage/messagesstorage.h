@@ -4,19 +4,17 @@
 #include <string>
 #include <vector>
 
+#include "utils/copymove.h"
+
 /**
  * @brief all operations are thread safe
  */
 class MessagesStorage
 {
+    DISABLE_COPY_MOVE(MessagesStorage);
+
 public:
     MessagesStorage();
-
-    MessagesStorage(const MessagesStorage &)            = delete;
-    MessagesStorage(MessagesStorage &&)                 = delete;
-    MessagesStorage &operator=(const MessagesStorage &) = delete;
-    MessagesStorage &operator=(MessagesStorage &&)      = delete;
-
     ~MessagesStorage();
 
     void addMessage(const std::string &);

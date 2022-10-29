@@ -9,6 +9,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ./src/**.cpp ./src/**.h
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
+target_link_libraries(${PROJECT_NAME} PUBLIC utils)
 target_include_directories(
   ${PROJECT_NAME}
   PUBLIC include

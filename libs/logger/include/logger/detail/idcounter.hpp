@@ -3,6 +3,8 @@
 #include <atomic>
 #include <cstddef>
 
+#include "utils/copymove.h"
+
 namespace logger::detail
 {
 using logger_id_t = size_t;
@@ -18,6 +20,10 @@ using logger_id_t = size_t;
 template <typename Entity_t>
 class IdCounter
 {
+    IdCounter()  = delete;
+    ~IdCounter() = delete;
+    DISABLE_COPY_MOVE(IdCounter);
+
 public:
     static logger_id_t getNext()
     {
@@ -26,13 +32,6 @@ public:
 
 private:
     static inline std::atomic<logger_id_t> counter_{};
-
-    IdCounter()                             = delete;
-    IdCounter(const IdCounter &)            = delete;
-    IdCounter(IdCounter &&)                 = delete;
-    IdCounter &operator=(const IdCounter &) = delete;
-    IdCounter &operator=(IdCounter &&)      = delete;
-    ~IdCounter()                            = delete;
 };
 
 }    // namespace logger::detail

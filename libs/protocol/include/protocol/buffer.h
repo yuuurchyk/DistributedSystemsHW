@@ -6,6 +6,8 @@
 #include <string_view>
 #include <type_traits>
 
+#include "utils/copymove.h"
+
 namespace protocol
 {
 class Buffer
@@ -13,13 +15,7 @@ class Buffer
 public:
     Buffer();
     Buffer(size_t capacity);
-
-    Buffer(const Buffer &)            = delete;
-    Buffer(Buffer &&)                 = default;
-    Buffer &operator=(const Buffer &) = delete;
-    Buffer &operator=(Buffer &&)      = default;
-
-    ~Buffer() = default;
+    DISABLE_COPY_DEFAULT_MOVE(Buffer);
 
     /**
      * @brief whether we could not allocated memory
