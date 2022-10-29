@@ -43,7 +43,7 @@ void CommunicationEndpoint::sendRequest(request::Request     arg_request,
         return;
     }
 
-    LOGI << "Sending request: " << arg_request;
+    ID_LOGI << "Sending request: " << arg_request;
 
     const auto id             = arg_request.requestId();
     auto       pendingRequest = PendingRequest::create(
@@ -124,13 +124,13 @@ void CommunicationEndpoint::readFrameSize()
 {
     ID_LOGI << "Reading frame size";
     async_read(socket_,
-               buffer(reinterpret_cast<void *>(frameSize_), sizeof(size_t)),
+               buffer(&frameSize_, sizeof(size_t)),
                transfer_exactly(sizeof(size_t)),
                [this, self = shared_from_this()](const error_code &error, size_t)
                {
                    if (error)
                    {
-                       ID_LOGE << "Failed to read from socket";
+                       ID_LOGE << "Failed to read from socket: " << error.message();
                        return;
                    }
 
@@ -141,9 +141,13 @@ void CommunicationEndpoint::readFrameSize()
 
 void CommunicationEndpoint::readFrame()
 {
-    const auto desiredCapacity = sizeof(size_t) + frameSize_;
+    if (frameSize_ < sizeof(size_t))
+    {
+        ID_LOGE << "invalid frame size, exiting";
+        return;
+    }
 
-    auto  bufOwner = std::make_unique<Buffer>(desiredCapacity);
+    auto  bufOwner = std::make_unique<Buffer>(frameSize_);
     auto &buf = *bufOwner;    // note: this is needed since arguments evaluation order in
                               // async_read() is undefined
 
@@ -156,8 +160,8 @@ void CommunicationEndpoint::readFrame()
     *reinterpret_cast<size_t *>(buf.data()) = frameSize_;
 
     async_read(socket_,
-               buffer(buf.data(), buf.capacity()),
-               transfer_exactly(frameSize_),
+               buffer(buf.data() + sizeof(size_t), frameSize_ - sizeof(size_t)),
+               transfer_exactly(frameSize_ - sizeof(size_t)),
                [this, self = shared_from_this(), bufOwner = std::move(bufOwner)](
                    const error_code &error, size_t)
                {

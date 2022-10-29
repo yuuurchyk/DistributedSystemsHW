@@ -2,8 +2,16 @@
 
 #include <utility>
 
+#include "protocol/framebuilder.h"
+
 namespace protocol::request
 {
+GetStrings GetStrings::form(size_t requestId)
+{
+    return GetStrings{ Request{
+        FrameBuilder{ codes::Event::REQUEST, codes::OpCode::GET_STRINGS, requestId }
+            .build() } };
+}
 
 GetStrings::GetStrings(Request &&request) : Request{ std::move(request) }
 {

@@ -8,6 +8,8 @@ namespace protocol::request
 class GetStrings : public Request
 {
 public:
+    static GetStrings form(size_t requestId);
+
     GetStrings(Request &&);
 
 private:

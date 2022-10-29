@@ -3,10 +3,7 @@ cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 project(HW1 LANGUAGES CXX)
 option(${PROJECT_NAME}-build-tests "include tests" ON)
 
-find_package(
-  Boost 1.80 EXACT REQUIRED
-  COMPONENTS program_options
-  REQUIRED)
+find_package(Boost 1.80 EXACT REQUIRED)
 find_package(Threads REQUIRED)
 
 add_subdirectory(libs)
@@ -16,9 +13,7 @@ foreach(filename client server)
 
   add_executable(${targetName} src/${filename}.cpp)
 
-  target_link_libraries(
-    ${targetName} PRIVATE logger Boost::boost Boost::program_options
-                          Threads::Threads)
+  target_link_libraries(${targetName} PRIVATE Boost::boost ${libsTargets})
   set_target_properties(
     ${targetName}
     PROPERTIES CXX_STANDARD 17
