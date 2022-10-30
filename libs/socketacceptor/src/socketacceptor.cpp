@@ -8,14 +8,13 @@ using namespace boost::asio;
 using error_code = boost::system::error_code;
 
 std::shared_ptr<SocketAcceptor>
-    SocketAcceptor::create(io_context              &context,
-                           unsigned short           port,
-                           new_socket_callback_fn   newSocketCallback,
-                           IOContextPool           &pool,
-                           IOContextSelectionPolicy policy)
+    SocketAcceptor::create(io_context            &acceptorContext,
+                           unsigned short         port,
+                           new_socket_callback_fn newSocketCallback,
+                           IOContextPool         &workersPool)
 {
     return std::shared_ptr<SocketAcceptor>{ new SocketAcceptor{
-        context, port, std::move(newSocketCallback), pool, policy } };
+        acceptorContext, port, std::move(newSocketCallback), workersPool } };
 }
 
 void SocketAcceptor::run()
@@ -23,34 +22,20 @@ void SocketAcceptor::run()
     acceptOne();
 }
 
-SocketAcceptor::SocketAcceptor(io_context              &context,
-                               unsigned short           port,
-                               new_socket_callback_fn   newSocketCallback,
-                               IOContextPool           &pool,
-                               IOContextSelectionPolicy policy)
-    : acceptor_{ context, ip::tcp::endpoint{ ip::tcp::v4(), port } },
+SocketAcceptor::SocketAcceptor(io_context            &acceptorContext,
+                               unsigned short         port,
+                               new_socket_callback_fn newSocketCallback,
+                               IOContextPool         &workersPool)
+    : acceptor_{ acceptorContext, ip::tcp::endpoint{ ip::tcp::v4(), port } },
       newSocketCallback_{ newSocketCallback == nullptr ? [](ip::tcp::socket) {} :
                                                          std::move(newSocketCallback) },
-      pool_{ pool },
-      policy_{ policy }
+      workersPool_{ workersPool }
 {
 }
 
 void SocketAcceptor::acceptOne()
 {
-    auto &socketContext = [this]() -> io_context &
-    {
-        switch (policy_)
-        {
-        case IOContextSelectionPolicy::LeastLoaded:
-            return pool_.getLeastLoaded();
-        case IOContextSelectionPolicy::Random:    // fall-though
-        default:
-            return pool_.getNext();
-        }
-    }();
-
-    auto  socketOwner = std::make_unique<ip::tcp::socket>(socketContext);
+    auto  socketOwner = std::make_unique<ip::tcp::socket>(workersPool_.getNext());
     auto &socket      = *socketOwner;
 
     acceptor_.async_accept(socket,

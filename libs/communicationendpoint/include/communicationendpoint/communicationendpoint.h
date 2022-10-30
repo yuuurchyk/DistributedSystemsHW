@@ -34,10 +34,12 @@ class CommunicationEndpoint : public std::enable_shared_from_this<CommunicationE
 
 public:
     // when the endpoint recieved a request from the other side
-    using request_callback_fn = std::function<void(protocol::request::Request request)>;
+    using request_callback_fn = std::function<void(std::shared_ptr<CommunicationEndpoint>,
+                                                   protocol::request::Request request)>;
     // when the net sent a response to the endpoint's request, added via sendRequest()
     using response_callback_fn =
-        std::function<void(std::optional<protocol::response::Response> response,
+        std::function<void(std::shared_ptr<CommunicationEndpoint>,
+                           std::optional<protocol::response::Response> response,
                            protocol::request::Request                  request)>;
     using invalidation_callback_fn =
         std::function<void(std::shared_ptr<CommunicationEndpoint>)>;

@@ -6,6 +6,7 @@
 #include "socketacceptor/socketacceptor.h"
 
 #include "httpsession.h"
+#include "mastersession.h"
 #include "messages.h"
 
 using namespace boost::asio;
@@ -22,23 +23,28 @@ int main()
     messages.push_back("a");
     messages.push_back("b");
 
-    auto acceptorContext = io_context{};
+    // -------------------------------
+    // -------------------------------
+    const auto workersNum  = 3;
+    auto       workersPool = IOContextPool{ workersNum };
+    workersPool.runInSeparateThreads();
 
-    const auto httpPort       = 8000;
-    const auto httpWorkersNum = 3;
-    auto       httpPool       = IOContextPool{ httpWorkersNum };
-    httpPool.runInSeparateThreads();
+    // -------------------------------
+    // -------------------------------
+    auto masterSessionPool = IOContextPool{ 1 };
+    masterSessionPool.runInSeparateThreads();
+    MasterSession::create(masterSessionPool.getNext(), /* port */ 6000, workersPool);
+
+    // -------------------------------
+    // -------------------------------
+    auto httpAcceptorContext = io_context{};
     SocketAcceptor::create(
-        acceptorContext,
-        httpPort,
+        httpAcceptorContext,
+        /* port */ 8000,
         [](ip::tcp::socket socket) { HttpSession::create(std::move(socket))->run(); },
-        httpPool,
-        SocketAcceptor::IOContextSelectionPolicy::Random)
+        workersPool)
         ->run();
-
-    acceptorContext.run();
-
-    httpPool.stop();
+    httpAcceptorContext.run();
 
     return 0;
 }

@@ -40,7 +40,8 @@ void CommunicationEndpoint::sendRequest(request::Request     arg_request,
 {
     if (arg_responseCallback == nullptr)
     {
-        arg_responseCallback = [](std::optional<protocol::response::Response>,
+        arg_responseCallback = [](std::shared_ptr<CommunicationEndpoint>,
+                                  std::optional<protocol::response::Response>,
                                   protocol::request::Request) {};
     }
 
@@ -48,7 +49,8 @@ void CommunicationEndpoint::sendRequest(request::Request     arg_request,
         pendingRequests_.find(arg_request.requestId()) != pendingRequests_.end())
     {
         ID_LOGE << "Invalid request, executing response callback right away";
-        arg_responseCallback(/* response */ {}, std::move(arg_request));
+        arg_responseCallback(
+            shared_from_this(), /* response */ {}, std::move(arg_request));
         return;
     }
 
@@ -85,7 +87,8 @@ void CommunicationEndpoint::sendRequest(request::Request     arg_request,
 
             ID_LOGW << "timeout expired for request with id=" << id;
 
-            pendingRequest->responseCallback(/* response */ {},
+            pendingRequest->responseCallback(shared_from_this(),
+                                             /* response */ {},
                                              std::move(pendingRequest->request));
 
             if (auto it = pendingRequests_.find(id); it != pendingRequests_.end())
@@ -126,8 +129,10 @@ CommunicationEndpoint::CommunicationEndpoint(
     invalidation_callback_fn invalidationCallback)
     : context_{ context },
       socket_{ std::move(socket) },
-      requestCallback_{ requestCallback == nullptr ? [](protocol::request::Request) {} :
-                                                     std::move(requestCallback_) },
+      requestCallback_{ requestCallback == nullptr ?
+                            [](std::shared_ptr<CommunicationEndpoint>,
+                               protocol::request::Request) {} :
+                            std::move(requestCallback_) },
       invalidationCallback_{ invalidationCallback == nullptr ?
                                  [](std::shared_ptr<CommunicationEndpoint>) {} :
                                  std::move(invalidationCallback) }
@@ -216,7 +221,7 @@ void CommunicationEndpoint::parseBuffer(Buffer buffer)
     case codes::Event::REQUEST:
     {
         if (requestCallback_ != nullptr)
-            requestCallback_(request::Request{ std::move(frame) });
+            requestCallback_(shared_from_this(), request::Request{ std::move(frame) });
         break;
     }
     case codes::Event::RESPONSE:
@@ -254,8 +259,8 @@ void CommunicationEndpoint::parseResponse(response::Response response)
 
     if (pendingRequest->responseCallback != nullptr)
     {
-        pendingRequest->responseCallback(std::move(response),
-                                         std::move(pendingRequest->request));
+        pendingRequest->responseCallback(
+            shared_from_this(), std::move(response), std::move(pendingRequest->request));
     }
 
     pendingRequest->timeoutTimer.cancel();
@@ -267,7 +272,8 @@ void CommunicationEndpoint::invalidate()
 
     for (auto [_, pendingRequest] : pendingRequests_)
         if (pendingRequest->responseCallback != nullptr)
-            pendingRequest->responseCallback(/* response */ {},
+            pendingRequest->responseCallback(shared_from_this(),
+                                             /* response */ {},
                                              std::move(pendingRequest->request));
 
     pendingRequests_.clear();
