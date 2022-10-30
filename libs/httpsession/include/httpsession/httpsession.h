@@ -40,6 +40,6 @@ protected:
     boost::asio::deadline_timer timer_;
 
     boost::beast::flat_buffer requestBuffer_{ constants::kHttpRequestBufferSize };
-    boost::beast::http::request<boost::beast::http::dynamic_body>  request_;
-    boost::beast::http::response<boost::beast::http::dynamic_body> response_;
+    boost::beast::http::request<boost::beast::http::string_body>  request_;
+    boost::beast::http::response<boost::beast::http::string_body> response_;
 };

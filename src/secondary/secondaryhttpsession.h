@@ -4,8 +4,6 @@
 
 #include "httpsession/httpsession.h"
 
-class SecondaryHttpSession;
-
 class SecondaryHttpSession final : public HttpSession
 {
 public:

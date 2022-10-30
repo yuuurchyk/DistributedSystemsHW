@@ -12,7 +12,7 @@ find_package(TBB 2021.6.0 EXACT REQUIRED)
 
 add_subdirectory(libs)
 
-foreach(appname secondary)
+foreach(appname master secondary)
   file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/${appname}/**.cpp
        src/${appname}/**.h src/${appname}/**.hpp)
   add_executable(${appname} ${SOURCES})
@@ -28,13 +28,3 @@ foreach(appname secondary)
 
   install(TARGETS ${appname})
 endforeach()
-
-add_executable(client src/client.cpp)
-target_link_libraries(client PRIVATE Boost::boost Boost::json TBB::tbb
-                                     ${libsTargets})
-set_target_properties(
-  client
-  PROPERTIES CXX_STANDARD 17
-             CXX_STANDARD_REQUIRED ON
-             CXX_EXTENSIONS OFF)
-install(TARGETS client)

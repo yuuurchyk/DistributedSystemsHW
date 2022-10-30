@@ -1,24 +1,28 @@
-#include "secondaryhttpsession.h"
+#include "masterhttpsession.h"
+
+#include <utility>
 
 #include <boost/json.hpp>
+
+#include "logger/logger.h"
 
 #include "messages.h"
 
 using namespace boost::asio;
 using namespace boost::beast;
 
-std::shared_ptr<SecondaryHttpSession> SecondaryHttpSession::create(ip::tcp::socket socket)
+std::shared_ptr<MasterHttpSession>
+    MasterHttpSession::create(boost::asio::ip::tcp::socket socket)
 {
-    return std::shared_ptr<SecondaryHttpSession>(
-        new SecondaryHttpSession{ std::move(socket) });
+    return std::shared_ptr<MasterHttpSession>(new MasterHttpSession{ std::move(socket) });
 }
 
-SecondaryHttpSession::SecondaryHttpSession(ip::tcp::socket socket)
+MasterHttpSession::MasterHttpSession(ip::tcp::socket socket)
     : HttpSession{ std::move(socket) }
 {
 }
 
-void SecondaryHttpSession::processRequest()
+void MasterHttpSession::processRequest()
 {
     ID_LOGI << "processing request";
 
@@ -40,6 +44,14 @@ void SecondaryHttpSession::processRequest()
             array.push_back(boost::json::string_view{ messages[i] });
 
         response_.body() = boost::json::serialize(array);
+    }
+    else if (request_.method() == http::verb::post && request_.target() == "/addmessage")
+    {
+        auto message = std::string{ request_.body() };
+
+        ID_LOGI << "valid request, adding the following string: '" << message << "'";
+
+        ::messages.push_back(std::move(message));
     }
     else
     {

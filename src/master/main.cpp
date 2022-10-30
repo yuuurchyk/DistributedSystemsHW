@@ -6,14 +6,13 @@
 #include "logger/logger.h"
 #include "socketacceptor/socketacceptor.h"
 
-#include "mastersession.h"
-#include "secondaryhttpsession.h"
+#include "masterhttpsession.h"
 
 using namespace boost::asio;
 
 int main()
 {
-    logger::setup("secondary");
+    logger::setup("master");
     BOOST_SCOPE_EXIT(void)
     {
         logger::teardown();
@@ -22,25 +21,17 @@ int main()
 
     // -------------------------------
     // -------------------------------
-    auto workersPool = IOContextPool{ constants::kSecondaryWorkersNum };
+    auto workersPool = IOContextPool{ constants::kMasterWorkersNum };
     workersPool.runInSeparateThreads();
-
-    // -------------------------------
-    // -------------------------------
-    auto masterSessionPool = IOContextPool{ 1 };
-    masterSessionPool.runInSeparateThreads();
-    MasterSession::create(
-        masterSessionPool.getNext(), constants::kSecondaryCommunicationPort, workersPool)
-        ->run();
 
     // -------------------------------
     // -------------------------------
     auto httpAcceptorContext = io_context{};
     SocketAcceptor::create(
         httpAcceptorContext,
-        constants::kSecondaryHttpPort,
+        constants::kMasterHttpPort,
         [](ip::tcp::socket socket)
-        { SecondaryHttpSession::create(std::move(socket))->run(); },
+        { MasterHttpSession::create(std::move(socket))->run(); },
         workersPool)
         ->run();
     httpAcceptorContext.run();
