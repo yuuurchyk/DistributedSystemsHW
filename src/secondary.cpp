@@ -11,6 +11,7 @@
 
 #include "iocontextpool/iocontextpool.h"
 #include "logger/logger.h"
+#include "socketacceptor/socketacceptor.h"
 #include "utils/copymove.h"
 
 using error_code = boost::system::error_code;
@@ -131,56 +132,6 @@ private:
     http::response<http::dynamic_body> response_;
 };
 
-class HttpServer : public std::enable_shared_from_this<HttpServer>
-{
-    DISABLE_COPY_MOVE(HttpServer)
-public:
-    static std::shared_ptr<HttpServer> create(io_context              &context,
-                                              const ip::tcp::endpoint &endpoint,
-                                              IOContextPool           &httpWorkersPool)
-    {
-        return std::shared_ptr<HttpServer>(
-            new HttpServer{ context, endpoint, httpWorkersPool });
-    }
-
-    void run() { acceptIncomingConnection(); }
-
-private:
-    HttpServer(io_context              &context,
-               const ip::tcp::endpoint &endpoint,
-               IOContextPool           &httpWorkersPool)
-        : acceptor_{ context, endpoint }, pool_{ httpWorkersPool }
-    {
-    }
-
-    void acceptIncomingConnection()
-    {
-        auto  socketOwner = std::make_unique<ip::tcp::socket>(pool_.getNext());
-        auto &socket      = *socketOwner;
-
-        acceptor_.async_accept(
-            socket,
-            [self        = shared_from_this(),
-             socketOwner = std::move(socketOwner)](const error_code &error)
-            {
-                if (error)
-                {
-                    LOGE << "Could not accept incoming connection";
-                    return;
-                }
-
-                LOGI << "Accepting incoming connection";
-
-                HttpSession::create(std::move(*socketOwner))->run();
-
-                self->acceptIncomingConnection();
-            });
-    }
-
-    ip::tcp::acceptor acceptor_;
-    IOContextPool    &pool_;
-};
-
 int main()
 {
     logger::setup("secondary");
@@ -199,12 +150,16 @@ int main()
     auto httpPool = IOContextPool{ httpWorkersNum };
     httpPool.runInSeparateThreads();
 
-    auto httpServerContext = io_context{};
-    HttpServer::create(
-        httpServerContext, ip::tcp::endpoint{ ip::tcp::v4(), port }, httpPool)
+    auto acceptorContext = io_context{};
+    SocketAcceptor::create(
+        acceptorContext,
+        port,
+        [](ip::tcp::socket socket) { HttpSession::create(std::move(socket))->run(); },
+        httpPool,
+        SocketAcceptor::IOContextSelectionPolicy::Random)
         ->run();
-    httpServerContext.run();
 
+    acceptorContext.run();
     httpPool.stop();
 
     return 0;
