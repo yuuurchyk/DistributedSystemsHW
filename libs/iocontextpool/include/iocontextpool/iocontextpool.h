@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <shared_mutex>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -16,6 +17,10 @@ class IOContextPool
 public:
     // should be positive
     IOContextPool(size_t size);
+
+    // not thead safe
+    void runInSeparateThreads(bool forever = true);
+    void stop();
 
     // thread safe, no locks
     size_t                   size() const noexcept;
@@ -36,4 +41,10 @@ private:
 
     std::shared_mutex      loadLock_;
     std::vector<long long> load_;
+
+    using work_guard_t =
+        boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
+
+    std::vector<std::thread>  workerThreads_;
+    std::vector<work_guard_t> workGuards_;
 };

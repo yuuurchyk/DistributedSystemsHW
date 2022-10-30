@@ -18,7 +18,7 @@ public:
     ~MessagesStorage();
 
     void addMessage(const std::string &);
-    void addMessage(std::string);
+    void addMessage(std::string &&);
 
     std::vector<std::string_view> getMessages() const;
 

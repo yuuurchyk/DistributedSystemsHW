@@ -18,7 +18,7 @@ void MessagesStorage::addMessage(const std::string &s)
     impl().v.push_back(s);
 }
 
-void MessagesStorage::addMessage(std::string s)
+void MessagesStorage::addMessage(std::string &&s)
 {
     impl().v.push_back(std::move(s));
 }

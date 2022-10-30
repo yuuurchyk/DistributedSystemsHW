@@ -1,6 +1,7 @@
 #include "iocontextpool/iocontextpool.h"
 
 #include <algorithm>
+#include <functional>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -90,4 +91,41 @@ io_context &IOContextPool::getLeastLoaded()
         throw std::logic_error{ "IOContextPool::getLeastLoaded(): internal error" };
 
     return *contexts_[targetIndex];
+}
+
+namespace
+{
+void ioContextRunner(io_context &context)
+{
+    context.run();
+}
+}    // namespace
+
+void IOContextPool::runInSeparateThreads(bool forever)
+{
+    if (!workerThreads_.empty() || !workGuards_.empty())
+        throw std::runtime_error{ "IOContextPool::runInSeparateThreads: wrong usage" };
+
+    if (forever)
+    {
+        workGuards_.reserve(size());
+        for (auto &context : contexts_)
+            workGuards_.emplace_back(context->get_executor());
+    }
+
+    workerThreads_.reserve(size());
+    for (auto &context : contexts_)
+        workerThreads_.emplace_back(ioContextRunner, std::ref(*context));
+}
+
+void IOContextPool::stop()
+{
+    for (auto &context : contexts_)
+        context->stop();
+
+    for (auto &thread : workerThreads_)
+        thread.join();
+
+    workerThreads_.clear();
+    workGuards_.clear();
 }
