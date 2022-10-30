@@ -11,7 +11,8 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ./src/**.cpp ./src/**.h
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC protocol Boost::boost logger utils)
+target_link_libraries(${PROJECT_NAME} PUBLIC protocol Boost::boost logger utils
+                                             constants)
 
 target_include_directories(
   ${PROJECT_NAME}

@@ -9,6 +9,7 @@
 
 #include <boost/asio.hpp>
 
+#include "constants/constants.h"
 #include "logger/logger.h"
 #include "utils/copymove.h"
 
@@ -52,11 +53,12 @@ public:
     void run();
 
     size_t getNextRequestId();
-    void   sendRequest(protocol::request::Request             request,
-                       response_callback_fn                   responseCallback,
-                       const boost::posix_time::milliseconds &timeout =
-                           boost::posix_time::milliseconds{ 1500 });
-    void   sendResponse(protocol::response::Response response);
+    void   sendRequest(
+          protocol::request::Request             request,
+          response_callback_fn                   responseCallback,
+          const boost::posix_time::milliseconds &timeout = boost::posix_time::milliseconds{
+            constants::kProtocolFrameTimeoutMs });
+    void sendResponse(protocol::response::Response response);
 
 private:
     CommunicationEndpoint(boost::asio::io_context &,
