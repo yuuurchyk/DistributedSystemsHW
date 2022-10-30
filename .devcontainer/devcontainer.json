@@ -15,7 +15,8 @@
     "extensions": [
         "ms-vscode.cpptools-extension-pack",
         "cheshirekow.cmake-format",
-        "cschlosser.doxdocgen"
+        "cschlosser.doxdocgen",
+        "rangav.vscode-thunder-client"
     ],
     "runArgs": [
         "--name=distr-systems-hw-1",
