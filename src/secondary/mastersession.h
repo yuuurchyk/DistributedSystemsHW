@@ -35,6 +35,4 @@ private:
     boost::asio::io_context       &context_;
     boost::asio::ip::tcp::acceptor acceptor_;
     IOContextPool                 &workersPool_;
-
-    std::shared_ptr<CommunicationEndpoint> communicationEndpoint_{};
 };

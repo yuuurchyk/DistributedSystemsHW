@@ -132,7 +132,7 @@ CommunicationEndpoint::CommunicationEndpoint(
       requestCallback_{ requestCallback == nullptr ?
                             [](std::shared_ptr<CommunicationEndpoint>,
                                protocol::request::Request) {} :
-                            std::move(requestCallback_) },
+                            std::move(requestCallback) },
       invalidationCallback_{ invalidationCallback == nullptr ?
                                  [](std::shared_ptr<CommunicationEndpoint>) {} :
                                  std::move(invalidationCallback) }
@@ -220,8 +220,8 @@ void CommunicationEndpoint::parseBuffer(Buffer buffer)
     {
     case codes::Event::REQUEST:
     {
-        if (requestCallback_ != nullptr)
-            requestCallback_(shared_from_this(), request::Request{ std::move(frame) });
+        ID_LOGI << "calling request callback";
+        requestCallback_(shared_from_this(), request::Request{ std::move(frame) });
         break;
     }
     case codes::Event::RESPONSE:
@@ -268,15 +268,23 @@ void CommunicationEndpoint::parseResponse(response::Response response)
 
 void CommunicationEndpoint::invalidate()
 {
+    LOGW << "invalidating";
+
     socket_.close();
 
     for (auto [_, pendingRequest] : pendingRequests_)
+    {
         if (pendingRequest->responseCallback != nullptr)
+        {
             pendingRequest->responseCallback(shared_from_this(),
                                              /* response */ {},
                                              std::move(pendingRequest->request));
+        }
+    }
 
     pendingRequests_.clear();
+
+    invalidationCallback_(shared_from_this());
 }
 
 auto CommunicationEndpoint::PendingRequest::create(io_context          &context,

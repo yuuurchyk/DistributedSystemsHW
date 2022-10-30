@@ -30,7 +30,7 @@ int main()
     auto context = io_context{};
 
     const auto endpoint =
-        ip::tcp::endpoint{ ip::address::from_string("127.0.0.1"), 8001 };
+        ip::tcp::endpoint{ ip::address::from_string("127.0.0.1"), 6000 };
 
     auto socket = ip::tcp::socket{ context };
 

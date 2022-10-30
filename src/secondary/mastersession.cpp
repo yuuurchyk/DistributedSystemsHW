@@ -124,26 +124,14 @@ void MasterSession::createCommunicationEndpoint(ip::tcp::socket socket)
     LOGI << "creating communication endpoint";
 
     auto invalidationCallback =
-        [this, self = weak_from_this()](std::shared_ptr<CommunicationEndpoint>)
-    {
-        auto selfLock = self.lock();
-        if (selfLock != nullptr)
-            selfLock->handleCommunicationEndpointInvalidation();
-    };
+        [this, self = shared_from_this()](std::shared_ptr<CommunicationEndpoint>)
+    { handleCommunicationEndpointInvalidation(); };
 
     auto requestCallback =
-        [this, self = weak_from_this()](std::shared_ptr<CommunicationEndpoint> endpoint,
-                                        request::Request                       request)
+        [this, self = shared_from_this()](std::shared_ptr<CommunicationEndpoint> endpoint,
+                                          request::Request                       request)
     {
-        auto selfLock = self.lock();
-
-        if (selfLock == nullptr)
-            return;
-
         LOGI << "Request from master recieved: " << request << ", pushing it to worker";
-
-        auto a = [endpoint = std::move(endpoint), request = std::move(request)]()
-        { LOGI << "HELLO?"; };
 
         workersPool_.getNext().post(
             [endpoint = std::move(endpoint),
@@ -151,16 +139,15 @@ void MasterSession::createCommunicationEndpoint(ip::tcp::socket socket)
             { ::handleRequest(std::move(endpoint), std::move(*request)); });
     };
 
-    communicationEndpoint_ =
-        CommunicationEndpoint::create(context_,
-                                      std::move(socket),
-                                      std::move(requestCallback),
-                                      std::move(invalidationCallback));
+    CommunicationEndpoint::create(context_,
+                                  std::move(socket),
+                                  std::move(requestCallback),
+                                  std::move(invalidationCallback))
+        ->run();
 }
 
 void MasterSession::handleCommunicationEndpointInvalidation()
 {
     LOGW << "communication with master node dropped";
-    communicationEndpoint_ = nullptr;
     acceptConnection();
 }

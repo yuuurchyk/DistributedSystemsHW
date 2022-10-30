@@ -20,9 +20,6 @@ int main()
     }
     BOOST_SCOPE_EXIT_END
 
-    messages.push_back("a");
-    messages.push_back("b");
-
     // -------------------------------
     // -------------------------------
     const auto workersNum  = 3;
@@ -33,7 +30,8 @@ int main()
     // -------------------------------
     auto masterSessionPool = IOContextPool{ 1 };
     masterSessionPool.runInSeparateThreads();
-    MasterSession::create(masterSessionPool.getNext(), /* port */ 6000, workersPool);
+    MasterSession::create(masterSessionPool.getNext(), /* port */ 6000, workersPool)
+        ->run();
 
     // -------------------------------
     // -------------------------------

@@ -28,3 +28,13 @@ foreach(appname secondary)
 
   install(TARGETS ${appname})
 endforeach()
+
+add_executable(client src/client.cpp)
+target_link_libraries(client PRIVATE Boost::boost Boost::json TBB::tbb
+                                     ${libsTargets})
+set_target_properties(
+  client
+  PROPERTIES CXX_STANDARD 17
+             CXX_STANDARD_REQUIRED ON
+             CXX_EXTENSIONS OFF)
+install(TARGETS client)
