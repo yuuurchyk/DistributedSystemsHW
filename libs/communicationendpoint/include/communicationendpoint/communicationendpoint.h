@@ -24,8 +24,8 @@
  * @note it is guaranteed that response_callback_fn will be called
  * (either after timeout or when response arrives)
  *
- * CommunicationEndpoint is meant to have its own io_context (i.e. reside in a
- * separate thread)
+ * @note CommunicationEndpoint resides in a single thread, so the writes
+ * from different threads are not happening concurrently
  */
 class CommunicationEndpoint : public std::enable_shared_from_this<CommunicationEndpoint>,
                               private logger::IdEntity<CommunicationEndpoint>
@@ -39,11 +39,13 @@ public:
     using response_callback_fn =
         std::function<void(std::optional<protocol::response::Response> response,
                            protocol::request::Request                  request)>;
+    using invalidation_callback_fn =
+        std::function<void(std::shared_ptr<CommunicationEndpoint>)>;
 
-    static std::shared_ptr<CommunicationEndpoint>
-        create(boost::asio::io_context     &context,
-               boost::asio::ip::tcp::socket socket,
-               request_callback_fn          requestCallback);
+    static std::shared_ptr<CommunicationEndpoint> create(boost::asio::io_context &,
+                                                         boost::asio::ip::tcp::socket,
+                                                         request_callback_fn,
+                                                         invalidation_callback_fn);
 
     void run();
 
@@ -55,20 +57,24 @@ public:
     void   sendResponse(protocol::response::Response response);
 
 private:
-    CommunicationEndpoint(boost::asio::io_context     &context,
-                          boost::asio::ip::tcp::socket socket,
-                          request_callback_fn          requestCallback);
+    CommunicationEndpoint(boost::asio::io_context &,
+                          boost::asio::ip::tcp::socket,
+                          request_callback_fn,
+                          invalidation_callback_fn);
 
     void readFrameSize();
     void readFrame();
     void parseBuffer(protocol::Buffer);
     void parseResponse(protocol::response::Response);
 
-    boost::asio::io_context     &context_;
-    boost::asio::ip::tcp::socket socket_;
-    size_t                       frameSize_{};
-    const request_callback_fn    requestCallback_;
+    void invalidate();
 
+    boost::asio::io_context       &context_;
+    boost::asio::ip::tcp::socket   socket_;
+    const request_callback_fn      requestCallback_;
+    const invalidation_callback_fn invalidationCallback_;
+
+    size_t              frameSize_{};
     std::atomic<size_t> requestIdCounter_{};
 
     struct PendingRequest : public std::enable_shared_from_this<PendingRequest>

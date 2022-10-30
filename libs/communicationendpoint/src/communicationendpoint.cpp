@@ -12,12 +12,16 @@ using namespace protocol;
 using error_code = boost::system::error_code;
 
 std::shared_ptr<CommunicationEndpoint>
-    CommunicationEndpoint::create(io_context         &context,
-                                  ip::tcp::socket     socket,
-                                  request_callback_fn requestCallback)
+    CommunicationEndpoint::create(io_context              &context,
+                                  ip::tcp::socket          socket,
+                                  request_callback_fn      requestCallback,
+                                  invalidation_callback_fn invalidationCallback)
 {
     return std::shared_ptr<CommunicationEndpoint>{ new CommunicationEndpoint{
-        context, std::move(socket), std::move(requestCallback) } };
+        context,
+        std::move(socket),
+        std::move(requestCallback),
+        std::move(invalidationCallback) } };
 }
 
 void CommunicationEndpoint::run()
@@ -34,12 +38,17 @@ void CommunicationEndpoint::sendRequest(request::Request     arg_request,
                                         response_callback_fn arg_responseCallback,
                                         const boost::posix_time::milliseconds &timeout)
 {
+    if (arg_responseCallback == nullptr)
+    {
+        arg_responseCallback = [](std::optional<protocol::response::Response>,
+                                  protocol::request::Request) {};
+    }
+
     if (!arg_request.valid() ||
         pendingRequests_.find(arg_request.requestId()) != pendingRequests_.end())
     {
         ID_LOGE << "Invalid request, executing response callback right away";
-        if (arg_responseCallback != nullptr)
-            arg_responseCallback(/* response */ {}, std::move(arg_request));
+        arg_responseCallback(/* response */ {}, std::move(arg_request));
         return;
     }
 
@@ -62,6 +71,7 @@ void CommunicationEndpoint::sendRequest(request::Request     arg_request,
             if (error)
             {
                 ID_LOGE << "Failed to write request frame";
+                invalidate();
             }
         });
 
@@ -70,16 +80,13 @@ void CommunicationEndpoint::sendRequest(request::Request     arg_request,
         [this, self = shared_from_this(), pendingRequest = std::move(pendingRequest), id](
             const error_code &error)
         {
-            if (!error)
+            if (error)
                 return;
 
             ID_LOGW << "timeout expired for request with id=" << id;
 
-            if (pendingRequest->responseCallback != nullptr)
-            {
-                pendingRequest->responseCallback(/* response */ {},
-                                                 std::move(pendingRequest->request));
-            }
+            pendingRequest->responseCallback(/* response */ {},
+                                             std::move(pendingRequest->request));
 
             if (auto it = pendingRequests_.find(id); it != pendingRequests_.end())
                 pendingRequests_.erase(it);
@@ -107,16 +114,23 @@ void CommunicationEndpoint::sendResponse(response::Response response)
                     if (error)
                     {
                         ID_LOGE << "Failed to write response frame";
+                        return invalidate();
                     }
                 });
 }
 
-CommunicationEndpoint::CommunicationEndpoint(io_context         &context,
-                                             ip::tcp::socket     socket,
-                                             request_callback_fn requestCallback)
+CommunicationEndpoint::CommunicationEndpoint(
+    io_context              &context,
+    ip::tcp::socket          socket,
+    request_callback_fn      requestCallback,
+    invalidation_callback_fn invalidationCallback)
     : context_{ context },
       socket_{ std::move(socket) },
-      requestCallback_{ std::move(requestCallback_) }
+      requestCallback_{ requestCallback == nullptr ? [](protocol::request::Request) {} :
+                                                     std::move(requestCallback_) },
+      invalidationCallback_{ invalidationCallback == nullptr ?
+                                 [](std::shared_ptr<CommunicationEndpoint>) {} :
+                                 std::move(invalidationCallback) }
 {
 }
 
@@ -131,7 +145,7 @@ void CommunicationEndpoint::readFrameSize()
                    if (error)
                    {
                        ID_LOGE << "Failed to read from socket: " << error.message();
-                       return;
+                       return invalidate();
                    }
 
                    ID_LOGI << "Frame size read: " << frameSize_;
@@ -144,7 +158,7 @@ void CommunicationEndpoint::readFrame()
     if (frameSize_ < sizeof(size_t))
     {
         ID_LOGE << "invalid frame size, exiting";
-        return;
+        return invalidate();
     }
 
     auto  bufOwner = std::make_unique<Buffer>(frameSize_);
@@ -154,7 +168,7 @@ void CommunicationEndpoint::readFrame()
     if (buf.invalidated())
     {
         ID_LOGE << "Failed to allocate buffer";
-        return;
+        return invalidate();
     }
 
     *reinterpret_cast<size_t *>(buf.data()) = frameSize_;
@@ -168,6 +182,7 @@ void CommunicationEndpoint::readFrame()
                    if (error)
                    {
                        ID_LOGE << "Failed to read frame";
+                       return invalidate();
                    }
                    else
                    {
@@ -244,6 +259,18 @@ void CommunicationEndpoint::parseResponse(response::Response response)
     }
 
     pendingRequest->timeoutTimer.cancel();
+}
+
+void CommunicationEndpoint::invalidate()
+{
+    socket_.close();
+
+    for (auto [_, pendingRequest] : pendingRequests_)
+        if (pendingRequest->responseCallback != nullptr)
+            pendingRequest->responseCallback(/* response */ {},
+                                             std::move(pendingRequest->request));
+
+    pendingRequests_.clear();
 }
 
 auto CommunicationEndpoint::PendingRequest::create(io_context          &context,

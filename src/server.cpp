@@ -33,7 +33,8 @@ int main()
     auto socket = ip::tcp::socket{ context };
     acceptor.accept(socket);
 
-    auto com = CommunicationEndpoint::create(context, std::move(socket), nullptr);
+    auto com =
+        CommunicationEndpoint::create(context, std::move(socket), nullptr, nullptr);
     com->run();
 
     context.run();
