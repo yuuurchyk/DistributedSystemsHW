@@ -8,6 +8,7 @@ find_package(
   COMPONENTS json
   REQUIRED)
 find_package(Threads REQUIRED)
+find_package(TBB 2021.6.0 EXACT REQUIRED)
 
 add_subdirectory(libs)
 
@@ -16,7 +17,7 @@ foreach(filename client server secondary)
 
   add_executable(${targetName} src/${filename}.cpp)
 
-  target_link_libraries(${targetName} PRIVATE Boost::boost Boost::json
+  target_link_libraries(${targetName} PRIVATE Boost::boost Boost::json TBB::tbb
                                               ${libsTargets})
   set_target_properties(
     ${targetName}

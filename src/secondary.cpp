@@ -7,17 +7,17 @@
 #include <boost/json.hpp>
 #include <boost/scope_exit.hpp>
 
-#include "communicationendpoint/communicationendpoint.h"
+#include <tbb/concurrent_vector.h>
+
 #include "iocontextpool/iocontextpool.h"
 #include "logger/logger.h"
-#include "messagesstorage/messagesstorage.h"
 #include "utils/copymove.h"
 
 using error_code = boost::system::error_code;
 using namespace boost::asio;
 using namespace boost::beast;
 
-MessagesStorage messagesStorage;
+tbb::concurrent_vector<std::string> messages;
 
 class HttpSession : public std::enable_shared_from_this<HttpSession>,
                     private logger::IdEntity<HttpSession>
@@ -93,13 +93,12 @@ private:
             response_.set(http::field::server, "Beast");
             response_.set(http::field::content_type, "application/json");
 
-            auto messages = messagesStorage.getMessages();
-
             auto array = boost::json::array{};
-            array.reserve(messages.size());
 
-            for (auto &message : messages)
-                array.push_back(boost::json::string_view{ message });
+            const auto size = messages.size();
+            array.reserve(messages.size());
+            for (auto i = size_t{}; i < size; ++i)
+                array.push_back(boost::json::string_view{ messages[i] });
 
             auto strm = boost::beast::ostream(response_.body());
             strm << array;
@@ -191,10 +190,9 @@ int main()
     }
     BOOST_SCOPE_EXIT_END
 
-    messagesStorage.addMessage(std::string{ "jehh" });
-    messagesStorage.addMessage(std::string{ "jehhd" });
-    messagesStorage.addMessage(std::string{ "jehhffds" });
-    messagesStorage.addMessage(std::string{ "jehhddddddd" });
+    messages.push_back("a");
+    messages.push_back("b");
+
     const auto port           = 8000;
     const auto httpWorkersNum = 3;
 
