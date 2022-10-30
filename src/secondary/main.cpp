@@ -1,6 +1,7 @@
 #include <boost/asio.hpp>
 #include <boost/scope_exit.hpp>
 
+#include "constants/constants.h"
 #include "iocontextpool/iocontextpool.h"
 #include "logger/logger.h"
 #include "socketacceptor/socketacceptor.h"
@@ -22,15 +23,15 @@ int main()
 
     // -------------------------------
     // -------------------------------
-    const auto workersNum  = 3;
-    auto       workersPool = IOContextPool{ workersNum };
+    auto workersPool = IOContextPool{ constants::kSecondaryWorkersNum };
     workersPool.runInSeparateThreads();
 
     // -------------------------------
     // -------------------------------
     auto masterSessionPool = IOContextPool{ 1 };
     masterSessionPool.runInSeparateThreads();
-    MasterSession::create(masterSessionPool.getNext(), /* port */ 6000, workersPool)
+    MasterSession::create(
+        masterSessionPool.getNext(), constants::kSecondaryCommunicationPort, workersPool)
         ->run();
 
     // -------------------------------
@@ -38,7 +39,7 @@ int main()
     auto httpAcceptorContext = io_context{};
     SocketAcceptor::create(
         httpAcceptorContext,
-        /* port */ 8000,
+        constants::kSecondaryHttpPort,
         [](ip::tcp::socket socket) { HttpSession::create(std::move(socket))->run(); },
         workersPool)
         ->run();
