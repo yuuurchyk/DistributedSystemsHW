@@ -7,6 +7,9 @@
 
 #include "iocontextpool/iocontextpool.h"
 
+/**
+ * @brief forever accepts sockets and calls new_socket_callback_fn
+ */
 class SocketAcceptor : public std::enable_shared_from_this<SocketAcceptor>
 {
     DISABLE_COPY_MOVE(SocketAcceptor);
