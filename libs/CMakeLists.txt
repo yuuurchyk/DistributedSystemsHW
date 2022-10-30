@@ -5,7 +5,8 @@ add_subdirectory(communicationendpoint)
 add_subdirectory(iocontextpool)
 add_subdirectory(socketacceptor)
 add_subdirectory(constants)
+add_subdirectory(httpsession)
 
 set(libsTargets
-    "utils;logger;protocol;communicationendpoint;iocontextpool;socketacceptor;constants"
+    "utils;logger;protocol;communicationendpoint;iocontextpool;socketacceptor;constants;httpsession"
     PARENT_SCOPE)

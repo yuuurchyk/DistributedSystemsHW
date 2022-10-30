@@ -6,9 +6,9 @@
 #include "logger/logger.h"
 #include "socketacceptor/socketacceptor.h"
 
-#include "httpsession.h"
 #include "mastersession.h"
 #include "messages.h"
+#include "secondaryhttpsession.h"
 
 using namespace boost::asio;
 
@@ -40,7 +40,8 @@ int main()
     SocketAcceptor::create(
         httpAcceptorContext,
         constants::kSecondaryHttpPort,
-        [](ip::tcp::socket socket) { HttpSession::create(std::move(socket))->run(); },
+        [](ip::tcp::socket socket)
+        { SecondaryHttpSession::create(std::move(socket))->run(); },
         workersPool)
         ->run();
     httpAcceptorContext.run();

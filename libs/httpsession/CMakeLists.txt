@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
-project(iocontextpool LANGUAGES CXX)
+project(httpsession LANGUAGES CXX)
 
 find_package(Boost 1.80 EXACT REQUIRED)
 find_package(Threads REQUIRED)
@@ -12,8 +12,8 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ./src/**.cpp ./src/**.h
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost Threads::Threads
-                                             utils)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost utils logger
+                                             constants)
 
 target_include_directories(
   ${PROJECT_NAME}

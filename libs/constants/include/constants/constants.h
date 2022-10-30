@@ -11,4 +11,7 @@ constexpr unsigned short kSecondaryCommunicationPort{ 6000 };
 // workersNum threads + master communication thread + http acceptor thread
 constexpr size_t kSecondaryWorkersNum{ 3 };
 
+constexpr size_t kHttpRequestTimeoutMs{ 5000 };
+constexpr size_t kHttpRequestBufferSize{ 1024 };
+
 }    // namespace constants
