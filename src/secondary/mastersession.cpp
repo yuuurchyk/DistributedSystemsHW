@@ -3,6 +3,7 @@
 #include <utility>
 #include <vector>
 
+#include "communicationendpoint/communicationendpoint.h"
 #include "logger/logger.h"
 #include "protocol/codes.h"
 #include "protocol/request/getstrings.h"
@@ -134,9 +135,8 @@ void MasterSession::createCommunicationEndpoint(ip::tcp::socket socket)
         LOGI << "Request from master recieved: " << request << ", pushing it to worker";
 
         workersPool_.getNext().post(
-            [endpoint = std::move(endpoint),
-             request  = std::make_shared<request::Request>(std::move(request))]
-            { ::handleRequest(std::move(endpoint), std::move(*request)); });
+            [endpoint = std::move(endpoint), request = std::move(request)]
+            { ::handleRequest(std::move(endpoint), std::move(request)); });
     };
 
     CommunicationEndpoint::create(context_,

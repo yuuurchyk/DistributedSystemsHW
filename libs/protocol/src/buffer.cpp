@@ -22,6 +22,29 @@ Buffer::Buffer(size_t capacity)
     }
 }
 
+Buffer::Buffer(const Buffer &rhs)
+{
+    if (rhs.invalidated())
+        invalidate();
+    else
+    {
+        rawMemory_.reset(new std::byte[rhs.capacity()]);
+        // TODO: handle the case of reset throwing exception
+        size_     = rhs.size();
+        capacity_ = rhs.capacity();
+        std::memcpy(rawMemory_.get(), rhs.rawMemory_.get(), size());
+    }
+}
+
+Buffer &Buffer::operator=(const Buffer &rhs)
+{
+    rawMemory_.reset(new std::byte[rhs.capacity()]);
+    size_     = rhs.size();
+    capacity_ = rhs.capacity();
+    std::memcpy(rawMemory_.get(), rhs.rawMemory_.get(), size());
+    return *this;
+}
+
 bool Buffer::invalidated() const noexcept
 {
     return invalidated_;

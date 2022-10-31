@@ -15,7 +15,12 @@ class Buffer
 public:
     Buffer();
     Buffer(size_t capacity);
-    DISABLE_COPY_DEFAULT_MOVE(Buffer);
+
+    Buffer(const Buffer &);
+    Buffer(Buffer &&) = default;
+
+    Buffer &operator=(const Buffer &);
+    Buffer &operator=(Buffer &&) = default;
 
     /**
      * @brief whether we could not allocated memory

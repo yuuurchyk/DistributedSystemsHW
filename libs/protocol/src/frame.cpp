@@ -56,6 +56,14 @@ size_t Frame::requestId() const
         return *reinterpret_cast<const size_t *>(buffer_.data() + kRequestIdOffset);
 }
 
+void Frame::setRequestId(size_t requestId)
+{
+    if (!valid())
+        return;
+    else
+        *reinterpret_cast<size_t *>(buffer_.data() + kRequestIdOffset) = requestId;
+}
+
 BufferView Frame::body() const
 {
     if (!valid())

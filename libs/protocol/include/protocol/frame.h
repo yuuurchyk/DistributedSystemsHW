@@ -24,7 +24,6 @@ class Frame
 {
 public:
     Frame(Buffer);
-    DISABLE_COPY_DEFAULT_MOVE(Frame);
 
     /**
      * @note frame body should be checked separately
@@ -34,6 +33,8 @@ public:
     codes::Event  event() const;
     codes::OpCode opCode() const;
     size_t        requestId() const;
+
+    void setRequestId(size_t);
 
     BufferView    body() const;
     const Buffer &buffer() const;

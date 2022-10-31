@@ -4,7 +4,6 @@
 
 #include <boost/asio.hpp>
 
-#include "communicationendpoint/communicationendpoint.h"
 #include "iocontextpool/iocontextpool.h"
 #include "utils/copymove.h"
 
