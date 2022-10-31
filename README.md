@@ -39,3 +39,8 @@ Then you should run 3 executables within the container:
 The ports may be found in [constants.h](./libs/constants/include/constants/constants.h) file.
 
 The definition of the frame of the custom protocol may be fonud in [frame.h](./libs/protocol/include/protocol/frame.h)
+
+## HTTP API
+
+* ```GET /messages``` (for both master and secodary nodes). Returns json list of messages stored on the node
+* ```POST /addmessage``` (for master node only). Body should be plain text. Returns 200 only after confirmation from all secondary nodes that the message was replicated
