@@ -44,3 +44,8 @@ The definition of the frame of the custom protocol may be fonud in [frame.h](./l
 
 * ```GET /messages``` (for both master and secodary nodes). Returns json list of messages stored on the node
 * ```POST /addmessage``` (for master node only). Body should be plain text. Returns 200 only after confirmation from all secondary nodes that the message was replicated
+
+## Point for Future Improvements
+
+* use websockets instead of custom tcp protocol
+* implement log level (i.e. have a concurrent priority queue associated with websockets channel)
