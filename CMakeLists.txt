@@ -12,20 +12,25 @@ find_package(TBB 2021.6.0 EXACT REQUIRED)
 
 add_subdirectory(libs)
 
-foreach(appname master secondary)
-  file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/${appname}/**.cpp
-       src/${appname}/**.h src/${appname}/**.hpp)
-  add_executable(${appname} ${SOURCES})
+# foreach(appname master secondary) file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
+# src/${appname}/**.cpp src/${appname}/**.h src/${appname}/**.hpp)
+# add_executable(${appname} ${SOURCES})
 
-  target_link_libraries(
-    ${appname} PRIVATE Boost::boost Boost::json Boost::program_options TBB::tbb
-                       ${libsTargets})
-  target_include_directories(${appname} PRIVATE src/${appname})
-  set_target_properties(
-    ${appname}
-    PROPERTIES CXX_STANDARD 17
-               CXX_STANDARD_REQUIRED ON
-               CXX_EXTENSIONS OFF)
+# target_link_libraries( ${appname} PRIVATE Boost::boost Boost::json
+# Boost::program_options TBB::tbb ${libsTargets})
+# target_include_directories(${appname} PRIVATE src/${appname})
+# set_target_properties( ${appname} PROPERTIES CXX_STANDARD 17
+# CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
 
-  install(TARGETS ${appname})
-endforeach()
+# install(TARGETS ${appname}) endforeach()
+
+add_executable(main src/main.cpp ${SOURCES})
+
+target_link_libraries(main PRIVATE ${libsTargets})
+set_target_properties(
+  main
+  PROPERTIES CXX_STANDARD 17
+             CXX_STANDARD_REQUIRED ON
+             CXX_EXTENSIONS OFF)
+
+install(TARGETS main)

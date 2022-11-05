@@ -1,4 +1,4 @@
-#include "logger/setup.h"
+#include "logger/logger.h"
 
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/attributes/constant.hpp>
@@ -44,14 +44,13 @@ void setup(std::string programName)
         return;
 
     logging::core::get()->add_global_attribute(
-        kProgramNameAttr, boost::log::attributes::make_constant(std::move(programName)));
-    logging::core::get()->add_global_attribute(kRecordIdAttr,
-                                               attrs::counter<unsigned int>());
-    logging::core::get()->add_global_attribute(kThreadIdAttr, attrs::current_thread_id());
+        kProgramName, boost::log::attributes::make_constant(std::move(programName)));
+    logging::core::get()->add_global_attribute(kRecordId, attrs::counter<unsigned int>());
+    logging::core::get()->add_global_attribute(kThreadId, attrs::current_thread_id());
 
     ::sink.reset(new sink_t{ boost::make_shared<backend_t>(),
                              keywords::order = logging::make_attr_ordering<unsigned int>(
-                                 kRecordIdAttr, std::less<unsigned int>()) });
+                                 kRecordId, std::less<unsigned int>()) });
 
     sink->locked_backend()->add_stream(
         boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter{}));
