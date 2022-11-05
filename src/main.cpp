@@ -35,7 +35,7 @@ int main()
 
     auto t = std::thread{ []()
                           {
-                              for (int i = 0; i < 2000; ++i)
+                              for (int i = 0; i < 20; ++i)
                                   LOGW << "HELLO from thread, " << i;
                           } };
 

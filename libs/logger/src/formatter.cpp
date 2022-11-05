@@ -1,6 +1,7 @@
 #include "formatter.hpp"
 
 #include <iomanip>
+#include <limits>
 #include <string_view>
 #include <type_traits>
 
@@ -39,13 +40,13 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
         if (const auto threadIdIt = rec[kThreadId].extract<thread_id_t>())
         {
             strm << "," << std::hex << std::setw(5)
-                 << ((*threadIdIt).native_id() & (0xfffff)) << std::dec;
+                 << (threadIdIt->native_id() & (0xfffff)) << std::dec;
         }
     }
 
     if (const auto fileNameIt = rec[kCodeFilename].extract<code_file_name_t>())
     {
-        strm << " [" << *fileNameIt;
+        strm << " [" << std::setw(20) << std::right << *fileNameIt;
 
         BOOST_SCOPE_EXIT(&strm)
         {
@@ -54,28 +55,33 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
         BOOST_SCOPE_EXIT_END
 
         if (const auto lineNumberIt = rec[kCodeLineNumber].extract<code_line_number_t>())
-        {
             strm << ":" << std::setw(4) << std::left << *lineNumberIt;
-        }
         else
-        {
             strm << std::setw(5) << "";
-        }
     }
 
+    static constexpr size_t kChannelCharactersWidth{ 35 };
     if (const auto channelIt = rec[kChannel].extract<channel_t>())
     {
-        strm << " [" << *channelIt;
-        BOOST_SCOPE_EXIT(&strm)
-        {
-            strm << "]";
-        }
-        BOOST_SCOPE_EXIT_END
+        auto representation = std::string{};
+        representation.reserve(channelIt->size() +
+                               std::numeric_limits<num_id_t>::digits10 + 10);
+
+        representation += '[';
+        representation += *channelIt;
 
         if (const auto numIdIt = rec[kNumId].extract<num_id_t>())
-            strm << ",id=" << std::setw(5) << *numIdIt;
+            representation += ",id=" + std::to_string(*numIdIt);
         if (const auto stringIdIt = rec[kStringId].extract<string_id_t>())
-            strm << ",id=" << std::setw(5) << *stringIdIt;
+            representation += ",id=" + *stringIdIt;
+
+        representation += ']';
+
+        strm << std::setw(kChannelCharactersWidth) << representation;
+    }
+    else
+    {
+        strm << std::setw(kChannelCharactersWidth) << "";
     }
 
     if (auto severityIt = rec[kSeverity].extract<severity_t>())
