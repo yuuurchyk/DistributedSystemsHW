@@ -4,8 +4,6 @@
 #include <string_view>
 #include <type_traits>
 
-#include <iostream>
-
 #include <boost/log/attributes/current_thread_id.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/scope_exit.hpp>
@@ -19,9 +17,19 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
 {
     using namespace detail::attributes;
 
+    if (const auto uptimeMsIt = rec[kUpTimeMs].extract<uptime_ms_t>())
+    {
+        const auto sec  = (*uptimeMsIt) / 1000;
+        const auto msec = (*uptimeMsIt) % 1000;
+
+        strm << "[" << std::setw(4) << std::right << sec << "." << std::setw(3)
+             << std::right << std::setfill('0') << msec << "s]" << std::setfill(' ')
+             << std::left;
+    }
+
     if (const auto programNameIt = rec[kProgramName].extract<program_name_t>())
     {
-        strm << "[" << *programNameIt;
+        strm << " [" << *programNameIt;
         BOOST_SCOPE_EXIT(&strm)
         {
             strm << "]";
@@ -47,7 +55,7 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
 
         if (const auto lineNumberIt = rec[kCodeLineNumber].extract<code_line_number_t>())
         {
-            strm << ":" << std::setw(4) << *lineNumberIt;
+            strm << ":" << std::setw(4) << std::left << *lineNumberIt;
         }
         else
         {

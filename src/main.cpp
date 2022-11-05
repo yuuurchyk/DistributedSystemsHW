@@ -35,7 +35,7 @@ int main()
 
     auto t = std::thread{ []()
                           {
-                              for (int i = 0; i < 20; ++i)
+                              for (int i = 0; i < 2000; ++i)
                                   LOGW << "HELLO from thread, " << i;
                           } };
 
@@ -50,7 +50,10 @@ int main()
     auto c = C{};
     c.func();
 
+    std::this_thread::sleep_for(std::chrono::seconds{ 2 });
     t.join();
+
+    c.func();
 
     return 0;
 }

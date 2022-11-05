@@ -16,6 +16,7 @@
 
 #include "formatter.hpp"
 #include "logger/detail/attributes.h"
+#include "uptime.h"
 
 namespace attrs    = boost::log::attributes;
 namespace logging  = boost::log;
@@ -40,6 +41,11 @@ void setup(std::string programName)
 {
     using namespace detail::attributes;
 
+    {
+        // make sure we initialize kUpTimepoint
+        volatile auto _ = kUpTimepoint;
+    }
+
     if (::sink != nullptr)
         return;
 
@@ -47,6 +53,7 @@ void setup(std::string programName)
         kProgramName, boost::log::attributes::make_constant(std::move(programName)));
     logging::core::get()->add_global_attribute(kRecordId, attrs::counter<unsigned int>());
     logging::core::get()->add_global_attribute(kThreadId, attrs::current_thread_id());
+    logging::core::get()->add_global_attribute(kUpTimeMs, UptimeMs{});
 
     ::sink.reset(new sink_t{ boost::make_shared<backend_t>(),
                              keywords::order = logging::make_attr_ordering<unsigned int>(

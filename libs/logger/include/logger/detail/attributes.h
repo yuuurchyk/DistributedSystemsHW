@@ -34,4 +34,7 @@ using num_id_t = size_t;
 constexpr const char *kStringId{ "attr_string_id" };
 using string_id_t = std::string;
 
+constexpr const char *kUpTimeMs{ "attr_uptime_ms" };
+using uptime_ms_t = size_t;
+
 }    // namespace logger::detail::attributes
