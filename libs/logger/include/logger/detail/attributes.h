@@ -21,10 +21,10 @@ extern const char *kRecordId;
 extern const char *kSeverity;
 using severity_t = Severity;
 
-constexpr const char *kFilename{ "attr_file_name" };
-using file_name_t = std::string_view;
-constexpr const char *kLineNumber{ "attr_line_number" };
-using line_number_t = size_t;
+constexpr const char *kCodeFilename{ "code_attr_file_name" };
+using code_file_name_t = std::string_view;
+constexpr const char *kCodeLineNumber{ "code_attr_line_number" };
+using code_line_number_t = size_t;
 
 extern const char *kChannel;
 using channel_t = std::string_view;

@@ -37,12 +37,12 @@ namespace logger::detail
     BOOST_LOG_SEV(::logger::detail::GlobalLogger::get(),                              \
                   ::logger::detail::Severity::severity)                               \
         << ::boost::log::add_value(                                                   \
-               ::logger::detail::attributes::kFilename,                               \
-               ::logger::detail::attributes::file_name_t{                             \
+               ::logger::detail::attributes::kCodeFilename,                           \
+               ::logger::detail::attributes::code_file_name_t{                        \
                    ::logger::detail::extractBaseName(std::string_view{ __FILE__ }) }) \
         << ::boost::log::add_value(                                                   \
-               ::logger::detail::attributes::kLineNumber,                             \
-               ::logger::detail::attributes::line_number_t{ __LINE__ })
+               ::logger::detail::attributes::kCodeLineNumber,                         \
+               ::logger::detail::attributes::code_line_number_t{ __LINE__ })
 
 #define LOGI _LOGIMPL(Info)
 #define LOGW _LOGIMPL(Warning)

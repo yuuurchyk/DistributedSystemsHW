@@ -51,8 +51,8 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
     }
 
     {
-        const auto fileNameIt   = rec[kFilename].extract<file_name_t>();
-        const auto lineNumberIt = rec[kLineNumber].extract<line_number_t>();
+        const auto fileNameIt   = rec[kCodeFilename].extract<code_file_name_t>();
+        const auto lineNumberIt = rec[kCodeLineNumber].extract<code_line_number_t>();
 
         if (fileNameIt)
             strm << " [" << *fileNameIt << "]";
