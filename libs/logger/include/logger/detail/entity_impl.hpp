@@ -9,6 +9,7 @@
 #include <boost/type_index.hpp>
 
 #include "logger/detail/attributes.h"
+#include "logger/detail/codelocation.hpp"
 #include "logger/detail/keyvaluefeature.hpp"
 #include "logger/detail/severity.h"
 
@@ -54,7 +55,13 @@ class EntityLogger
           EntityLogger,
           boost::log::sources::multi_thread_model<boost::log::aux::light_rw_mutex>,
           boost::log::sources::features<boost::log::sources::severity<detail::Severity>,
-                                        boost::log::sources::channel<std::string_view>>>
+                                        boost::log::sources::channel<std::string_view>,
+                                        detail::KeyValue<CodeFilenameKeywordGetter,
+                                                         CodeFilenameAttrNameGetter,
+                                                         attributes::code_file_name_t>,
+                                        detail::KeyValue<CodeLineNumberKeywordGetter,
+                                                         CodeLineNumberAttrNameGetter,
+                                                         attributes::code_line_number_t>>>
 {
     BOOST_LOG_FORWARD_LOGGER_MEMBERS_TEMPLATE(EntityLogger)
 };
@@ -68,7 +75,13 @@ class NumIdEntityLogger
                                         boost::log::sources::channel<std::string_view>,
                                         detail::KeyValue<NumIdKeywordGetter,
                                                          NumIdAttrNameGetter,
-                                                         attributes::num_id_t>>>
+                                                         attributes::num_id_t>,
+                                        detail::KeyValue<CodeFilenameKeywordGetter,
+                                                         CodeFilenameAttrNameGetter,
+                                                         attributes::code_file_name_t>,
+                                        detail::KeyValue<CodeLineNumberKeywordGetter,
+                                                         CodeLineNumberAttrNameGetter,
+                                                         attributes::code_line_number_t>>>
 {
     BOOST_LOG_FORWARD_LOGGER_MEMBERS_TEMPLATE(NumIdEntityLogger)
 };
@@ -82,7 +95,13 @@ class StringIdEntityLogger
                                         boost::log::sources::channel<std::string_view>,
                                         detail::KeyValue<StringIdKeywordGetter,
                                                          StringIdAttrNameGetter,
-                                                         attributes::string_id_t>>>
+                                                         attributes::string_id_t>,
+                                        detail::KeyValue<CodeFilenameKeywordGetter,
+                                                         CodeFilenameAttrNameGetter,
+                                                         attributes::code_file_name_t>,
+                                        detail::KeyValue<CodeLineNumberKeywordGetter,
+                                                         CodeLineNumberAttrNameGetter,
+                                                         attributes::code_line_number_t>>>
 {
     BOOST_LOG_FORWARD_LOGGER_MEMBERS_TEMPLATE(StringIdEntityLogger)
 };

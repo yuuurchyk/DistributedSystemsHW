@@ -11,6 +11,7 @@
 
 #include "logger/detail/attributes.h"
 #include "logger/detail/entity_impl.hpp"
+#include "logger/detail/extractbasename.hpp"
 
 namespace logger
 {
@@ -24,10 +25,14 @@ protected:
     static inline detail::EntityLogger d3WzdZnJLogger_{ (
         ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
 
-    auto d3WzdZnJOpenRecord_(detail::Severity severity)
+    auto d3WzdZnJOpenRecord_(detail::Severity                       severity,
+                             detail::attributes::code_file_name_t   codeFileName,
+                             detail::attributes::code_line_number_t codeLineNumber)
     {
         return this->d3WzdZnJLogger_.open_record(
-            (BOOST_PP_SEQ_ENUM((::boost::log::keywords::severity = severity))));
+            (BOOST_PP_SEQ_ENUM((::boost::log::keywords::severity = severity)(
+                detail::keywords::CodeFilename = std::move(codeFileName))(
+                detail::keywords::CodeLineNumber = std::move(codeLineNumber)))));
     }
 };
 
@@ -46,11 +51,14 @@ protected:
     static inline detail::NumIdEntityLogger d3WzdZnJLogger_{ (
         ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
 
-    auto d3WzdZnJOpenRecord_(detail::Severity severity)
+    auto d3WzdZnJOpenRecord_(detail::Severity                       severity,
+                             detail::attributes::code_file_name_t   codeFileName,
+                             detail::attributes::code_line_number_t codeLineNumber)
     {
-        return this->d3WzdZnJLogger_.open_record(
-            (BOOST_PP_SEQ_ENUM((::boost::log::keywords::severity =
-                                    severity)(detail::keywords::NumId = id_))));
+        return this->d3WzdZnJLogger_.open_record((BOOST_PP_SEQ_ENUM(
+            (::boost::log::keywords::severity = severity)(detail::keywords::NumId = id_)(
+                detail::keywords::CodeFilename = std::move(codeFileName))(
+                detail::keywords::CodeLineNumber = std::move(codeLineNumber)))));
     }
 
 private:
@@ -74,11 +82,15 @@ protected:
     static inline detail::StringIdEntityLogger d3WzdZnJLogger_{ (
         ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
 
-    auto d3WzdZnJOpenRecord_(detail::Severity severity)
+    auto d3WzdZnJOpenRecord_(detail::Severity                       severity,
+                             detail::attributes::code_file_name_t   codeFileName,
+                             detail::attributes::code_line_number_t codeLineNumber)
     {
         return this->d3WzdZnJLogger_.open_record(
-            (BOOST_PP_SEQ_ENUM((::boost::log::keywords::severity =
-                                    severity)(detail::keywords::StringId = id_))));
+            (BOOST_PP_SEQ_ENUM((::boost::log::keywords::severity = severity)(
+                detail::keywords::StringId = id_)(detail::keywords::CodeFilename =
+                                                      std::move(codeFileName))(
+                detail::keywords::CodeLineNumber = std::move(codeLineNumber)))));
     }
 
 private:
@@ -87,12 +99,14 @@ private:
 
 }    // namespace logger
 
-// clang-format off
-#define EN_LOGI_IMPL(sev, rec_var)                                                                              \
-    for (::boost::log::record rec_var = this->d3WzdZnJOpenRecord_(::logger::detail::Severity::sev); !!rec_var;) \
-        ::boost::log::aux::make_record_pump((this->d3WzdZnJLogger_), rec_var).stream()
+#define EN_LOGI_IMPL(sev, rec_var)                                            \
+    for (::boost::log::record rec_var = this->d3WzdZnJOpenRecord_(            \
+             ::logger::detail::Severity::sev,                                 \
+             ::logger::detail::extractBaseName(std::string_view{ __FILE__ }), \
+             ::logger::detail::attributes::code_line_number_t{ __LINE__ });   \
+         !!rec_var;)                                                          \
+    ::boost::log::aux::make_record_pump((this->d3WzdZnJLogger_), rec_var).stream()
 
 #define EN_LOGI EN_LOGI_IMPL(Info, BOOST_LOG_UNIQUE_IDENTIFIER_NAME(_en_log_record_))
 #define EN_LOGW EN_LOGI_IMPL(Warning, BOOST_LOG_UNIQUE_IDENTIFIER_NAME(_en_log_record_))
 #define EN_LOGE EN_LOGI_IMPL(Error, BOOST_LOG_UNIQUE_IDENTIFIER_NAME(_en_log_record_))
-// clang-format on

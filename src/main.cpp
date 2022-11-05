@@ -16,6 +16,12 @@ public:
     void func() { EN_LOGW << "HELLO????"; }
 };
 
+class C : private logger::Entity<C>
+{
+public:
+    void func() { EN_LOGE << "this should be critical"; }
+};
+
 int main()
 {
     logger::setup("sample");
@@ -32,6 +38,9 @@ int main()
 
     auto b = B{};
     b.func();
+
+    auto c = C{};
+    c.func();
 
     return 0;
 }
