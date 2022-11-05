@@ -3,11 +3,13 @@
 #include <string>
 #include <string_view>
 
+#include <boost/log/detail/light_rw_mutex.hpp>
+#include <boost/log/sources/basic_logger.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
 #include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/utility/manipulators/add_value.hpp>
+#include <boost/log/sources/severity_feature.hpp>
 
+#include "logger/detail/codelocation.hpp"
 #include "logger/detail/extractbasename.hpp"
 #include "logger/detail/severity.h"
 #include "logger/entity.hpp"
@@ -21,28 +23,36 @@ void teardown();
 
 namespace detail
 {
-    BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
-        GlobalLogger,
-        boost::log::sources::severity_logger_mt<::logger::detail::Severity>);
-}
+    class GlobalLogger
+        : public boost::log::sources::basic_composite_logger<
+              char,
+              GlobalLogger,
+              boost::log::sources::multi_thread_model<boost::log::aux::light_rw_mutex>,
+              boost::log::sources::features<
+                  boost::log::sources::severity<detail::Severity>,
+                  detail::KeyValue<CodeFilenameKeywordGetter,
+                                   CodeFilenameAttrNameGetter,
+                                   attributes::code_file_name_t>,
+                  detail::KeyValue<CodeLineNumberKeywordGetter,
+                                   CodeLineNumberAttrNameGetter,
+                                   attributes::code_line_number_t>>>
+    {
+        BOOST_LOG_FORWARD_LOGGER_MEMBERS_TEMPLATE(GlobalLogger)
+    };
+
+    BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(m_globalLogger, GlobalLogger);
+}    // namespace detail
 
 }    // namespace logger
 
-namespace logger::detail
-{
-
-}    // namespace logger::detail
-
-#define _LOGIMPL(severity)                                                            \
-    BOOST_LOG_SEV(::logger::detail::GlobalLogger::get(),                              \
-                  ::logger::detail::Severity::severity)                               \
-        << ::boost::log::add_value(                                                   \
-               ::logger::detail::attributes::kCodeFilename,                           \
-               ::logger::detail::attributes::code_file_name_t{                        \
-                   ::logger::detail::extractBaseName(std::string_view{ __FILE__ }) }) \
-        << ::boost::log::add_value(                                                   \
-               ::logger::detail::attributes::kCodeLineNumber,                         \
-               ::logger::detail::attributes::code_line_number_t{ __LINE__ })
+#define _LOGIMPL(sev)                                                             \
+    BOOST_LOG_WITH_PARAMS(                                                        \
+        ::logger::detail::m_globalLogger::get(),                                  \
+        (boost::log::keywords::severity = ::logger::detail::Severity::sev)(       \
+            ::logger::detail::keywords::CodeFilename =                            \
+                ::logger::detail::extractBaseName(std::string_view{ __FILE__ }))( \
+            ::logger::detail::keywords::CodeLineNumber =                          \
+                ::logger::detail::attributes::code_line_number_t{ __LINE__ }))
 
 #define LOGI _LOGIMPL(Info)
 #define LOGW _LOGIMPL(Warning)

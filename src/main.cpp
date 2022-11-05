@@ -1,3 +1,5 @@
+#include <thread>
+
 #include <boost/scope_exit.hpp>
 
 #include "logger/logger.h"
@@ -31,6 +33,12 @@ int main()
     }
     BOOST_SCOPE_EXIT_END
 
+    auto t = std::thread{ []()
+                          {
+                              for (int i = 0; i < 20; ++i)
+                                  LOGW << "HELLO from thread, " << i;
+                          } };
+
     LOGI << "Hello?";
 
     auto a = A{};
@@ -41,6 +49,8 @@ int main()
 
     auto c = C{};
     c.func();
+
+    t.join();
 
     return 0;
 }
