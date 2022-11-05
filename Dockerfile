@@ -300,7 +300,7 @@ FROM final AS development
 
 ARG DEBIAN_FRONTEND
 
-RUN apt-get install -y python3 python3-pip git nano bash-completion
+RUN apt-get install -y python3 python3-pip git nano bash-completion gdb
 RUN pip3 install cmake-format
 
 RUN touch /root/.bashrc
