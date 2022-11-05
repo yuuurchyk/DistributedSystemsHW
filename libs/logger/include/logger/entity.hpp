@@ -10,8 +10,7 @@
 #include "utils/copymove.h"
 
 #include "logger/detail/attributes.h"
-#include "logger/detail/entitybase.hpp"
-#include "logger/detail/numidfeature.hpp"
+#include "logger/detail/entity_impl.hpp"
 
 namespace logger
 {
@@ -23,7 +22,7 @@ class Entity
 {
 protected:
     static inline detail::EntityLogger d3WzdZnJLogger_{ (
-        ::boost::log::keywords::channel = detail::EntityBase<Entity_t>::kEntityName) };
+        ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
 
     auto d3WzdZnJOpenRecord_(detail::Severity severity)
     {
@@ -36,7 +35,7 @@ protected:
  * @brief adds name of the class of @tparam Entity_t + numerical id to logs
  */
 template <typename Entity_t>
-class NumIdEntity : private detail::EntityBase<Entity_t>
+class NumIdEntity
 {
 public:
     DISABLE_COPY_DEFAULT_MOVE(NumIdEntity);
@@ -45,7 +44,7 @@ public:
 
 protected:
     static inline detail::NumIdEntityLogger d3WzdZnJLogger_{ (
-        ::boost::log::keywords::channel = detail::EntityBase<Entity_t>::kEntityName) };
+        ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
 
     auto d3WzdZnJOpenRecord_(detail::Severity severity)
     {
@@ -60,26 +59,31 @@ private:
     detail::attributes::num_id_t id_;
 };
 
-// /**
-//  * @brief adds name of the class of @tparam Entity_t + string id to logs
-//  */
-// template <typename Entity_t>
-// class StringIdEntity : private detail::EntityBase<Entity_t>
-// {
-// public:
-//     StringIdEntity(std::string id) : id_{ std::move(id) } {}
+/**
+ * @brief adds name of the class of @tparam Entity_t + string id to logs
+ */
+template <typename Entity_t>
+class StringIdEntity
+{
+public:
+    DISABLE_COPY_DEFAULT_MOVE(StringIdEntity);
 
-// protected:
-//     auto d3WzdZnJLogSeverity(Severity severity)
-//     {
-//         return BOOST_LOG_WITH_PARAMS(this->logger_,
-//                                      (::boost::log::keywords::severity = (severity))(
-//                                          detail::keywords::EntityStringId = id_));
-//     }
+    StringIdEntity(std::string id) : id_{ std::move(id) } {}
 
-// private:
-//     std::string id_;
-// };
+protected:
+    static inline detail::StringIdEntityLogger d3WzdZnJLogger_{ (
+        ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
+
+    auto d3WzdZnJOpenRecord_(detail::Severity severity)
+    {
+        return this->d3WzdZnJLogger_.open_record(
+            (BOOST_PP_SEQ_ENUM((::boost::log::keywords::severity =
+                                    severity)(detail::keywords::StringId = id_))));
+    }
+
+private:
+    std::string id_;
+};
 
 }    // namespace logger
 

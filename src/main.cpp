@@ -8,7 +8,13 @@ public:
     void func() { EN_LOGI << "HELLOU?"; }
 };
 
-#include <iostream>
+class B : private logger::StringIdEntity<B>
+{
+public:
+    B() : logger::StringIdEntity<B>{ "sampleId" } {}
+
+    void func() { EN_LOGW << "HELLO????"; }
+};
 
 int main()
 {
@@ -23,6 +29,9 @@ int main()
 
     auto a = A{};
     a.func();
+
+    auto b = B{};
+    b.func();
 
     return 0;
 }
