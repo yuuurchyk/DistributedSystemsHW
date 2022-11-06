@@ -46,6 +46,7 @@ public:
     DISABLE_COPY_DEFAULT_MOVE(NumIdEntity);
 
     NumIdEntity() : id_{ idCounter_.fetch_add(1, std::memory_order_relaxed) } {}
+    NumIdEntity(detail::attributes::num_id_t id) : id_{ id } {}
 
 protected:
     static inline detail::NumIdEntityLogger d3WzdZnJLogger_{ (
@@ -60,6 +61,8 @@ protected:
                 detail::keywords::CodeFilename = std::move(codeFileName))(
                 detail::keywords::CodeLineNumber = std::move(codeLineNumber)))));
     }
+
+    detail::attributes::num_id_t loggerId() const noexcept { return id_; }
 
 private:
     static inline std::atomic<detail::attributes::num_id_t> idCounter_{};
@@ -92,6 +95,8 @@ protected:
                                                       std::move(codeFileName))(
                 detail::keywords::CodeLineNumber = std::move(codeLineNumber)))));
     }
+
+    const std::string &loggerId() const noexcept { return id_; }
 
 private:
     std::string id_;
