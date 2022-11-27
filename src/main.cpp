@@ -1,28 +1,17 @@
+#include <functional>
+#include <memory>
 #include <thread>
+#include <utility>
+#include <vector>
 
+#define BOOST_THREAD_VERSION 4
+
+#include <boost/asio.hpp>
 #include <boost/scope_exit.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/future.hpp>
 
 #include "logger/logger.h"
-
-class A : private logger::NumIdEntity<A>
-{
-public:
-    void func() { EN_LOGI << "HELLOU?"; }
-};
-
-class B : private logger::StringIdEntity<B>
-{
-public:
-    B() : logger::StringIdEntity<B>{ "sampleId" } {}
-
-    void func() { EN_LOGW << "HELLO????"; }
-};
-
-class C : private logger::Entity<C>
-{
-public:
-    void func() { EN_LOGE << "this should be critical"; }
-};
 
 int main()
 {
@@ -33,27 +22,92 @@ int main()
     }
     BOOST_SCOPE_EXIT_END
 
-    auto t = std::thread{ []()
-                          {
-                              for (int i = 0; i < 20; ++i)
-                                  LOGW << "HELLO from thread, " << i;
-                          } };
+    auto context = boost::asio::io_context{};
+    auto work = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>{
+        context.get_executor()
+    };
 
-    LOGI << "Hello?";
+    auto p1 = boost::promise<int>{};
+    auto p2 = boost::promise<int>{};
 
-    auto a = A{};
-    a.func();
+    auto f1 = p1.get_future();
+    auto f2 = p2.get_future();
 
-    auto b = B{};
-    b.func();
+    auto t1 = boost::asio::deadline_timer{ context };
+    t1.expires_from_now(boost::posix_time::milliseconds{ 2000 });
+    auto t2 = boost::asio::deadline_timer{ context };
+    t2.expires_from_now(boost::posix_time::milliseconds{ 5000 });
 
-    auto c = C{};
-    c.func();
+    t1.async_wait(
+        [promise = std::move(p1)](const boost::system::error_code &ec) mutable
+        {
+            if (!ec)
+                promise.set_value(1);
+        });
+    t2.async_wait(
+        [promise = std::move(p2)](const boost::system::error_code &ec) mutable
+        {
+            if (!ec)
+            {
+                LOGI << "INSIDE t2";
+                promise.set_value(2);
+            }
+        });
 
-    std::this_thread::sleep_for(std::chrono::seconds{ 2 });
-    t.join();
+    std::function<void(boost::future<std::vector<boost::future<int>>>)> callback{};
+    callback =
+        [&callback](boost::future<std::vector<boost::future<int>>> combined) mutable
+    {
+        LOGI << "callback";
 
-    c.func();
+        if (!combined.has_value())
+        {
+            LOGE << "does not have value";
+            return;
+        }
+        else
+        {
+            auto futures = combined.get();
+            auto allGood = true;
+
+            for (auto &item : futures)
+            {
+                if (!item.is_ready())
+                {
+                    LOGW << "NOT READY";
+                    allGood = false;
+                    break;
+                }
+                else
+                {
+                    LOGI << "READY";
+                }
+            }
+
+            if (!allGood)
+            {
+                boost::when_any(futures.begin() + 1, futures.end())
+                    .then([&callback](
+                              boost::future<std::vector<boost::future<int>>> combined)
+                          { callback(std::move(combined)); });
+            }
+            else
+            {
+                LOGI << "All good";
+                for (auto &item : futures)
+                    LOGI << item.get();
+            }
+        }
+    };
+
+    auto futures = std::vector<boost::future<int>>{};
+    futures.push_back(std::move(f1));
+    futures.push_back(std::move(f2));
+    boost::when_any(futures.begin(), futures.end())
+        .then([&callback](boost::future<std::vector<boost::future<int>>> combined)
+              { callback(std::move(combined)); });
+
+    context.run();
 
     return 0;
 }
