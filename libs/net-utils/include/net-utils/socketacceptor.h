@@ -5,12 +5,15 @@
 
 #include <boost/asio.hpp>
 
-#include "iocontextpool/iocontextpool.h"
+#include "logger/logger.h"
+
+#include "iocontextpool.h"
 
 /**
  * @brief forever accepts sockets and calls new_socket_callback_fn
  */
-class SocketAcceptor : public std::enable_shared_from_this<SocketAcceptor>
+class SocketAcceptor : public std::enable_shared_from_this<SocketAcceptor>,
+                       public logger::Entity<SocketAcceptor>
 {
     DISABLE_COPY_MOVE(SocketAcceptor);
 

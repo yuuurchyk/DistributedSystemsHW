@@ -1,8 +1,6 @@
-#include "socketacceptor/socketacceptor.h"
+#include "net-utils/socketacceptor.h"
 
 #include <utility>
-
-#include "logger/logger.h"
 
 using namespace boost::asio;
 using error_code = boost::system::error_code;
@@ -45,11 +43,11 @@ void SocketAcceptor::acceptOne()
                            {
                                if (error)
                                {
-                                   LOGE << "Could not accept incoming connection";
+                                   EN_LOGE << "Could not accept incoming connection";
                                    return;
                                }
 
-                               LOGI << "Accepting incoming connection";
+                               EN_LOGI << "Accepting incoming connection";
 
                                newSocketCallback_(std::move(*socketOwner));
 
