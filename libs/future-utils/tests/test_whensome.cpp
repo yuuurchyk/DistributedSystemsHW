@@ -9,7 +9,6 @@
 #include <boost/thread.hpp>
 #include <gtest/gtest.h>
 
-#include "logger/logger.h"
 #include "utils/copymove.h"
 
 namespace

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
 project(future-utils LANGUAGES CXX)
 
-find_package(Boost 1.80 EXACT REQUIRED)
+find_package(Boost 1.80 EXACT REQUIRED COMPONENTS thread)
 find_package(Threads REQUIRED)
 
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ./include/${PROJECT_NAME}/**.h
@@ -17,7 +17,7 @@ target_include_directories(
   PUBLIC include
   PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads Boost::boost
-                                             logger utils)
+                                             Boost::thread utils)
 target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_THREAD_VERSION=4)
 
 set_target_properties(
