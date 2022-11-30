@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
-project(logreplication LANGUAGES CXX)
+project(log-replication LANGUAGES CXX)
 option(${PROJECT_NAME}-build-tests "include tests" ON)
 
 find_package(
