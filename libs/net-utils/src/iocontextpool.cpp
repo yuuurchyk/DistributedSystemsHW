@@ -6,6 +6,8 @@
 
 using namespace boost::asio;
 
+namespace NetUtils
+{
 IOContextPool::IOContextPool(size_t size)
     : size_{ size },
       contexts_{ [size]()
@@ -48,10 +50,10 @@ io_context &IOContextPool::getAtIndex(size_t index)
 
 namespace
 {
-void ioContextRunner(io_context &context)
-{
-    context.run();
-}
+    void ioContextRunner(io_context &context)
+    {
+        context.run();
+    }
 }    // namespace
 
 void IOContextPool::runInSeparateThreads(bool forever)
@@ -88,3 +90,5 @@ IOContextPool::~IOContextPool()
     if (!workerThreads_.empty())
         stop();
 }
+
+}    // namespace NetUtils

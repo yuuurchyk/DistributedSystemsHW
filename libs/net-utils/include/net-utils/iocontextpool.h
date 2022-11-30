@@ -8,6 +8,8 @@
 
 #include "utils/copymove.h"
 
+namespace NetUtils
+{
 class IOContextPool
 {
     DISABLE_COPY_MOVE(IOContextPool);
@@ -38,3 +40,5 @@ private:
     std::vector<std::thread>  workerThreads_;
     std::vector<work_guard_t> workGuards_;
 };
+
+}    // namespace NetUtils

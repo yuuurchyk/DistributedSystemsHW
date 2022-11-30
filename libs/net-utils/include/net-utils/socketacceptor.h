@@ -9,6 +9,8 @@
 
 #include "iocontextpool.h"
 
+namespace NetUtils
+{
 /**
  * @brief forever accepts sockets and calls new_socket_callback_fn
  */
@@ -40,3 +42,5 @@ private:
     new_socket_callback_fn         newSocketCallback_;
     IOContextPool                 &workersPool_;
 };
+
+}    // namespace NetUtils

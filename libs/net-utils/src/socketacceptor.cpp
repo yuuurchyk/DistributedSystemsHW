@@ -5,6 +5,8 @@
 using namespace boost::asio;
 using error_code = boost::system::error_code;
 
+namespace NetUtils
+{
 std::shared_ptr<SocketAcceptor>
     SocketAcceptor::create(io_context            &acceptorContext,
                            unsigned short         port,
@@ -54,3 +56,5 @@ void SocketAcceptor::acceptOne()
                                acceptOne();
                            });
 }
+
+}    // namespace NetUtils
