@@ -3,6 +3,7 @@ add_subdirectory(utils)
 add_subdirectory(logger)
 add_subdirectory(net-utils)
 add_subdirectory(future-utils)
+add_subdirectory(proto)
 # add_subdirectory(protocol) add_subdirectory(communicationendpoint)
 # add_subdirectory(iocontextpool) add_subdirectory(socketacceptor)
 # add_subdirectory(httpsession)
@@ -12,5 +13,5 @@ add_subdirectory(future-utils)
 # PARENT_SCOPE)
 
 set(libsTargets
-    "utils;logger;net-utils;future-utils"
+    "utils;logger;net-utils;future-utils;proto"
     PARENT_SCOPE)
