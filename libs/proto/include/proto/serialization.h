@@ -14,7 +14,7 @@ namespace Proto
 {
 class SerializationContext;
 
-template <typename Event>    // for both Request and Response
+template <typename Event>
 [[nodiscard]] std::unique_ptr<SerializationContext> serialize(Event);
 
 class SerializationContext

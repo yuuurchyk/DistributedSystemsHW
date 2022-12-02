@@ -56,25 +56,6 @@ TEST(Serialization, Tuple)
     detail::serialize(t, context);
 }
 
-TEST(Serialization, TupleOfRefs)
-{
-    auto a = 1;
-    auto b = size_t{ 2 };
-
-    const auto t = std::make_tuple(std::ref(a), std::ref(b));
-
-    auto context = SerializationContext{};
-    detail::serialize(t, context);
-
-    const auto &seq = context.constBufferSequence;
-
-    ASSERT_EQ(seq.size(), 2);
-    ASSERT_EQ(seq[0].size(), sizeof(int));
-    ASSERT_EQ(seq[1].size(), sizeof(size_t));
-    ASSERT_EQ(seq[0].data(), &a);
-    ASSERT_EQ(seq[1].data(), &b);
-}
-
 TEST(Serialization, TupleOfReferences)
 {
     auto a = 1;
@@ -92,12 +73,10 @@ TEST(Serialization, OtherCombinations)
 {
     auto v1 = std::vector<std::optional<std::string>>{};
     auto v2 = std::optional<std::vector<std::optional<std::string>>>{};
-    auto v3 = std::optional<std::reference_wrapper<const std::string>>{};
 
     auto context = SerializationContext{};
     detail::serialize(v1, context);
     detail::serialize(v2, context);
-    detail::serialize(v3, context);
 }
 
 TEST(Serialization, CustomClass)

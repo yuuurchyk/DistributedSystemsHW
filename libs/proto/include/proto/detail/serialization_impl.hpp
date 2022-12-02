@@ -4,10 +4,7 @@
 
 #include <optional>
 #include <string>
-#include <string_view>
-#include <tuple>
 #include <utility>
-#include <vector>
 
 namespace Proto::detail
 {
@@ -17,20 +14,16 @@ template <typename T>
 void serialize(const std::optional<T> &, SerializationContext &);
 template <typename T>
 void serialize(const std::vector<T> &, SerializationContext &);
-template <typename T>
-void serialize(const std::reference_wrapper<T> &, SerializationContext &);
-template <typename T>
-void serialize(const std::reference_wrapper<const T> &, SerializationContext &);
 template <typename... Args>
 void serialize(const std::tuple<Args...> &, SerializationContext &);
 template <>
 void serialize<std::string>(const std::string &, SerializationContext &);
-template <>
-void serialize<std::string_view>(const std::string_view &, SerializationContext &);
 
 template <typename T>
 void serialize(const T &val, SerializationContext &context)
 {
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+
     if constexpr (std::is_pod_v<T>)
     {
         context.constBufferSequence.emplace_back(&val, sizeof(T));
@@ -39,22 +32,6 @@ void serialize(const T &val, SerializationContext &context)
     {
         serialize(val.tie(), context);
     }
-}
-
-template <>
-void serialize<std::string>(const std::string &s, SerializationContext &context)
-{
-    serialize(context.add(s.size()), context);
-    context.constBufferSequence.emplace_back(s.data(),
-                                             s.size() * sizeof(std::string::value_type));
-}
-
-template <>
-void serialize<std::string_view>(const std::string_view &s, SerializationContext &context)
-{
-    serialize(context.add(s.size()), context);
-    context.constBufferSequence.emplace_back(s.data(),
-                                             s.size() * sizeof(std::string::value_type));
 }
 
 template <typename T>
@@ -73,18 +50,6 @@ void serialize(const std::vector<T> &v, SerializationContext &context)
 
     for (const auto &entry : v)
         serialize(entry, context);
-}
-
-template <typename T>
-void serialize(const std::reference_wrapper<T> &ref, SerializationContext &context)
-{
-    serialize(ref.get(), context);
-}
-
-template <typename T>
-void serialize(const std::reference_wrapper<const T> &ref, SerializationContext &context)
-{
-    serialize(ref.get(), context);
 }
 
 template <typename... Args>
@@ -107,12 +72,6 @@ const T &SerializationContext::add(T value)
     dtors_.push_back([ptr]() { delete ptr; });
 
     return *ptr;
-}
-
-SerializationContext::~SerializationContext()
-{
-    for (auto &dtor : dtors_)
-        dtor();
 }
 
 template <typename Event>
