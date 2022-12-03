@@ -5,8 +5,8 @@
 
 namespace Proto
 {
-template <typename Event>
-[[nodiscard]] std::optional<Event> deserialize(const void *data, size_t size);
+template <typename Event, typename ConstBufferSequence>
+[[nodiscard]] std::optional<Event> deserialize(const ConstBufferSequence &);
 
 }    // namespace Proto
 

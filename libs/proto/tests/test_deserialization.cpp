@@ -13,37 +13,6 @@ namespace
 {
 using namespace Proto;
 
-/**
- * @brief copies input ConstBufferSequence into a contiguous array of memory
- */
-class MemoryChunk
-{
-    DISABLE_COPY_MOVE(MemoryChunk)
-
-public:
-    MemoryChunk(const std::deque<boost::asio::const_buffer> &constBufferSequence)
-    {
-        for (const auto &piece : constBufferSequence)
-            size_ += piece.size();
-
-        rawMemory_.reset(new (std::nothrow) std::byte[size_]);
-
-        auto ptr = rawMemory_.get();
-        for (const auto &piece : constBufferSequence)
-        {
-            std::memcpy(ptr, piece.data(), piece.size());
-            ptr += piece.size();
-        }
-    }
-
-    const void *memory() const { return rawMemory_.get(); }
-    size_t      size() const noexcept { return size_; }
-
-private:
-    size_t                       size_{};
-    std::unique_ptr<std::byte[]> rawMemory_{};
-};
-
 TEST(Deserialization, PODs)
 {
     const auto a = 1;
@@ -55,10 +24,9 @@ TEST(Deserialization, PODs)
     detail::serialize(b, context);
     detail::serialize(c, context);
 
-    const auto chunk = MemoryChunk{ context.constBufferSequence };
-    auto       ptr   = detail::DeserializationPtr{ chunk.memory(), chunk.size() };
-
-    ASSERT_EQ(chunk.size(), 2 * sizeof(int) + sizeof(size_t));
+    auto &seq = context.constBufferSequence;
+    auto  ptr = detail::DeserializationPtr{ boost::asio::buffers_begin(seq),
+                                           boost::asio::buffers_end(seq) };
 
     const auto resa = detail::Deserializer<int>::deserialize(ptr);
     const auto resb = detail::Deserializer<size_t>::deserialize(ptr);
@@ -82,8 +50,9 @@ TEST(Deserialization, PODsInvalidData)
     detail::serialize(a, context);
     detail::serialize(b, context);
 
-    const auto chunk = MemoryChunk{ context.constBufferSequence };
-    auto       ptr   = detail::DeserializationPtr{ chunk.memory(), chunk.size() };
+    auto &seq = context.constBufferSequence;
+    auto  ptr = detail::DeserializationPtr{ boost::asio::buffers_begin(seq),
+                                           boost::asio::buffers_end(seq) };
 
     const auto resa = detail::Deserializer<int>::deserialize(ptr);
     const auto resb = detail::Deserializer<size_t>::deserialize(ptr);
@@ -107,8 +76,9 @@ TEST(Deserialization, Vector)
     auto context = SerializationContext{};
     detail::serialize(v, context);
 
-    const auto chunk = MemoryChunk{ context.constBufferSequence };
-    auto       ptr   = detail::DeserializationPtr{ chunk.memory(), chunk.size() };
+    auto &seq = context.constBufferSequence;
+    auto  ptr = detail::DeserializationPtr{ boost::asio::buffers_begin(seq),
+                                           boost::asio::buffers_end(seq) };
 
     const auto res =
         detail::Deserializer<std::vector<std::optional<std::string>>>::deserialize(ptr);
@@ -129,9 +99,7 @@ TEST(Deserialization, CustomClass)
     auto context = SerializationContext{};
     detail::serialize(message, context);
 
-    const auto chunk = MemoryChunk{ context.constBufferSequence };
-
-    const auto res = deserialize<Message>(chunk.memory(), chunk.size());
+    const auto res = deserialize<Message>(context.constBufferSequence);
 
     ASSERT_TRUE(res.has_value());
 
