@@ -1,15 +1,23 @@
-#include "proto/communicationendpoint.h"
+// #include "proto/communicationendpoint.h"
 
-#include <cstdint>
+// #include <cstdint>
 
-#include "utils/copymove.h"
+// #include "utils/copymove.h"
 
-/**
- * @brief Websocket frame structure:
- * EventType        1 byte
- * RequestId_t      8 bytes (request number in case of request, request id in case of
- * response) optional payload
- */
-namespace
-{
-}    // namespace
+// namespace
+// {
+
+// class CommunicationEndpoint::PendingRequestContext
+// {
+//     DISABLE_COPY_MOVE(PendingRequestContext)
+// public:
+//     PendingRequestContext()          = default;
+//     virtual ~PendingRequestContext() = default;
+
+//     virtual void invalidateTimeout()      = 0;
+//     virtual void invalidateDisconnected() = 0;
+// };
+
+// }    // namespace
+
+// CommunicationEndpoint::~CommunicationEndpoint() = default;

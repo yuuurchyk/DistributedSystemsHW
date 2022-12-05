@@ -29,7 +29,7 @@ add_executable(main src/main.cpp ${SOURCES})
 target_link_libraries(main PRIVATE ${libsTargets})
 set_target_properties(
   main
-  PROPERTIES CXX_STANDARD 17
+  PROPERTIES CXX_STANDARD 20
              CXX_STANDARD_REQUIRED ON
              CXX_EXTENSIONS OFF)
 

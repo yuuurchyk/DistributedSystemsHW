@@ -1,44 +1,59 @@
 #pragma once
 
-#include <deque>
-#include <functional>
 #include <memory>
-#include <type_traits>
+#include <tuple>
 #include <vector>
 
 #include <boost/asio.hpp>
 
+#include "proto/proto.h"
 #include "utils/copymove.h"
 
 namespace Proto
 {
-class SerializationContext;
+struct SerializationResult;
 
-template <typename Event>
-[[nodiscard]] std::unique_ptr<SerializationContext> serialize(Event);
+/**
+ * @brief serializes the input @p val into a const buffer sequence
+ *
+ * @note make sure not to change the address of @p val after the call,
+ * since the buffer will become invalid (one solution is to wrap the @p val into a smart
+ * pointer)
+ *
+ * @note Context object holds an additional data needed for serializing, deleting
+ * it also makes the buffer sequence invalid
+ */
+template <Concepts::Serializable T>
+[[nodiscard]] SerializationResult serialize(const T &val);
 
 class SerializationContext
 {
-    DISABLE_COPY_MOVE(SerializationContext)
-
 public:
-    std::deque<boost::asio::const_buffer> constBufferSequence;
+    DISABLE_COPY_DEFAULT_MOVE(SerializationContext)
 
-    /**
-     * @brief saves pod on the heap
-     */
-    template <typename T, typename = std::enable_if_t<std::is_pod_v<T>>>
+    // specifies the size of the first chunk
+    SerializationContext(size_t bytesNum = kDefaultChunkSize);
+
+    template <std::integral T>
     const T &add(T value);
 
-    SerializationContext() = default;
-    ~SerializationContext();
-
 private:
-    template <typename Event>
-    friend std::unique_ptr<SerializationContext> serialize(Event);
+    // optimize number of memory allocations
+    static constexpr size_t kDefaultChunkSize{ sizeof(size_t) * 4 };
+    static_assert(kDefaultChunkSize > 0);
 
-    std::vector<std::function<void()>> dtors_;    // wierd way of holding arbitrary memory
-                                                  // chunks allocated on the heap
+    std::byte &getContiguousMemory(size_t bytesNum);
+    void       allocateChunk(size_t bytesNum);
+
+    std::vector<std::unique_ptr<std::byte[]>> chunks_;
+    std::byte                                *currentChunk_;
+    std::byte                                *currentChunkEnd_;
+};
+
+struct SerializationResult
+{
+    std::vector<boost::asio::const_buffer> constBufferSequence;
+    SerializationContext                   context;
 };
 
 }    // namespace Proto

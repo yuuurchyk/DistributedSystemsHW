@@ -7,121 +7,27 @@ namespace
 {
 using namespace Proto;
 
-TEST(Serialization, PODs)
+struct Sample
 {
-    const int    a = 1;
-    const size_t b = 2;
+    int    a{ 2 };
+    size_t b{ 4 };
+    short  c{ 7 };
 
-    auto context = SerializationContext{};
-    detail::serialize(a, context);
-    detail::serialize(b, context);
+    std::vector<std::string> v{ "abc", "def" };
 
-    const auto &seq = context.constBufferSequence;
-    ASSERT_EQ(seq.size(), 2);
-    ASSERT_EQ(seq[0].size(), sizeof(int));
-    ASSERT_EQ(seq[1].size(), sizeof(size_t));
-    ASSERT_EQ(&a, seq[0].data());
-    ASSERT_EQ(&b, seq[1].data());
-    ASSERT_EQ(a, *reinterpret_cast<const int *>(seq[0].data()));
-    ASSERT_EQ(b, *reinterpret_cast<const size_t *>(seq[1].data()));
+    std::optional<std::string> s1{ "ghi" };
+    std::optional<std::string> s2{};
 
-    const auto &ra = context.add(a);
-    const auto &rb = context.add(b);
-
-    ASSERT_NE(&ra, &a);
-    ASSERT_NE(&rb, &b);
-}
-
-TEST(Serialization, String)
-{
-    const auto s = std::string{ "abc" };
-
-    auto context = SerializationContext{};
-    detail::serialize(s, context);
-
-    const auto &seq = context.constBufferSequence;
-
-    ASSERT_EQ(seq.size(), 2);
-    ASSERT_EQ(seq[0].size(), sizeof(std::string::size_type));
-    ASSERT_EQ(seq[1].size(), s.size());
-    ASSERT_EQ(s.size(), *reinterpret_cast<const std::string::size_type *>(seq[0].data()));
-    ASSERT_EQ(s.data(), seq[1].data());
-}
-
-TEST(Serialization, Tuple)
-{
-    const auto t = std::make_tuple(1, 2, 3);
-
-    auto context = SerializationContext{};
-    detail::serialize(t, context);
-}
-
-TEST(Serialization, TupleOfReferences)
-{
-    auto a = 1;
-    auto b = size_t{ 2 };
-
-    const auto t = std::tie(a, b);
-
-    auto context = SerializationContext{};
-    detail::serialize(t, context);
-
-    const auto &seq = context.constBufferSequence;
-}
-
-TEST(Serialization, OtherCombinations)
-{
-    auto v1 = std::vector<std::optional<std::string>>{};
-    auto v2 = std::optional<std::vector<std::optional<std::string>>>{};
-
-    auto context = SerializationContext{};
-    detail::serialize(v1, context);
-    detail::serialize(v2, context);
-}
+    auto tie() { return std::tie(a, b, c, v, s1, s2); }
+    auto tie() const { return std::tie(a, b, c, v, s1, s2); }
+};
 
 TEST(Serialization, CustomClass)
 {
-    auto message = Message{ getCurrentTimestamp(), "sample message" };
+    const auto &val = Sample{};
 
-    auto context = SerializationContext{};
-    detail::serialize(message, context);
-}
-
-TEST(Serialization, Request_AddMessage)
-{
-    const auto timestamp = getCurrentTimestamp();
-
-    auto request = Request::AddMessage{ Message{ timestamp, "sample message" } };
-
-    auto context = serialize(std::move(request));
-
-    const auto &bufferSequence = context->constBufferSequence;
-    ASSERT_EQ(bufferSequence.size(),
-              5);    // event type, opcode, timestamp, string size, string itself
-    ASSERT_EQ(bufferSequence[0].size(), sizeof(EventType));
-    ASSERT_EQ(bufferSequence[1].size(), sizeof(OpCode));
-    ASSERT_EQ(bufferSequence[2].size(), sizeof(Timestamp_t));
-    ASSERT_EQ(bufferSequence[3].size(), sizeof(std::string::size_type));
-    ASSERT_EQ(bufferSequence[4].size(),
-              (sizeof("sample message") - 1) * sizeof(std::string::value_type));
-}
-
-TEST(Serialization, OtherProtoClasses)
-{
-    {
-        auto request = Request::GetMessages{};
-        auto context = serialize(std::move(request));
-    }
-    {
-        auto response     = Response::GetMessages{};
-        response.status   = Response::GetMessages::Status::OK;
-        response.messages = { Message{ getCurrentTimestamp(), "sample message 1" } };
-        auto context      = serialize(std::move(response));
-    }
-    {
-        auto response = Response::AddMessage{};
-        auto context  = serialize(std::move(response));
-    }
+    const auto res = serialize(val);
+    ASSERT_EQ(res.constBufferSequence.size(), 12);
 }
 
 }    // namespace

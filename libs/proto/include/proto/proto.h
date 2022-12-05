@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <cstdint>
 #include <functional>
 #include <optional>
@@ -8,30 +9,22 @@
 #include <utility>
 #include <vector>
 
+#include "proto/detail/proto_impl.h"
 #include "proto/timestamp.h"
 
 /**
- * @brief Requirements to request/reponse classes:
- * 1. default ctor
- * 2. move ctor
- * 3. tie() methods should return tuple of references or const references
- * 4. static kEventType entry
- * 5. static kOpCode entry
- * 6. relatively simple members (pods, vectors, optionals, strings are supported)
- *    (also custom classes with tie() methods are supported for
- * serialization/deserialization)
- *
- * @note 2 overloads of tie() should be present (const references for serialization and
- * references for deserialization)
- *
- * @note make sure not to move the objects after tie() is called (since the object changes
- * its address. One way to be safe is to wrap the Request/Response class into a smart
- * pointer)
- *
- * @note smart pointers are not supported for serialization/deserialization
+ * @brief Types that can be serializabled/deserialized:
+ * 1. integral types
+ * 2. enums
+ * 3. string
+ * 4. any combinations of pair, tuple, optional, vector
+ * 5. custom classes, if they define 2 tie() overloads (one should return
+ *    tuple of referenes, other should return tuple of const references).
  */
 namespace Proto
 {
+using RequestId_t = uint64_t;
+
 enum class EventType : uint8_t
 {
     REQUEST = 0,
@@ -42,6 +35,13 @@ enum class OpCode : uint8_t
     ADD_MESSAGE = 0,
     GET_MESSAGES
 };
+enum class ResponseStatus : uint8_t
+{
+    RECIEVED_FINE = 0,
+    RECIEVED_BAD_FRAME,
+    NOT_RECIEVED_TIMEOUT,
+    NOT_RECEIVED_DISCONNECTED
+};
 
 struct Message
 {
@@ -51,7 +51,6 @@ struct Message
     auto tie() const { return std::tie(timestamp, message); }
     auto tie() { return std::tie(timestamp, message); }
 };
-// TODO: add hashes
 
 namespace Request
 {
@@ -59,18 +58,12 @@ namespace Request
     {
         Message message;
 
-        static constexpr EventType kEventType{ EventType::REQUEST };
-        static constexpr OpCode    kOpCode{ OpCode::ADD_MESSAGE };
-        auto                       tie() const { return std::tie(message); }
-        auto                       tie() { return std::tie(message); }
+        auto tie() const { return std::tie(message); }
+        auto tie() { return std::tie(message); }
     };
 
     struct GetMessages
     {
-        static constexpr EventType kEventType{ EventType::REQUEST };
-        static constexpr OpCode    kOpCode{ OpCode::GET_MESSAGES };
-        auto                       tie() const { return std::make_tuple(); }
-        auto                       tie() { return std::make_tuple(); }
     };
 }    // namespace Request
 
@@ -78,37 +71,61 @@ namespace Response
 {
     struct AddMessage
     {
-        enum class Status : uint8_t
-        {
-            OK = 0,
-            OK_ALREADY_PRESENT,
-            FAILED
-        };
-
-        Status status{ Status::FAILED };
-
-        static constexpr EventType kEventType{ EventType::RESPONSE };
-        static constexpr OpCode    kOpCode{ OpCode::ADD_MESSAGE };
-        auto                       tie() { return std::tie(status); }
-        auto                       tie() const { return std::tie(status); }
     };
 
     struct GetMessages
     {
-        enum class Status : uint8_t
-        {
-            OK = 0,
-            FAILED
-        };
+        std::vector<Message> messages;
 
-        Status                              status{ Status::FAILED };
-        std::optional<std::vector<Message>> messages;
-
-        static constexpr EventType kEventType{ EventType::RESPONSE };
-        static constexpr OpCode    kOpCode{ OpCode::GET_MESSAGES };
-        auto                       tie() { return std::tie(status, messages); }
-        auto                       tie() const { return std::tie(status, messages); }
+        auto tie() { return std::tie(messages); }
+        auto tie() const { return std::tie(messages); }
     };
 }    // namespace Response
+
+PROTO_REG_REQUEST_RESPONSE(Request::AddMessage, Response::AddMessage, OpCode::ADD_MESSAGE)
+// PROTO_REG_REQUEST_RESPONSE(Request::GetMessages,
+//                            Response::GetMessages,
+//                            OpCode::GET_MESSAGES)
+
+namespace Concepts
+{
+    template <typename T>
+    concept Event = requires(T)
+    {
+        requires detail::Traits::IsEvent<T>::value;
+        requires detail::Traits::EventType<T>::value;
+        requires detail::Traits::OpCode<T>::value;
+    };
+    template <typename T>
+    concept Request = Event<T> and requires(T)
+    {
+        requires detail::Traits::EventType<T>::value == EventType::REQUEST;
+        detail::Traits::Response<T>::type;
+    };
+    template <typename T>
+    concept Response = Event<T> and requires(T)
+    {
+        requires detail::Traits::EventType<T>::value == EventType::RESPONSE;
+        detail::Traits::Request<T>::type;
+    };
+    template <typename T>
+    concept Serializable = requires(T)
+    {
+        requires detail::Traits::Suitable<T>::value;
+    };
+    template <typename T>
+    concept Deserializable = requires(T)
+    {
+        requires std::is_default_constructible_v<T>;
+        requires detail::Traits::Suitable<T>::value;
+    };
+}    // namespace Concepts
+
+template <Concepts::Event Event>
+inline constexpr OpCode OpCode_v = detail::Traits::OpCode<Event>::value;
+template <Concepts::Request Request>
+using Response_t = typename detail::Traits::Response<Request>::type;
+template <Concepts::Response Response>
+using Request_t = typename detail::Traits::Request<Response>::type;
 
 }    // namespace Proto

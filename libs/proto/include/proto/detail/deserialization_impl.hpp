@@ -2,114 +2,112 @@
 
 #include "proto/deserialization.h"
 
-#include <algorithm>
+#include <optional>
 #include <string>
-#include <tuple>
 #include <type_traits>
 #include <vector>
 
-#include <boost/asio.hpp>
-
-#include "utils/copymove.h"
-
-namespace Proto::detail
+namespace Proto
 {
-template <typename BuffersIterator>
-struct DeserializationPtr
+template <typename ConstBufferSequence>
+DeserializationPtr<ConstBufferSequence>::DeserializationPtr(
+    const ConstBufferSequence &seq)
+    : current_{ boost::asio::buffers_begin(seq) }, end_{ boost::asio::buffers_end(seq) }
 {
-    DISABLE_COPY_MOVE(DeserializationPtr);
+}
 
-    DeserializationPtr(BuffersIterator begin, BuffersIterator end)
-        : current{ begin }, end{ end }
-    {
-    }
+template <typename ConstBufferSequence>
+template <typename T>
+bool DeserializationPtr<ConstBufferSequence>::has(size_t count)
+{
+    const auto requiredSize = sizeof(T) * count;
+    return (end_ - current_) >= requiredSize;
+}
 
-    /**
-     * @return true if buffer has @p count more instances of T
-     */
-    template <typename T>
-    bool has(size_t count = 1)
-    {
-        const auto requiredSize = sizeof(T) * count;
-        return (end - current) >= requiredSize;
-    }
+template <typename ConstBufferSequence>
+template <typename T>
+T DeserializationPtr<ConstBufferSequence>::get()
+{
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+    static_assert(std::is_integral_v<T> || std::is_enum_v<T>);
 
-    template <typename T>
-    T get()
-    {
-        static_assert(std::is_same_v<T, std::decay_t<T>>);
-        static_assert(std::is_pod_v<T>);
+    T res;
+    std::copy(current_,
+              current_ + sizeof(T),
+              reinterpret_cast<typename Iterator::value_type *>(&res));
 
-        T res;
-        std::copy(current,
-                  current + sizeof(T),
-                  reinterpret_cast<typename BuffersIterator::value_type *>(&res));
+    current_ += sizeof(T);
 
-        current += sizeof(T);
+    return res;
+}
 
-        return res;
-    }
+template <typename ConstBufferSequence>
+template <typename T>
+auto DeserializationPtr<ConstBufferSequence>::get(size_t count)
+    -> std::tuple<Iterator, Iterator>
+{
+    static_assert(std::is_same_v<T, std::decay_t<T>>);
+    static_assert(std::is_pod_v<T>);
 
-    template <typename T>
-    std::tuple<BuffersIterator, BuffersIterator> get(size_t count)
-    {
-        static_assert(std::is_same_v<T, std::decay_t<T>>);
-        static_assert(std::is_pod_v<T>);
+    auto res = std::make_tuple(current_, current_ + sizeof(T) * count);
+    current_ += sizeof(T) * count;
 
-        auto res = std::make_tuple(current, current + sizeof(T) * count);
-        current += sizeof(T) * count;
+    return res;
+}
 
-        return res;
-    }
+template <typename ConstBufferSequence>
+bool DeserializationPtr<ConstBufferSequence>::atEnd() const noexcept
+{
+    return current_ == end_;
+}
 
-    bool atEnd() const noexcept { return current == end; }
+}    // namespace Proto
 
-private:
-    BuffersIterator       current;
-    const BuffersIterator end;
-};
-
+namespace Proto::detail::Deserialization
+{
 template <typename T>
 class Deserializer
 {
 public:
-    template <typename BuffersIterator>
-    static std::optional<T> deserialize(DeserializationPtr<BuffersIterator> &);
+    template <typename ConstBufferSequence>
+    static std::optional<T> deserialize(DeserializationPtr<ConstBufferSequence> &);
 };
 
 template <typename T>
 class Deserializer<std::optional<T>>
 {
 public:
-    template <typename BuffersIterator>
+    template <typename ConstBufferSequence>
     static std::optional<std::optional<T>>
-        deserialize(DeserializationPtr<BuffersIterator> &);
+        deserialize(DeserializationPtr<ConstBufferSequence> &);
 };
 
 template <typename T>
 class Deserializer<std::vector<T>>
 {
 public:
-    template <typename BuffersIterator>
+    template <typename ConstBufferSequence>
     static std::optional<std::vector<T>>
-        deserialize(DeserializationPtr<BuffersIterator> &);
+        deserialize(DeserializationPtr<ConstBufferSequence> &);
 };
 
 template <>
 class Deserializer<std::string>
 {
 public:
-    template <typename BuffersIterator>
-    static std::optional<std::string> deserialize(DeserializationPtr<BuffersIterator> &);
+    template <typename ConstBufferSequence>
+    static std::optional<std::string>
+        deserialize(DeserializationPtr<ConstBufferSequence> &);
 };
 
 template <typename T>
-template <typename BuffersIterator>
-std::optional<T> Deserializer<T>::deserialize(DeserializationPtr<BuffersIterator> &ptr)
+template <typename ConstBufferSequence>
+std::optional<T>
+    Deserializer<T>::deserialize(DeserializationPtr<ConstBufferSequence> &ptr)
 {
     static_assert(std::is_same_v<T, std::decay_t<T>>);
 
-    if constexpr (std::is_pod_v<T>)
+    if constexpr (std::is_integral_v<T> || std::is_enum_v<T>)
     {
         if (ptr.template has<T>())
             return ptr.template get<T>();
@@ -145,9 +143,9 @@ std::optional<T> Deserializer<T>::deserialize(DeserializationPtr<BuffersIterator
 }
 
 template <typename T>
-template <typename BuffersIterator>
-std::optional<std::optional<T>>
-    Deserializer<std::optional<T>>::deserialize(DeserializationPtr<BuffersIterator> &ptr)
+template <typename ConstBufferSequence>
+std::optional<std::optional<T>> Deserializer<std::optional<T>>::deserialize(
+    DeserializationPtr<ConstBufferSequence> &ptr)
 {
     if (!ptr.template has<bool>())
         return {};
@@ -165,9 +163,9 @@ std::optional<std::optional<T>>
 }
 
 template <typename T>
-template <typename BuffersIterator>
-std::optional<std::vector<T>>
-    Deserializer<std::vector<T>>::deserialize(DeserializationPtr<BuffersIterator> &ptr)
+template <typename ConstBufferSequence>
+std::optional<std::vector<T>> Deserializer<std::vector<T>>::deserialize(
+    DeserializationPtr<ConstBufferSequence> &ptr)
 {
     if (!ptr.template has<size_t>())
         return {};
@@ -189,9 +187,9 @@ std::optional<std::vector<T>>
     return res;
 }
 
-template <typename BuffersIterator>
+template <typename ConstBufferSequence>
 std::optional<std::string>
-    Deserializer<std::string>::deserialize(DeserializationPtr<BuffersIterator> &ptr)
+    Deserializer<std::string>::deserialize(DeserializationPtr<ConstBufferSequence> &ptr)
 {
     static_assert(std::is_pod_v<std::string::value_type>);
 
@@ -213,18 +211,14 @@ std::optional<std::string>
     return res;
 }
 
-}    // namespace Proto::detail
+}    // namespace Proto::detail::Deserialization
 
 namespace Proto
 {
-template <typename Event, typename ConstBufferSequence>
-[[nodiscard]] std::optional<Event> deserialize(const ConstBufferSequence &seq)
+template <Concepts::Deserializable T, typename ConstBufferSequence>
+std::optional<T> deserialize(DeserializationPtr<ConstBufferSequence> &ptr)
 {
-    auto begin = boost::asio::buffers_begin(seq);
-    auto end   = boost::asio::buffers_end(seq);
-
-    auto ptr = detail::DeserializationPtr{ begin, end };
-    auto res = detail::Deserializer<Event>::deserialize(ptr);
+    auto res = detail::Deserialization::Deserializer<T>::deserialize(ptr);
 
     if (!ptr.atEnd())
         return {};

@@ -22,7 +22,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_THREAD_VERSION=4)
 
 set_target_properties(
   ${PROJECT_NAME}
-  PROPERTIES CXX_STANDARD 17
+  PROPERTIES CXX_STANDARD 20
              CXX_STANDARD_REQUIRED ON
              CXX_EXTENSIONS OFF)
 
