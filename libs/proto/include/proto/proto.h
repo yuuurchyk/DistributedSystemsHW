@@ -13,7 +13,7 @@
  * 1. integral types
  * 2. enums
  * 3. string
- * 4. any combinations of pair, tuple, optional, vector
+ * 4. any combinations of optional, vector
  * 5. custom classes, if they define 2 tie() overloads (one should return
  *    tuple of referenes, other should return tuple of const references).
  */
