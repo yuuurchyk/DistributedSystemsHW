@@ -11,128 +11,114 @@
 namespace Proto::detail::Traits
 {
 template <typename T>
-struct Suitable;
+struct Serializable;
+template <typename T>
+struct Deserializable;
 
 template <typename T>
-struct SuitableTieEntry
+struct TriviallySerializable
+    : std::bool_constant<std::is_same_v<T, std::decay_t<T>> &&
+                         (std::is_integral_v<T> || std::is_enum_v<T>)>
 {
-    static constexpr bool getValue()
-    {
-        if constexpr (!std::is_reference_v<T>)
-        {
-            return false;
-        }
-        else
-        {
-            using Element = std::remove_reference_t<T>;
-            return Suitable<Element>::value;
-        }
-    }
-    static constexpr bool value{ getValue() };
 };
 template <typename T>
-struct SuitableCTieEntry
+struct TriviallyDeserializable : std::bool_constant<TriviallySerializable<T>::value>
 {
-    static constexpr bool getValue()
-    {
-        if constexpr (!std::is_reference_v<T>)
-        {
-            return false;
-        }
-        else
-        {
-            using CElement = std::remove_reference_t<T>;
+};
 
-            if constexpr (!std::is_const_v<CElement>)
-            {
-                return false;
-            }
-            else
-            {
-                using Element = std::remove_const_t<CElement>;
-                return Suitable<Element>::value;
-            }
-        }
-    }
-    static constexpr bool value{ getValue() };
+template <typename T>
+struct SerializableCTieEntry
+    : std::bool_constant<
+          std::is_reference_v<T> && std::is_const_v<std::remove_reference_t<T>> &&
+          Serializable<std::remove_const_t<std::remove_reference_t<T>>>::value>
+{
 };
 template <typename T>
-struct SuitableTie : std::false_type
+struct SerializableCTie : std::false_type
 {
 };
 template <typename... Args>
-struct SuitableTie<std::tuple<Args...>>
-    : std::bool_constant<std::conjunction<SuitableTieEntry<Args>...>::value>
+struct SerializableCTie<std::tuple<Args...>>
+    : std::bool_constant<std::conjunction<SerializableCTieEntry<Args>...>::value>
+{
+};
+
+template <typename T>
+struct DeserializableTieEntry
+    : std::bool_constant<std::is_reference_v<T> &&
+                         Deserializable<std::remove_reference_t<T>>::value>
 {
 };
 template <typename T>
-struct SuitableCTie : std::false_type
+struct DeserializableTie : std::false_type
 {
 };
 template <typename... Args>
-struct SuitableCTie<std::tuple<Args...>>
-    : std::bool_constant<std::conjunction<SuitableCTieEntry<Args>...>::value>
+struct DeserializableTie<std::tuple<Args...>>
+    : std::bool_constant<std::conjunction<DeserializableTieEntry<Args>...>::value>
 {
 };
 
 template <typename T>
-inline constexpr bool HasTie_t = requires(T &val)
+inline constexpr bool HasSerializableCTie_v = requires(const T &val)
 {
+    requires std::is_same_v<T, std::decay_t<T>>;
+
     val.tie();
-    requires SuitableTie<decltype(val.tie())>::value;
+    requires std::is_same_v<decltype(val.tie()), std::decay_t<decltype(val.tie())>>;
+    requires SerializableCTie<decltype(val.tie())>::value;
 };
 template <typename T>
-inline constexpr bool hasCTie_t = requires(const T &val)
+inline constexpr bool HasDeserializableTie_v = requires(T &val)
 {
+    requires std::is_same_v<T, std::decay_t<T>>;
+
     val.tie();
-    requires SuitableCTie<decltype(val.tie())>::value;
+    requires std::is_same_v<decltype(val.tie()), std::decay_t<decltype(val.tie())>>;
+    requires DeserializableTie<decltype(val.tie())>::value;
 };
 
 template <typename T>
-struct Suitable
+struct Serializable : public std::bool_constant<TriviallySerializable<T>::value ||
+                                                HasSerializableCTie_v<T>>
 {
-    static constexpr bool getValue()
-    {
-        if constexpr (!std::is_same_v<T, std::decay_t<T>>)
-            return false;
-        else if constexpr (std::is_integral_v<T>)
-            return true;
-        else if constexpr (std::is_enum_v<T>)
-            return true;
-        else
-        {
-            return HasTie_t<T> && hasCTie_t<T>;
-        }
-    }
-    static constexpr bool value{ getValue() };
 };
-
 template <typename T>
-struct Suitable<std::vector<T>> : std::bool_constant<Suitable<T>::value>
+struct Deserializable : public std::bool_constant<TriviallyDeserializable<T>::value ||
+                                                  HasDeserializableTie_v<T>>
 {
 };
 
 template <typename T>
-struct Suitable<std::optional<T>> : std::bool_constant<Suitable<T>::value>
+struct Serializable<std::vector<T>> : std::bool_constant<Serializable<T>::value>
+{
+};
+template <typename T>
+struct Deserializable<std::vector<T>> : std::bool_constant<Deserializable<T>::value>
+{
+};
+
+template <typename T>
+struct Serializable<std::optional<T>> : std::bool_constant<Serializable<T>::value>
+{
+};
+template <typename T>
+struct Deserializable<std::optional<T>> : std::bool_constant<Deserializable<T>::value>
 {
 };
 
 template <>
-struct Suitable<std::string> : std::true_type
+struct Serializable<std::string>
+    : std::bool_constant<Serializable<std::string::value_type>::value>
+{
+};
+template <>
+struct Deserializable<std::string>
+    : std::bool_constant<Deserializable<std::string::value_type>::value>
 {
 };
 
-template <typename... Args>
-struct Suitable<std::tuple<Args...>>
-    : std::bool_constant<std::conjunction<Suitable<Args>...>::value>
-{
-};
-
-template <typename F, typename S>
-struct Suitable<std::pair<F, S>>
-    : std::bool_constant<Suitable<F>::value && Suitable<S>::value>
-{
-};
+// TODO: tuples, pairs, arrays, floating point
 
 }    // namespace Proto::detail::Traits
 

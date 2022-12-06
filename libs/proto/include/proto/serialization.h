@@ -6,6 +6,7 @@
 
 #include <boost/asio.hpp>
 
+#include "proto/concepts.h"
 #include "proto/proto.h"
 #include "utils/copymove.h"
 
@@ -34,8 +35,8 @@ public:
     // specifies the size of the first chunk
     SerializationContext(size_t bytesNum = kDefaultChunkSize);
 
-    template <std::integral T>
-    const T &add(T value);
+    template <Concepts::TriviallySerializable T>
+    const T &add(const T &value);
 
 private:
     // optimize number of memory allocations

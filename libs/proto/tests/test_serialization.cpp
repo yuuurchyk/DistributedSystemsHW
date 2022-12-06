@@ -18,12 +18,13 @@ struct Sample
     std::optional<std::string> s1{ "ghi" };
     std::optional<std::string> s2{};
 
-    auto tie() { return std::tie(a, b, c, v, s1, s2); }
+    // auto tie() { return std::tie(a, b, c, v, s1, s2); }
     auto tie() const { return std::tie(a, b, c, v, s1, s2); }
 };
 
 TEST(Serialization, CustomClass)
 {
+    static_assert(Proto::detail::Traits::HasSerializableCTie_v<Sample>);
     const auto &val = Sample{};
 
     const auto res = serialize(val);

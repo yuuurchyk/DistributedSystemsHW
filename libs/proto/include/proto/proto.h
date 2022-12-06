@@ -1,15 +1,11 @@
 #pragma once
 
-#include <concepts>
 #include <cstdint>
-#include <functional>
-#include <optional>
 #include <string>
 #include <tuple>
-#include <utility>
 #include <vector>
 
-#include "proto/detail/proto_impl.h"
+#include "proto/detail/traits.h"
 #include "proto/timestamp.h"
 
 /**
@@ -83,49 +79,8 @@ namespace Response
 }    // namespace Response
 
 PROTO_REG_REQUEST_RESPONSE(Request::AddMessage, Response::AddMessage, OpCode::ADD_MESSAGE)
-// PROTO_REG_REQUEST_RESPONSE(Request::GetMessages,
-//                            Response::GetMessages,
-//                            OpCode::GET_MESSAGES)
-
-namespace Concepts
-{
-    template <typename T>
-    concept Event = requires(T)
-    {
-        requires detail::Traits::IsEvent<T>::value;
-        requires detail::Traits::EventType<T>::value;
-        requires detail::Traits::OpCode<T>::value;
-    };
-    template <typename T>
-    concept Request = Event<T> and requires(T)
-    {
-        requires detail::Traits::EventType<T>::value == EventType::REQUEST;
-        detail::Traits::Response<T>::type;
-    };
-    template <typename T>
-    concept Response = Event<T> and requires(T)
-    {
-        requires detail::Traits::EventType<T>::value == EventType::RESPONSE;
-        detail::Traits::Request<T>::type;
-    };
-    template <typename T>
-    concept Serializable = requires(T)
-    {
-        requires detail::Traits::Suitable<T>::value;
-    };
-    template <typename T>
-    concept Deserializable = requires(T)
-    {
-        requires std::is_default_constructible_v<T>;
-        requires detail::Traits::Suitable<T>::value;
-    };
-}    // namespace Concepts
-
-template <Concepts::Event Event>
-inline constexpr OpCode OpCode_v = detail::Traits::OpCode<Event>::value;
-template <Concepts::Request Request>
-using Response_t = typename detail::Traits::Response<Request>::type;
-template <Concepts::Response Response>
-using Request_t = typename detail::Traits::Request<Response>::type;
+PROTO_REG_REQUEST_RESPONSE(Request::GetMessages,
+                           Response::GetMessages,
+                           OpCode::GET_MESSAGES)
 
 }    // namespace Proto

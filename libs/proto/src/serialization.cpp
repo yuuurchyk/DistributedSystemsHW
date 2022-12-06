@@ -31,15 +31,14 @@ void SerializationContext::allocateChunk(size_t bytesNum)
 
 namespace Proto::detail::Serialization
 {
-
-size_t additionalBytesRequired(const std::string &s)
-{
-    return sizeof(std::string::size_type);
-}
-
-size_t buffersRequired(const std::string &s)
+[[nodiscard]] size_t buffersRequired(const std::string &)
 {
     return 2;
+}
+
+[[nodiscard]] size_t additionalBytesRequired(const std::string &)
+{
+    return sizeof(std::string::size_type);
 }
 
 void serialize(const std::string                      &s,
