@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
-project(proto-tests LANGUAGES CXX)
+project(reflection-tests LANGUAGES CXX)
 
 find_package(GTest 1.12 EXACT REQUIRED)
 include(GoogleTest)
@@ -9,7 +9,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ./**.h ./**.hpp ./**.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE proto GTest::gtest)
+target_link_libraries(${PROJECT_NAME} PRIVATE reflection GTest::gtest)
 
 set_target_properties(
   ${PROJECT_NAME}
