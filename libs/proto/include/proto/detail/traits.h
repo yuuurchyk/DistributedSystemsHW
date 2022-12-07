@@ -85,8 +85,7 @@ struct Serializable : public std::bool_constant<TriviallySerializable<T>::value 
 };
 template <typename T>
 struct Deserializable : public std::bool_constant<TriviallyDeserializable<T>::value ||
-                                                  (std::is_default_constructible_v<T> &&
-                                                   HasDeserializableTie_v<T>)>
+                                                  HasDeserializableTie_v<T>>
 {
 };
 

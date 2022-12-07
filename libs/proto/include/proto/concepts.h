@@ -22,7 +22,8 @@ concept NonTriviallySerializable =
     Serializable<T> && !detail::Traits::TriviallySerializable<T>::value;
 
 template <typename T>
-concept Deserializable = detail::Traits::Deserializable<T>::value;
+concept Deserializable = detail::Traits::Deserializable<T>::value &&
+    std::is_default_constructible<T>::value && std::is_move_constructible<T>::value;
 template <typename T>
 concept TriviallyDeserializable =
     Deserializable<T> && detail::Traits::TriviallyDeserializable<T>::value;
@@ -31,7 +32,7 @@ concept NonTriviallyDeserializable =
     Deserializable<T> && !detail::Traits::TriviallyDeserializable<T>::value;
 
 template <typename T>
-concept Event = requires(T)
+concept Event = Serializable<T> && Deserializable<T> && requires(T)
 {
     requires detail::Traits::IsEvent<T>::value;
     detail::Traits::EventType<T>::value;

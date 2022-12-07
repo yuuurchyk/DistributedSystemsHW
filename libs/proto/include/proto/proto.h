@@ -60,6 +60,8 @@ namespace Request
 
     struct GetMessages
     {
+        auto tie() const { return std::make_tuple(); }
+        auto tie() { return std::make_tuple(); }
     };
 }    // namespace Request
 
@@ -67,6 +69,16 @@ namespace Response
 {
     struct AddMessage
     {
+        enum class Status : uint8_t
+        {
+            OK = 0,
+            NOT_ALLOWED
+        };
+
+        Status status{ Status::NOT_ALLOWED };
+
+        auto tie() { return std::tie(status); }
+        auto tie() const { return std::tie(status); }
     };
 
     struct GetMessages
