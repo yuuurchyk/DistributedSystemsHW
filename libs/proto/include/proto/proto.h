@@ -19,7 +19,7 @@
  */
 namespace Proto
 {
-using RequestId_t = uint64_t;
+using RequestId_t = size_t;
 
 enum class EventType : uint8_t
 {

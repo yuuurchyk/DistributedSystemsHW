@@ -29,7 +29,7 @@ public:
     using signal = boost::signals2::signal<T>;
 
     [[nodiscard]] static std::shared_ptr<SocketWrapper>
-        create(boost::asio::io_context &, boost::asio::ip::tcp::socket socket);
+        create(boost::asio::ip::tcp::socket socket);
 
     void run();
 
@@ -41,14 +41,13 @@ public:
     signal<void()>                          invalidated;
 
 private:
-    SocketWrapper(boost::asio::io_context &, boost::asio::ip::tcp::socket socket);
+    SocketWrapper(boost::asio::ip::tcp::socket socket);
 
     void readFrameSize();
     void readFrame();
 
     void invalidate();
 
-    boost::asio::io_context     &ioContext_;
     boost::asio::ip::tcp::socket socket_;
 
     size_t                       frameSizeBuffer_;
