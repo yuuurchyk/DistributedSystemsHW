@@ -16,8 +16,9 @@ target_include_directories(
   ${PROJECT_NAME}
   PUBLIC include
   PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads Boost::boost
-                                             Boost::thread logger utils)
+target_link_libraries(
+  ${PROJECT_NAME} PUBLIC Threads::Threads Boost::boost Boost::thread logger
+                         reflection utils)
 target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_THREAD_VERSION=4)
 
 set_target_properties(
