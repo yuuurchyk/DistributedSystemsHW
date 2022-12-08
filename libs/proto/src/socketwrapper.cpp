@@ -1,5 +1,6 @@
 #include "proto/socketwrapper.h"
 
+#include <algorithm>
 #include <utility>
 
 using namespace boost::asio;
@@ -25,7 +26,7 @@ void SocketWrapper::run()
 void SocketWrapper::readFrameSize()
 {
     async_read(socket_,
-               buffer(&frameSizeBuffer_, sizeof(size_t)),
+               buffer(&frameSize_, sizeof(size_t)),
                transfer_exactly(sizeof(size_t)),
                [this, self = shared_from_this()](const error_code &ec, size_t)
                {
@@ -41,17 +42,22 @@ void SocketWrapper::readFrameSize()
 
 void SocketWrapper::readFrame()
 {
-    frameBuffer_.reset(new (std::nothrow) std::byte[frameSizeBuffer_]);
-
-    if (frameBuffer_ == nullptr)
+    if (bufferSize_ < frameSize_ || bufferSize_ == 0)
     {
-        EN_LOGE << "Failed to allocate memory for frame, invalidating";
-        return invalidate();
+        bufferSize_ = std::max<size_t>(1, frameSize_);
+        buffer_.reset(new (std::nothrow) std::byte[bufferSize_]);
+
+        if (buffer_ == nullptr)
+        {
+            bufferSize_ = 0;
+            EN_LOGE << "Failed to allocate memory for frame, invalidating";
+            return invalidate();
+        }
     }
 
     async_read(socket_,
-               buffer(frameBuffer_.get(), frameSizeBuffer_),
-               transfer_exactly(frameSizeBuffer_),
+               buffer(buffer_.get(), frameSize_),
+               transfer_exactly(frameSize_),
                [this, self = shared_from_this()](const error_code &ec, size_t)
                {
                    if (ec)
@@ -60,7 +66,7 @@ void SocketWrapper::readFrame()
                        return invalidate();
                    }
 
-                   incomingBuffer(const_buffer(frameBuffer_.get(), frameSizeBuffer_));
+                   incomingBuffer(const_buffer(buffer_.get(), frameSize_));
 
                    readFrameSize();
                });

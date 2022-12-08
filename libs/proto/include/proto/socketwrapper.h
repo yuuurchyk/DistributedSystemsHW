@@ -50,8 +50,10 @@ private:
 
     boost::asio::ip::tcp::socket socket_;
 
-    size_t                       frameSizeBuffer_;
-    std::unique_ptr<std::byte[]> frameBuffer_;
+    size_t frameSize_;
+
+    std::unique_ptr<std::byte[]> buffer_{};
+    size_t                       bufferSize_{};
 };
 
 }    // namespace Proto
