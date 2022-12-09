@@ -1,4 +1,4 @@
-#include "proto/socketwrapper.h"
+#include "socketwrapper.h"
 
 #include <algorithm>
 #include <utility>
@@ -13,10 +13,7 @@ std::shared_ptr<SocketWrapper> SocketWrapper::create(boost::asio::ip::tcp::socke
     return std::shared_ptr<SocketWrapper>(new SocketWrapper{ std::move(socket) });
 }
 
-SocketWrapper::SocketWrapper(boost::asio::ip::tcp::socket socket)
-    : socket_{ std::move(socket) }
-{
-}
+SocketWrapper::SocketWrapper(boost::asio::ip::tcp::socket socket) : socket_{ std::move(socket) } {}
 
 void SocketWrapper::run()
 {
@@ -25,19 +22,20 @@ void SocketWrapper::run()
 
 void SocketWrapper::readFrameSize()
 {
-    async_read(socket_,
-               buffer(&frameSize_, sizeof(size_t)),
-               transfer_exactly(sizeof(size_t)),
-               [this, self = shared_from_this()](const error_code &ec, size_t)
-               {
-                   if (ec)
-                   {
-                       EN_LOGE << "Failed to read from size, invalidating";
-                       return invalidate();
-                   }
+    async_read(
+        socket_,
+        buffer(&frameSize_, sizeof(size_t)),
+        transfer_exactly(sizeof(size_t)),
+        [this, self = shared_from_this()](const error_code &ec, size_t)
+        {
+            if (ec)
+            {
+                EN_LOGE << "Failed to read from size, invalidating";
+                return invalidate();
+            }
 
-                   readFrame();
-               });
+            readFrame();
+        });
 }
 
 void SocketWrapper::readFrame()
@@ -55,21 +53,22 @@ void SocketWrapper::readFrame()
         }
     }
 
-    async_read(socket_,
-               buffer(buffer_.get(), frameSize_),
-               transfer_exactly(frameSize_),
-               [this, self = shared_from_this()](const error_code &ec, size_t)
-               {
-                   if (ec)
-                   {
-                       EN_LOGE << "Failed to read frame, invalidating";
-                       return invalidate();
-                   }
+    async_read(
+        socket_,
+        buffer(buffer_.get(), frameSize_),
+        transfer_exactly(frameSize_),
+        [this, self = shared_from_this()](const error_code &ec, size_t)
+        {
+            if (ec)
+            {
+                EN_LOGE << "Failed to read frame, invalidating";
+                return invalidate();
+            }
 
-                   incomingBuffer(const_buffer(buffer_.get(), frameSize_));
+            incomingBuffer(const_buffer(buffer_.get(), frameSize_));
 
-                   readFrameSize();
-               });
+            readFrameSize();
+        });
 }
 
 void SocketWrapper::send(std::shared_ptr<Reflection::SerializationContext> context)
@@ -90,9 +89,8 @@ void SocketWrapper::send(std::shared_ptr<Reflection::SerializationContext> conte
             [sharedSize, self = shared_from_this()](const error_code &, size_t) {});
     }
 
-    async_write(socket_,
-                context->constBufferSequence(),
-                [context, self = shared_from_this()](const error_code &, size_t) {});
+    async_write(
+        socket_, context->constBufferSequence(), [context, self = shared_from_this()](const error_code &, size_t) {});
 }
 
 void SocketWrapper::invalidate()
@@ -101,7 +99,7 @@ void SocketWrapper::invalidate()
     invalidated();
 }
 
-const boost::asio::any_io_executor &SocketWrapper::executor() const
+boost::asio::any_io_executor &SocketWrapper::executor()
 {
     return executor_;
 }

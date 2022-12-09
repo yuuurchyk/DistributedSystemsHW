@@ -13,7 +13,7 @@ bool OutcomingRequestsManager::PendingRequest<Request>::readResponseBody(
 {
     auto optResponse = context.deserialize<Concepts::Response_t<Request>>();
 
-    if (optResponse.has_value())
+    if (optResponse.has_value() && context.atEnd())
     {
         promise.set_value(std::move(optResponse.value()));
         return true;
@@ -83,14 +83,14 @@ boost::future<typename Concepts::Response_t<Request>>
                 context->serializeAndHold(requestHeader);
                 context->serializeAndHold(pendingRequest);
 
-                socket_->send(std::move(context));
+                socketWrapper_->send(std::move(context));
             }
 
             auto timeoutTimer = std::make_shared<boost::asio::deadline_timer>(
                 socketWrapper_->executor(), boost::posix_time::milliseconds{ sendTimeoutMs_ });
 
             timeoutTimer->async_wait(
-                [this, requestId, weakSelf = std::weak_from_this()](const boost::system::error_code &ec)
+                [this, requestId, weakSelf = weak_from_this()](const boost::system::error_code &ec)
                 {
                     auto self = weakSelf.lock();
                     if (ec || self == nullptr)
@@ -108,8 +108,8 @@ boost::future<typename Concepts::Response_t<Request>>
                     }
                     {
                         const auto it = pendingRequestsTimers_.find(requestId);
-                        if (it != pendingRequests_.end())
-                            pendingRequests_.erase(it);
+                        if (it != pendingRequestsTimers_.end())
+                            pendingRequestsTimers_.erase(it);
                     }
                 });
 

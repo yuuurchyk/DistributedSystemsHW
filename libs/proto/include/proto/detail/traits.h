@@ -2,8 +2,6 @@
 
 #include <type_traits>
 
-#include "proto/proto.h"
-
 namespace Proto::detail::Traits
 {
 template <typename T>

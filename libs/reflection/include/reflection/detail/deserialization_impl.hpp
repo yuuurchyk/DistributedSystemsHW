@@ -10,7 +10,7 @@ std::optional<T> DeserializationContext<ConstBufferSequence>::deserialize()
 {
     auto currentCpy = current_;
 
-    auto res = deserializaImpl(Tag<T>{});
+    auto res = deserializeImpl(Tag<T>{});
 
     if (!res.has_value())
         current_ = currentCpy;
@@ -19,8 +19,7 @@ std::optional<T> DeserializationContext<ConstBufferSequence>::deserialize()
 }
 
 template <typename ConstBufferSequence>
-DeserializationContext<ConstBufferSequence>::DeserializationContext(
-    const ConstBufferSequence &seq)
+DeserializationContext<ConstBufferSequence>::DeserializationContext(const ConstBufferSequence &seq)
     : current_{ boost::asio::buffers_begin(seq) }, end_{ boost::asio::buffers_end(seq) }
 {
 }
@@ -38,9 +37,7 @@ template <TriviallyDeserializable T>
 T DeserializationContext<ConstBufferSequence>::get()
 {
     T res;
-    std::copy(current_,
-              current_ + sizeof(T),
-              reinterpret_cast<typename Iterator::value_type *>(&res));
+    std::copy(current_, current_ + sizeof(T), reinterpret_cast<typename Iterator::value_type *>(&res));
 
     current_ += sizeof(T);
 
@@ -49,8 +46,7 @@ T DeserializationContext<ConstBufferSequence>::get()
 
 template <typename ConstBufferSequence>
 template <TriviallyDeserializable T>
-auto DeserializationContext<ConstBufferSequence>::get(size_t count)
-    -> std::tuple<Iterator, Iterator>
+auto DeserializationContext<ConstBufferSequence>::get(size_t count) -> std::tuple<Iterator, Iterator>
 {
     auto res = std::make_tuple(current_, current_ + sizeof(T) * count);
     current_ += sizeof(T) * count;
@@ -106,8 +102,7 @@ std::optional<T> DeserializationContext<ConstBufferSequence>::deserializeImpl(Ta
 
 template <typename ConstBufferSequence>
 template <TriviallyDeserializable T>
-std::optional<std::vector<T>>
-    DeserializationContext<ConstBufferSequence>::deserializeImpl(Tag<std::vector<T>>)
+std::optional<std::vector<T>> DeserializationContext<ConstBufferSequence>::deserializeImpl(Tag<std::vector<T>>)
 {
     const auto optSize = deserializeImpl(Tag<typename std::vector<T>::size_type>{});
 
@@ -129,8 +124,7 @@ std::optional<std::vector<T>>
 
 template <typename ConstBufferSequence>
 template <NonTriviallyDeserializable T>
-std::optional<std::vector<T>>
-    DeserializationContext<ConstBufferSequence>::deserializeImpl(Tag<std::vector<T>>)
+std::optional<std::vector<T>> DeserializationContext<ConstBufferSequence>::deserializeImpl(Tag<std::vector<T>>)
 {
     const auto optSize = deserializeImpl(Tag<typename std::vector<T>::size_type>{});
 
@@ -154,8 +148,7 @@ std::optional<std::vector<T>>
 }
 
 template <typename ConstBufferSequence>
-std::optional<std::string>
-    DeserializationContext<ConstBufferSequence>::deserializeImpl(Tag<std::string>)
+std::optional<std::string> DeserializationContext<ConstBufferSequence>::deserializeImpl(Tag<std::string>)
 {
     if (!has<std::string::size_type>())
         return {};

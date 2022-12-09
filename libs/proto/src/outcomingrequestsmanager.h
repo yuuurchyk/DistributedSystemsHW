@@ -9,6 +9,7 @@
 
 #include "logger/logger.h"
 #include "reflection/deserialization.h"
+#include "utils/copymove.h"
 
 #include "proto/concepts.h"
 #include "proto/proto.h"
@@ -21,13 +22,13 @@ namespace Proto
  *
  */
 class OutcomingRequestsManager : public std::enable_shared_from_this<OutcomingRequestsManager>,
-                                 public logger::Entity<OutcomingRequestsManager>
+                                 private logger::Entity<OutcomingRequestsManager>
 {
+    DISABLE_COPY_MOVE(OutcomingRequestsManager)
+
 public:
     [[nodiscard]] static std::shared_ptr<OutcomingRequestsManager>
         create(std::shared_ptr<SocketWrapper>, size_t sendTimeoutMs);
-    // note: should be done after construction to avoid enable_shared_from_this issues
-    void registerConnections();
 
     ~OutcomingRequestsManager();
 
@@ -49,7 +50,7 @@ private:
         virtual void invalidateTimeout()      = 0;
     };
     template <Concepts::Request Request>
-    struct PendingRequest : final AbstractPendingRequest
+    struct PendingRequest final : AbstractPendingRequest
     {
         bool readResponseBody(Reflection::DeserializationContext<boost::asio::const_buffer> &context) override;
 
@@ -61,6 +62,8 @@ private:
     };
 
     OutcomingRequestsManager(std::shared_ptr<SocketWrapper>, size_t sendTimeoutMs);
+
+    void registerConnections();
 
     size_t getNextRequestId();
 

@@ -6,18 +6,8 @@
 #include <tuple>
 #include <vector>
 
-#include "proto/detail/traits.h"
 #include "proto/timestamp.h"
 
-/**
- * @brief Types that can be serializabled/deserialized:
- * 1. integral types
- * 2. enums
- * 3. string
- * 4. any combinations of optional, vector
- * 5. custom classes, if they define 2 tie() overloads (one should return
- *    tuple of referenes, other should return tuple of const references).
- */
 namespace Proto
 {
 enum class EventType : uint8_t
@@ -30,7 +20,13 @@ enum class OpCode : uint8_t
     ADD_MESSAGE = 0,
     GET_MESSAGES
 };
+}    // namespace Proto
 
+#include "proto/concepts.h"
+#include "proto/detail/traits.h"
+
+namespace Proto
+{
 // exception structs used with response futures
 struct ResponseException : public std::exception
 {
@@ -108,8 +104,6 @@ namespace Response
 }    // namespace Response
 
 PROTO_REG_REQUEST_RESPONSE(Request::AddMessage, Response::AddMessage, OpCode::ADD_MESSAGE)
-PROTO_REG_REQUEST_RESPONSE(Request::GetMessages,
-                           Response::GetMessages,
-                           OpCode::GET_MESSAGES)
+PROTO_REG_REQUEST_RESPONSE(Request::GetMessages, Response::GetMessages, OpCode::GET_MESSAGES)
 
 }    // namespace Proto

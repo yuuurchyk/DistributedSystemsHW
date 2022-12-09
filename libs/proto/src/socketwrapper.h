@@ -21,16 +21,14 @@ namespace Proto
  * to the beginning of the frame (NO need to do this by hand). Same is happening
  * on the side of reading
  */
-class SocketWrapper : public std::enable_shared_from_this<SocketWrapper>,
-                      public logger::Entity<SocketWrapper>
+class SocketWrapper : public std::enable_shared_from_this<SocketWrapper>, public logger::Entity<SocketWrapper>
 {
     DISABLE_COPY_MOVE(SocketWrapper)
 public:
     template <typename T>
     using signal = boost::signals2::signal<T>;
 
-    [[nodiscard]] static std::shared_ptr<SocketWrapper>
-        create(boost::asio::ip::tcp::socket socket);
+    [[nodiscard]] static std::shared_ptr<SocketWrapper> create(boost::asio::ip::tcp::socket socket);
 
     void run();
 
@@ -44,7 +42,7 @@ public:
 
     void invalidate();
 
-    const boost::asio::any_io_executor &executor() const;
+    boost::asio::any_io_executor &executor();
 
 private:
     SocketWrapper(boost::asio::ip::tcp::socket socket);

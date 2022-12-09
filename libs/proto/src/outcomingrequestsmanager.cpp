@@ -12,8 +12,10 @@ namespace Proto
 std::shared_ptr<OutcomingRequestsManager>
     OutcomingRequestsManager::create(std::shared_ptr<SocketWrapper> socketWrapper, size_t sendTimeoutMs)
 {
-    return std::shared_ptr<OutcomingRequestsManager>{ new OutcomingRequestsManager{ std::move(socketWrapper),
-                                                                                    sendTimeoutMs } };
+    auto res = std::shared_ptr<OutcomingRequestsManager>{ new OutcomingRequestsManager{ std::move(socketWrapper),
+                                                                                        sendTimeoutMs } };
+    res->registerConnections();
+    return res;
 }
 
 void OutcomingRequestsManager::registerConnections()
