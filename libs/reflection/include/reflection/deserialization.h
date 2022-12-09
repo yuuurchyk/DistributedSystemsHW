@@ -17,6 +17,9 @@ class DeserializationContext
 public:
     DeserializationContext(const ConstBufferSequence &seq);
 
+    /**
+     * @note if deserialization fails, data iterator is NOT moved forward
+     */
     template <Deserializable T>
     std::optional<T> deserialize();
 

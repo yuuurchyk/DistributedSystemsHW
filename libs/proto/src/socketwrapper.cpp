@@ -72,12 +72,6 @@ void SocketWrapper::readFrame()
                });
 }
 
-void SocketWrapper::invalidate()
-{
-    socket_.close();
-    invalidated();
-}
-
 void SocketWrapper::send(std::shared_ptr<Reflection::SerializationContext> context)
 {
     if (context == nullptr)
@@ -99,6 +93,17 @@ void SocketWrapper::send(std::shared_ptr<Reflection::SerializationContext> conte
     async_write(socket_,
                 context->constBufferSequence(),
                 [context, self = shared_from_this()](const error_code &, size_t) {});
+}
+
+void SocketWrapper::invalidate()
+{
+    socket_.close();
+    invalidated();
+}
+
+const boost::asio::any_io_executor &SocketWrapper::executor() const
+{
+    return executor_;
 }
 
 }    // namespace Proto

@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <utility>
 
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
@@ -33,6 +34,7 @@ public:
 
     void run();
 
+    // thread safe
     void send(std::shared_ptr<Reflection::SerializationContext>);
     template <Reflection::Serializable T>
     void send(std::shared_ptr<const T> ptr);
@@ -40,15 +42,18 @@ public:
     signal<void(boost::asio::const_buffer)> incomingBuffer;
     signal<void()>                          invalidated;
 
+    void invalidate();
+
+    const boost::asio::any_io_executor &executor() const;
+
 private:
     SocketWrapper(boost::asio::ip::tcp::socket socket);
 
     void readFrameSize();
     void readFrame();
 
-    void invalidate();
-
     boost::asio::ip::tcp::socket socket_;
+    boost::asio::any_io_executor executor_;
 
     size_t frameSize_;
 
@@ -56,6 +61,16 @@ private:
     size_t                       bufferSize_{};
 };
 
-}    // namespace Proto
+template <Reflection::Serializable T>
+void SocketWrapper::send(std::shared_ptr<const T> ptr)
+{
+    if (ptr == nullptr)
+        return;
 
-#include "detail/socketwrapper_impl.h"
+    auto context = std::make_shared<Reflection::SerializationContext>();
+    context->serializeAndHold(std::move(ptr));
+
+    send(std::move(context));
+}
+
+}    // namespace Proto

@@ -8,7 +8,14 @@ template <typename ConstBufferSequence>
 template <Deserializable T>
 std::optional<T> DeserializationContext<ConstBufferSequence>::deserialize()
 {
-    return deserializeImpl(Tag<T>{});
+    auto currentCpy = current_;
+
+    auto res = deserializaImpl(Tag<T>{});
+
+    if (!res.has_value())
+        current_ = currentCpy;
+
+    return res;
 }
 
 template <typename ConstBufferSequence>

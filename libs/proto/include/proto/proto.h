@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <exception>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -19,8 +20,6 @@
  */
 namespace Proto
 {
-using RequestId_t = size_t;
-
 enum class EventType : uint8_t
 {
     REQUEST = 0,
@@ -31,6 +30,24 @@ enum class OpCode : uint8_t
     ADD_MESSAGE = 0,
     GET_MESSAGES
 };
+
+// exception structs used with response futures
+struct ResponseException : public std::exception
+{
+};
+struct BadFrameException : public ResponseException
+{
+    const char *what() const noexcept { return "Bad response frame format"; }
+};
+struct TimeoutException : public ResponseException
+{
+    const char *what() const noexcept { return "Timeout occured for response"; }
+};
+struct DisconnectedException : public ResponseException
+{
+    const char *what() const noexcept { return "Peer disconnected"; }
+};
+
 enum class ResponseStatus : uint8_t
 {
     RECIEVED_FINE = 0,
