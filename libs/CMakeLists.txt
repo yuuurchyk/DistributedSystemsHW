@@ -1,18 +1,16 @@
-add_subdirectory(utils)
-# add_subdirectory(constants)
-add_subdirectory(logger)
-add_subdirectory(net-utils)
-add_subdirectory(future-utils)
-add_subdirectory(reflection)
-add_subdirectory(proto)
-# add_subdirectory(protocol) add_subdirectory(communicationendpoint)
-# add_subdirectory(iocontextpool) add_subdirectory(socketacceptor)
-# add_subdirectory(httpsession)
+set(libsTargets "")
+macro(add_lib_target subdirectoryName)
+  add_subdirectory(${subdirectoryName})
+  list(APPEND libsTargets ${subdirectoryName})
+endmacro()
 
-# set(libsTargets
-# "utils;logger;protocol;communicationendpoint;iocontextpool;socketacceptor;constants;httpsession"
-# PARENT_SCOPE)
+add_lib_target(utils)
+add_lib_target(logger)
+add_lib_target(net-utils)
+add_lib_target(future-utils)
+add_lib_target(reflection)
+add_lib_target(proto)
 
 set(libsTargets
-    "utils;logger;net-utils;future-utils;proto;reflection"
+    ${libsTargets}
     PARENT_SCOPE)
