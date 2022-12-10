@@ -8,12 +8,16 @@ using error_code = boost::system::error_code;
 
 namespace Proto
 {
-std::shared_ptr<SocketWrapper> SocketWrapper::create(boost::asio::ip::tcp::socket socket)
+std::shared_ptr<SocketWrapper>
+    SocketWrapper::create(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket)
 {
-    return std::shared_ptr<SocketWrapper>(new SocketWrapper{ std::move(socket) });
+    return std::shared_ptr<SocketWrapper>(new SocketWrapper{ ioContext, std::move(socket) });
 }
 
-SocketWrapper::SocketWrapper(boost::asio::ip::tcp::socket socket) : socket_{ std::move(socket) } {}
+SocketWrapper::SocketWrapper(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket)
+    : socket_{ std::move(socket) }, ioContext_{ ioContext }
+{
+}
 
 void SocketWrapper::run()
 {
@@ -99,9 +103,9 @@ void SocketWrapper::invalidate()
     invalidated();
 }
 
-boost::asio::any_io_executor &SocketWrapper::executor()
+boost::asio::io_context &SocketWrapper::ioContext()
 {
-    return executor_;
+    return ioContext_;
 }
 
 }    // namespace Proto

@@ -29,7 +29,7 @@ int main()
     auto socket         = boost::asio::ip::tcp::socket{ context };
     acceptor.accept(socketEndpoint);
 
-    auto endpoint = Proto::CommunicationEndpoint::create(std::move(socket), /*sendTimeoutMs*/ 3000);
+    auto endpoint = Proto::CommunicationEndpoint::create(context, std::move(socket), /*sendTimeoutMs*/ 3000);
     endpoint->run();
     endpoint->send_addMessage(std::make_shared<Proto::Request::AddMessage>(Proto::Message{ 0, "sample message" }))
         .then(

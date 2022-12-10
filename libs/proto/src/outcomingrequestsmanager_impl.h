@@ -70,7 +70,7 @@ boost::future<typename Concepts::Response_t<Request>>
     auto pendingRequest = std::make_shared<PendingRequest<Request>>();
 
     boost::asio::post(
-        socketWrapper_->executor(),
+        socketWrapper_->ioContext(),
         [this, request, pendingRequest, self = shared_from_this()]()
         {
             const auto requestId = getNextRequestId();
@@ -87,7 +87,7 @@ boost::future<typename Concepts::Response_t<Request>>
             }
 
             auto timeoutTimer = std::make_shared<boost::asio::deadline_timer>(
-                socketWrapper_->executor(), boost::posix_time::milliseconds{ sendTimeoutMs_ });
+                socketWrapper_->ioContext(), boost::posix_time::milliseconds{ sendTimeoutMs_ });
 
             timeoutTimer->async_wait(
                 [this, requestId, weakSelf = weak_from_this()](const boost::system::error_code &ec)

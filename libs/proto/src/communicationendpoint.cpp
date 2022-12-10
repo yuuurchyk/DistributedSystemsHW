@@ -8,10 +8,13 @@
 
 namespace Proto
 {
-std::shared_ptr<CommunicationEndpoint>
-    CommunicationEndpoint::create(boost::asio::ip::tcp::socket socket, size_t sendTimeoutMs)
+std::shared_ptr<CommunicationEndpoint> CommunicationEndpoint::create(
+    boost::asio::io_context     &ioContext,
+    boost::asio::ip::tcp::socket socket,
+    size_t                       sendTimeoutMs)
 {
-    auto res = std::shared_ptr<CommunicationEndpoint>{ new CommunicationEndpoint{ std::move(socket), sendTimeoutMs } };
+    auto res = std::shared_ptr<CommunicationEndpoint>{ new CommunicationEndpoint{
+        ioContext, std::move(socket), sendTimeoutMs } };
     res->registerConnections();
     return res;
 }
@@ -40,8 +43,11 @@ boost::future<Response::GetMessages>
     return outcomingRequestsManager_->send(std::move(request));
 }
 
-CommunicationEndpoint::CommunicationEndpoint(boost::asio::ip::tcp::socket socket, size_t sendTimeoutMs)
-    : socketWrapper_{ SocketWrapper::create(std::move(socket)) },
+CommunicationEndpoint::CommunicationEndpoint(
+    boost::asio::io_context     &ioContext,
+    boost::asio::ip::tcp::socket socket,
+    size_t                       sendTimeoutMs)
+    : socketWrapper_{ SocketWrapper::create(ioContext, std::move(socket)) },
       incomingRequestsManager_{ IncomingRequestsManager::create(socketWrapper_) },
       outcomingRequestsManager_{ OutcomingRequestsManager::create(socketWrapper_, sendTimeoutMs) }
 {

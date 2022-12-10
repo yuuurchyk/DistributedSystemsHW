@@ -43,7 +43,7 @@ void IncomingRequestsManager::addPendingResponse(size_t requestId, boost::promis
             context->serializeAndHold(std::move(response));
 
             boost::asio::post(
-                socketWrapper_->executor(),
+                socketWrapper_->ioContext(),
                 [this, requestId, pendingResponse, context = std::move(context), self]()
                 {
                     if (const auto it = pendingResponses_.find(requestId); it != pendingResponses_.end())

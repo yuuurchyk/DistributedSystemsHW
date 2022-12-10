@@ -25,7 +25,7 @@ int main()
     auto socket         = boost::asio::ip::tcp::socket{ context };
     socket.connect(socketEndpoint);
 
-    auto endpoint = Proto::CommunicationEndpoint::create(std::move(socket), /*sendTimeoutMs*/ 3000);
+    auto endpoint = Proto::CommunicationEndpoint::create(context, std::move(socket), /*sendTimeoutMs*/ 3000);
     endpoint->run();
     endpoint->incoming_addMessage.connect(
         [](std::shared_ptr<Proto::Request::AddMessage>,

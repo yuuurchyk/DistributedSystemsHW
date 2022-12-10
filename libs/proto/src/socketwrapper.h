@@ -28,7 +28,12 @@ public:
     template <typename T>
     using signal = boost::signals2::signal<T>;
 
-    [[nodiscard]] static std::shared_ptr<SocketWrapper> create(boost::asio::ip::tcp::socket socket);
+    /**
+     * @param ioContext - io context, associated with @p socket
+     * @param socket
+     */
+    [[nodiscard]] static std::shared_ptr<SocketWrapper>
+        create(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket);
 
     void run();
 
@@ -42,16 +47,16 @@ public:
 
     void invalidate();
 
-    boost::asio::any_io_executor &executor();
+    boost::asio::io_context &ioContext();
 
 private:
-    SocketWrapper(boost::asio::ip::tcp::socket socket);
+    SocketWrapper(boost::asio::io_context &, boost::asio::ip::tcp::socket);
 
     void readFrameSize();
     void readFrame();
 
     boost::asio::ip::tcp::socket socket_;
-    boost::asio::any_io_executor executor_;
+    boost::asio::io_context     &ioContext_;
 
     size_t frameSize_;
 

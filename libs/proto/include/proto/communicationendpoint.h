@@ -28,8 +28,13 @@ public:
     using RequestSignal =
         signal<void(std::shared_ptr<Request>, std::shared_ptr<boost::promise<typename Concepts::Response_t<Request>>>)>;
 
+    /**
+     * @param ioContext - io context, associated with @p socket
+     * @param socket
+     * @param sendTimeoutMs
+     */
     [[nodiscard]] static std::shared_ptr<CommunicationEndpoint>
-        create(boost::asio::ip::tcp::socket socket, size_t sendTimeoutMs);
+        create(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket, size_t sendTimeoutMs);
 
     ~CommunicationEndpoint();
 
@@ -47,7 +52,7 @@ private:
     template <Concepts::Request Request>
     void forwardIncomingRequestConnection(RequestSignal<Request> &source, RequestSignal<Request> &target);
 
-    CommunicationEndpoint(boost::asio::ip::tcp::socket, size_t sendTimeoutMs);
+    CommunicationEndpoint(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket, size_t sendTimeoutMs);
 
     void registerConnections();
 
