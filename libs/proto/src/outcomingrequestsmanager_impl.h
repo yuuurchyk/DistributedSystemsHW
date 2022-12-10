@@ -71,7 +71,7 @@ boost::future<typename Concepts::Response_t<Request>>
 
     boost::asio::post(
         socketWrapper_->executor(),
-        [this, pendingRequest, self = shared_from_this()]()
+        [this, request, pendingRequest, self = shared_from_this()]()
         {
             const auto requestId = getNextRequestId();
 
@@ -81,7 +81,7 @@ boost::future<typename Concepts::Response_t<Request>>
                 auto requestHeader = std::make_shared<RequestHeader>(requestId, Concepts::OpCode_v<Request>);
 
                 context->serializeAndHold(requestHeader);
-                context->serializeAndHold(pendingRequest);
+                context->serializeAndHold(request);
 
                 socketWrapper_->send(std::move(context));
             }

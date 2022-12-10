@@ -20,7 +20,7 @@ const T &SerializationContext::add(const T &value)
 template <Serializable T>
 void SerializationContext::serializeAndHold(std::shared_ptr<T> valPtr)
 {
-    serializeAndHold(std::shared_ptr<const T>{ valPtr });
+    serializeAndHold(std::shared_ptr<const T>{ std::move(valPtr) });
 }
 
 template <Serializable T>
