@@ -35,21 +35,19 @@ class CommunicationEndpoint : public std::enable_shared_from_this<CommunicationE
 
 public:
     // when the endpoint recieved a request from the other side
-    using request_callback_fn = std::function<void(std::shared_ptr<CommunicationEndpoint>,
-                                                   protocol::request::Request request)>;
+    using request_callback_fn =
+        std::function<void(std::shared_ptr<CommunicationEndpoint>, protocol::request::Request request)>;
     // when the net sent a response to the endpoint's request, added via sendRequest()
-    using response_callback_fn =
-        std::function<void(std::shared_ptr<CommunicationEndpoint>,
-                           std::optional<protocol::response::Response> response,
-                           protocol::request::Request                  request)>;
-    using invalidation_callback_fn =
-        std::function<void(std::shared_ptr<CommunicationEndpoint>)>;
+    using response_callback_fn     = std::function<void(
+        std::shared_ptr<CommunicationEndpoint>,
+        std::optional<protocol::response::Response> response,
+        protocol::request::Request                  request)>;
+    using invalidation_callback_fn = std::function<void(std::shared_ptr<CommunicationEndpoint>)>;
 
-    static std::shared_ptr<CommunicationEndpoint> create(boost::asio::io_context &,
-                                                         boost::asio::ip::tcp::socket,
-                                                         request_callback_fn,
-                                                         invalidation_callback_fn);
+    static std::shared_ptr<CommunicationEndpoint>
+        create(boost::asio::io_context &, boost::asio::ip::tcp::socket, request_callback_fn, invalidation_callback_fn);
 
+    // note that run does not prolong the lifetime of CommunicationEndpoint object
     void run();
 
     size_t getNextRequestId();
@@ -61,10 +59,11 @@ public:
     void sendResponse(protocol::response::Response response);
 
 private:
-    CommunicationEndpoint(boost::asio::io_context &,
-                          boost::asio::ip::tcp::socket,
-                          request_callback_fn,
-                          invalidation_callback_fn);
+    CommunicationEndpoint(
+        boost::asio::io_context &,
+        boost::asio::ip::tcp::socket,
+        request_callback_fn,
+        invalidation_callback_fn);
 
     void readFrameSize();
     void readFrame();
@@ -85,18 +84,15 @@ private:
     {
         DISABLE_COPY_MOVE(PendingRequest);
 
-        static std::shared_ptr<PendingRequest> create(boost::asio::io_context &,
-                                                      protocol::request::Request,
-                                                      response_callback_fn);
+        static std::shared_ptr<PendingRequest>
+            create(boost::asio::io_context &, protocol::request::Request, response_callback_fn);
 
         protocol::request::Request  request;
         response_callback_fn        responseCallback;
         boost::asio::deadline_timer timeoutTimer;
 
     private:
-        PendingRequest(boost::asio::io_context &,
-                       protocol::request::Request,
-                       response_callback_fn);
+        PendingRequest(boost::asio::io_context &, protocol::request::Request, response_callback_fn);
     };
 
     std::unordered_map<size_t, std::shared_ptr<PendingRequest>> pendingRequests_;

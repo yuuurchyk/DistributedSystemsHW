@@ -24,13 +24,24 @@ add_subdirectory(libs)
 
 # install(TARGETS ${appname}) endforeach()
 
-add_executable(main src/main.cpp ${SOURCES})
+add_executable(master src/master.cpp)
+add_executable(secondary src/secondary.cpp)
 
-target_link_libraries(main PRIVATE ${libsTargets})
+target_link_libraries(master PRIVATE ${libsTargets})
+target_link_libraries(secondary PRIVATE ${libsTargets})
+
+# add_executable(main src/main.cpp ${SOURCES})
+
+# target_link_libraries(main PRIVATE ${libsTargets})
 set_target_properties(
-  main
+  master
+  PROPERTIES CXX_STANDARD 20
+             CXX_STANDARD_REQUIRED ON
+             CXX_EXTENSIONS OFF)
+set_target_properties(
+  secondary
   PROPERTIES CXX_STANDARD 20
              CXX_STANDARD_REQUIRED ON
              CXX_EXTENSIONS OFF)
 
-install(TARGETS main)
+# install(TARGETS main)

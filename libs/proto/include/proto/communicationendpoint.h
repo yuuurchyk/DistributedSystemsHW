@@ -28,7 +28,7 @@ public:
     using RequestSignal =
         signal<void(std::shared_ptr<Request>, std::shared_ptr<boost::promise<typename Concepts::Response_t<Request>>>)>;
 
-    [[nodiscard]] std::shared_ptr<CommunicationEndpoint>
+    [[nodiscard]] static std::shared_ptr<CommunicationEndpoint>
         create(boost::asio::ip::tcp::socket socket, size_t sendTimeoutMs);
 
     ~CommunicationEndpoint();
