@@ -160,12 +160,15 @@ void IncomingRequestsManager::onIncomingBuffer(boost::asio::const_buffer buffer)
 
     const auto opCode = optOpCode.value();
 
+    // Proto: EXTENSION POINT
     switch (opCode)
     {
     case OpCode::ADD_MESSAGE:
         return readIncomingRequest<Request::AddMessage>(requestId, context, incoming_addMessage);
     case OpCode::GET_MESSAGES:
         return readIncomingRequest<Request::GetMessages>(requestId, context, incoming_getMessages);
+    case OpCode::SECONDARY_NODE_READY:
+        return readIncomingRequest<Request::SecondaryNodeReady>(requestId, context, incoming_secondaryNodeReady);
     default:
         EN_LOGW << "wrong opcode for incoming request";
         break;

@@ -32,8 +32,10 @@ public:
 
     ~IncomingRequestsManager();
 
-    RequestSignal<Request::AddMessage>  incoming_addMessage;
-    RequestSignal<Request::GetMessages> incoming_getMessages;
+    // Proto: EXTENSION POINT
+    RequestSignal<Request::AddMessage>         incoming_addMessage;
+    RequestSignal<Request::GetMessages>        incoming_getMessages;
+    RequestSignal<Request::SecondaryNodeReady> incoming_secondaryNodeReady;
 
 private:
     struct PendingResponse

@@ -18,7 +18,8 @@ enum class EventType : uint8_t
 enum class OpCode : uint8_t
 {
     ADD_MESSAGE = 0,
-    GET_MESSAGES
+    GET_MESSAGES,
+    SECONDARY_NODE_READY
 };
 }    // namespace Proto
 
@@ -77,6 +78,12 @@ namespace Request
         auto tie() const { return std::make_tuple(); }
         auto tie() { return std::make_tuple(); }
     };
+
+    struct SecondaryNodeReady
+    {
+        auto tie() const { return std::make_tuple(); }
+        auto tie() { return std::make_tuple(); }
+    };
 }    // namespace Request
 
 namespace Response
@@ -102,9 +109,17 @@ namespace Response
         auto tie() { return std::tie(messages); }
         auto tie() const { return std::tie(messages); }
     };
+
+    struct SecondaryNodeReady
+    {
+        auto tie() { return std::make_tuple(); }
+        auto tie() const { return std::make_tuple(); }
+    };
 }    // namespace Response
 
+// Proto: EXTENSION POINT
 PROTO_REG_REQUEST_RESPONSE(Request::AddMessage, Response::AddMessage, OpCode::ADD_MESSAGE)
 PROTO_REG_REQUEST_RESPONSE(Request::GetMessages, Response::GetMessages, OpCode::GET_MESSAGES)
+PROTO_REG_REQUEST_RESPONSE(Request::SecondaryNodeReady, Response::SecondaryNodeReady, OpCode::SECONDARY_NODE_READY)
 
 }    // namespace Proto

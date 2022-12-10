@@ -40,11 +40,16 @@ public:
 
     void run();
 
+    // Proto: EXTENSION POINT
     boost::future<Response::AddMessage>  send_addMessage(std::shared_ptr<const Request::AddMessage>);
     boost::future<Response::GetMessages> send_getMessages(std::shared_ptr<const Request::GetMessages>);
+    boost::future<Response::SecondaryNodeReady>
+        send_secondaryNodeReady(std::shared_ptr<const Request::SecondaryNodeReady>);
 
-    RequestSignal<Request::AddMessage>  incoming_addMessage;
-    RequestSignal<Request::GetMessages> incoming_getMessages;
+    // Proto: EXTENSION POINT
+    RequestSignal<Request::AddMessage>         incoming_addMessage;
+    RequestSignal<Request::GetMessages>        incoming_getMessages;
+    RequestSignal<Request::SecondaryNodeReady> incoming_secondaryNodeReady;
 
     signal<void()> invalidated;
 

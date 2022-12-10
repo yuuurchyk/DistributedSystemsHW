@@ -43,6 +43,12 @@ boost::future<Response::GetMessages>
     return outcomingRequestsManager_->send(std::move(request));
 }
 
+boost::future<Response::SecondaryNodeReady>
+    CommunicationEndpoint::send_secondaryNodeReady(std::shared_ptr<const Request::SecondaryNodeReady> request)
+{
+    return outcomingRequestsManager_->send(std::move(request));
+}
+
 CommunicationEndpoint::CommunicationEndpoint(
     boost::asio::io_context     &ioContext,
     boost::asio::ip::tcp::socket socket,
@@ -85,8 +91,11 @@ void CommunicationEndpoint::registerConnections()
             invalidated();
         }));
 
+    // Proto: EXTENSION POINT
     forwardIncomingRequestConnection(incomingRequestsManager_->incoming_addMessage, incoming_addMessage);
     forwardIncomingRequestConnection(incomingRequestsManager_->incoming_getMessages, incoming_getMessages);
+    forwardIncomingRequestConnection(
+        incomingRequestsManager_->incoming_secondaryNodeReady, incoming_secondaryNodeReady);
 }
 
 }    // namespace Proto
