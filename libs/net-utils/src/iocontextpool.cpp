@@ -1,15 +1,23 @@
 #include "net-utils/iocontextpool.h"
 
+#include <algorithm>
 #include <functional>
+#include <limits>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 using namespace boost::asio;
 
 namespace NetUtils
 {
+std::shared_ptr<IOContextPool> IOContextPool::create(size_t size)
+{
+    return std::shared_ptr<IOContextPool>{ new IOContextPool{ size } };
+}
+
 IOContextPool::IOContextPool(size_t size)
-    : size_{ size },
+    : size_{ std::max<size_t>(size, 1) },
       contexts_{ [size]()
                  {
                      auto res = std::vector<std::unique_ptr<io_context>>{};
@@ -23,7 +31,7 @@ IOContextPool::IOContextPool(size_t size)
                  }() }
 {
     if (size == 0)
-        throw std::runtime_error{ "IOContextPool should have positive size" };
+        EN_LOGW << "replacing size 0 with 1";
 }
 
 size_t IOContextPool::size() const noexcept
@@ -37,15 +45,55 @@ io_context &IOContextPool::getNext()
     return *contexts_[val % size()];
 }
 
-io_context &IOContextPool::getAtIndex(size_t index)
+auto IOContextPool::getLeastLoaded() -> std::unique_ptr<LoadGuard>
 {
-    if (index >= size())
+    std::unique_lock<std::mutex> lock{ loadMutex_ };
+
+    auto smallestLoad      = std::numeric_limits<size_t>::max();
+    auto smallestLoadIndex = size_t{};
+
+    for (auto i = size_t{}; i < size(); ++i)
     {
-        throw std::out_of_range{ "IOContextPool::getAtIndex(" + std::to_string(index) +
-                                 ")" };
+        if (smallestLoad <= load_[i])
+            continue;
+
+        smallestLoad      = load_[i];
+        smallestLoadIndex = i;
     }
 
-    return *contexts_[index];
+    ++load_[smallestLoadIndex];
+
+    lock.unlock();
+
+    return std::unique_ptr<LoadGuard>{ new LoadGuard{ weak_from_this(), *contexts_[smallestLoadIndex] } };
+}
+
+void IOContextPool::decLoad(boost::asio::io_context &context)
+{
+    std::unique_lock<std::mutex> lock{ loadMutex_ };
+
+    for (auto i = size_t{}; i < size(); ++i)
+    {
+        if (contexts_[i].get() != &context)
+            continue;
+        if (load_[i] > 0)
+            --load_[i];
+    }
+}
+
+IOContextPool::LoadGuard::LoadGuard(std::weak_ptr<IOContextPool> weakPool, boost::asio::io_context &ioContext)
+    : ioContext_{ ioContext }, weakPool_{ std::move(weakPool) }
+{
+}
+
+IOContextPool::LoadGuard::~LoadGuard()
+{
+    auto pool = weakPool_.lock();
+
+    if (pool == nullptr)
+        return;
+
+    pool->decLoad(ioContext_);
 }
 
 namespace
