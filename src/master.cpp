@@ -18,26 +18,35 @@ int main()
 
     LOGI << "master";
 
-    auto endpoints = std::vector<boost::asio::ip::tcp::endpoint>{};
-    endpoints.emplace_back(boost::asio::ip::address::from_string("127.0.0.1"), 6000);
-
     auto context = boost::asio::io_context{};
     auto guard   = boost::asio::make_work_guard(context);
 
     auto socketEndpoint = boost::asio::ip::tcp::endpoint{ boost::asio::ip::tcp::v4(), 6000 };
     auto acceptor       = boost::asio::ip::tcp::acceptor{ context, socketEndpoint };
     auto socket         = boost::asio::ip::tcp::socket{ context };
-    acceptor.accept(socketEndpoint);
+    acceptor.accept(socket);
 
     auto endpoint = Proto::CommunicationEndpoint::create(context, std::move(socket), /*sendTimeoutMs*/ 3000);
     endpoint->run();
-    endpoint->send_addMessage(std::make_shared<Proto::Request::AddMessage>(Proto::Message{ 0, "sample message" }))
+    endpoint->send_addMessage(std::make_shared<Proto::Request::AddMessage>(0, "sample message"))
         .then(
-            [](boost::future<Proto::Response::AddMessage> response)
+            [](boost::future<Proto::Response::AddMessage> responseFuture)
             {
                 LOGI << "recieved response";
-                LOGI << response.has_value();
+                LOGI << responseFuture.has_value();
             });
+    endpoint->incoming_getMessages.connect(
+        [](std::shared_ptr<Proto::Request::GetMessages>                  request,
+           std::shared_ptr<boost::promise<Proto::Response::GetMessages>> promise)
+        {
+            LOGI << "Incoming get messages request";
+
+            auto response = Proto::Response::GetMessages{};
+            response.messages.push_back(Proto::Message{ 0, "sample1" });
+            response.messages.push_back(Proto::Message{ 1, "sample2" });
+
+            promise->set_value(std::move(response));
+        });
 
     context.run();
 

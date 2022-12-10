@@ -15,7 +15,7 @@ void IncomingRequestsManager::addPendingResponse(size_t requestId, boost::promis
         return;
 
     auto pendingResponse = std::make_shared<PendingResponse>();
-    pendingResponses_.insert({ requestId, std::move(pendingResponse) });
+    pendingResponses_.insert({ requestId, pendingResponse });
 
     promise.get_future().then(
         [this,

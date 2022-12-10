@@ -34,7 +34,7 @@ void SocketWrapper::readFrameSize()
         {
             if (ec)
             {
-                EN_LOGE << "Failed to read from size, invalidating";
+                EN_LOGE << "Failed to read frame size, invalidating";
                 return invalidate();
             }
 

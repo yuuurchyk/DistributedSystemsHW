@@ -47,7 +47,6 @@ public:
     static std::shared_ptr<CommunicationEndpoint>
         create(boost::asio::io_context &, boost::asio::ip::tcp::socket, request_callback_fn, invalidation_callback_fn);
 
-    // note that run does not prolong the lifetime of CommunicationEndpoint object
     void run();
 
     size_t getNextRequestId();

@@ -65,10 +65,11 @@ namespace Request
 {
     struct AddMessage
     {
-        Message message;
+        Timestamp_t timestamp;
+        std::string message;
 
-        auto tie() const { return std::tie(message); }
-        auto tie() { return std::tie(message); }
+        auto tie() const { return std::tie(timestamp, message); }
+        auto tie() { return std::tie(timestamp, message); }
     };
 
     struct GetMessages
