@@ -8,9 +8,11 @@
 
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+#include <tbb/concurrent_unordered_map.h>
 
 #include "logger/logger.h"
 #include "net-utils/iocontextpool.h"
+#include "net-utils/socketacceptor.h"
 #include "proto/communicationendpoint.h"
 #include "proto/proto.h"
 #include "proto/timestamp.h"
@@ -34,18 +36,26 @@ public:
         unsigned short                           port,
         std::shared_ptr<NetUtils::IOContextPool> secondariesPool);
 
-    ~MasterNode();
-
     void run();
 
     /**
-     * @param writeConcern - number of confirmation from secondaries before considering request a success
+     * @param iContext     - specifies io context to perform asynchronous operations in
+     * @param writeConcern - includes master node itself
      * @note resulting future will never be populated with result if @p writeConcern is bigger than the number
      *      of connected secondary nodes
+     * @note thread safe
      */
-    boost::future<bool> addMessage(Proto::Timestamp_t, std::string, size_t writeConcern);
+    boost::future<bool> addMessage(boost::asio::io_context &ioContext, std::string, size_t writeConcern);
+    /**
+     * @note thread safe
+     */
+    std::vector<Proto::Message> getMessages();
 
 private:
+    static constexpr size_t kSecondarySendTimeoutMs{ 3000 };
+
+    MasterNode(boost::asio::io_context &, unsigned short, std::shared_ptr<NetUtils::IOContextPool>);
+
     enum class SecondaryStatus
     {
         Registering,
@@ -56,12 +66,23 @@ private:
     {
         DISABLE_COPY_MOVE(Secondary)
 
-        size_t                                        id{};
-        SecondaryStatus                               status{ SecondaryStatus::Registering };
-        std::shared_ptr<Proto::CommunicationEndpoint> endpoint{};
+        Secondary() = default;
+
+        size_t                                              id{};
+        SecondaryStatus                                     status{ SecondaryStatus::Registering };
+        std::shared_ptr<Proto::CommunicationEndpoint>       endpoint{};
+        std::unique_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard{};
     };
 
     size_t getNextSecondaryId();
+    void   addSecondary(boost::asio::ip::tcp::socket, std::unique_ptr<NetUtils::IOContextPool::LoadGuard>);
+    void   markRegistered(size_t secondaryId, std::shared_ptr<boost::promise<Proto::Response::SecondaryNodeReady>>);
+    void   removeSecondary(size_t secondaryId);
+
+    tbb::concurrent_unordered_map<Proto::Timestamp_t, std::string> messages_;
+
+    boost::asio::io_context                  &ioContext_;
+    std::shared_ptr<NetUtils::SocketAcceptor> acceptor_;
 
     std::atomic<size_t>                                    secondaryCounter_;
     std::shared_mutex                                      secondariesMutex_;

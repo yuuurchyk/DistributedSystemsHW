@@ -5,7 +5,7 @@
 std::shared_ptr<CompositeAddMessageRequest> CompositeAddMessageRequest::create(
     boost::asio::io_context  &ioContext,
     std::weak_ptr<MasterNode> weakMasterNode,
-    std::string               message,
+    Proto::Message            message,
     size_t                    writeConcern)
 {
     return std::shared_ptr<CompositeAddMessageRequest>{ new CompositeAddMessageRequest{
