@@ -22,19 +22,21 @@ int main()
     auto httpWorkersPool = NetUtils::IOContextPool::create(3);
     httpWorkersPool->runInSeparateThreads();
 
-    auto utilityPool = NetUtils::IOContextPool::create(2);
+    auto utilityPool = NetUtils::IOContextPool::create(1);
     utilityPool->runInSeparateThreads();
-
     auto masterNode = MasterNode::create(utilityPool->getNext(), 6006, secondariesPool);
     masterNode->run();
 
+    auto context            = boost::asio::io_context{};
     auto httpSocketAcceptor = NetUtils::SocketAcceptor::create(
-        utilityPool->getNext(),
+        context,
         8080,
         [weakMasterNode = std::weak_ptr<MasterNode>{ masterNode }](
             boost::asio::ip::tcp::socket socket, boost::asio::io_context &ioContext)
         { MasterHttpSession::create(ioContext, std::move(socket), weakMasterNode)->run(); },
         httpWorkersPool);
+    httpSocketAcceptor->run();
+    context.run();
 
     return 0;
 }
