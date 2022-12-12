@@ -83,4 +83,14 @@ void HttpSession::writeResponse()
         });
 }
 
+void HttpSession::fallback(std::string reason)
+{
+    EN_LOGI << "invalid request, falling back";
+    response_.result(http::status::bad_request);
+    response_.set(http::field::content_type, "text/plain");
+    response_.body() = std::move(reason);
+    response_.content_length(response_.body().size());
+    writeResponse();
+}
+
 }    // namespace NetUtils

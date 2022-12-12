@@ -12,7 +12,9 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ./**.cpp ./**.h ./**.hpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${libsTargets} TBB::tbb)
+target_link_libraries(
+  ${PROJECT_NAME} PRIVATE TBB::tbb Boost::json Boost::program_options
+                          ${libsTargets})
 
 set_target_properties(
   ${PROJECT_NAME}

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
@@ -34,6 +35,14 @@ protected:
 
     boost::asio::io_context &ioContext_;
 
+    boost::beast::http::request<boost::beast::http::string_body>  request_;
+    boost::beast::http::response<boost::beast::http::string_body> response_;
+
+    /**
+     * @brief invalidates request and write the response
+     */
+    void fallback(std::string reason);
+
 private:
     void setDeadline();
     void readRequest();
@@ -43,9 +52,7 @@ private:
     std::optional<size_t>                      timeoutMs_;
     std::optional<boost::asio::deadline_timer> timer_;
 
-    boost::beast::flat_buffer                                     requestBuffer_{ 1024 };
-    boost::beast::http::request<boost::beast::http::string_body>  request_;
-    boost::beast::http::response<boost::beast::http::string_body> response_;
+    boost::beast::flat_buffer requestBuffer_{ 1024 };
 };
 
 }    // namespace NetUtils
