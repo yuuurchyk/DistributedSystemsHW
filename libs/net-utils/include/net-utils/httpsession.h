@@ -21,8 +21,8 @@ public:
     void run();
 
 protected:
-    HttpSession(boost::asio::ip::tcp::socket socket);
-    HttpSession(boost::asio::ip::tcp::socket socket, size_t timeoutMs);
+    HttpSession(boost::asio::io_context &, boost::asio::ip::tcp::socket socket);
+    HttpSession(boost::asio::io_context &, boost::asio::ip::tcp::socket socket, size_t timeoutMs);
 
     /**
      * @note don't forget to call writeResponse() at the end
@@ -31,6 +31,8 @@ protected:
     virtual void processRequest() = 0;
 
     void writeResponse();
+
+    boost::asio::io_context &ioContext_;
 
 private:
     void setDeadline();

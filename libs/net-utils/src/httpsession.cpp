@@ -16,9 +16,13 @@ void HttpSession::run()
     readRequest();
 }
 
-HttpSession::HttpSession(ip::tcp::socket socket) : socket_{ std::move(socket) } {}
-HttpSession::HttpSession(ip::tcp::socket socket, size_t timeoutMs)
-    : socket_{ std::move(socket) },
+HttpSession::HttpSession(boost::asio::io_context &ioContext, ip::tcp::socket socket)
+    : ioContext_{ ioContext }, socket_{ std::move(socket) }
+{
+}
+HttpSession::HttpSession(boost::asio::io_context &ioContext, ip::tcp::socket socket, size_t timeoutMs)
+    : ioContext_{ ioContext },
+      socket_{ std::move(socket) },
       timeoutMs_{ std::max<size_t>(timeoutMs, 1) },
       timer_{ deadline_timer{ socket_.get_executor() } }
 {
