@@ -6,14 +6,13 @@ find_package(
   Boost 1.80 EXACT
   COMPONENTS json program_options
   REQUIRED)
-find_package(Threads REQUIRED)
 find_package(TBB 2021.6.0 EXACT REQUIRED)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ./**.cpp ./**.h ./**.hpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${libsTargets})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${libsTargets} TBB::tbb)
 
 set_target_properties(
   ${PROJECT_NAME}

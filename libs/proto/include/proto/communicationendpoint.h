@@ -38,6 +38,9 @@ public:
 
     ~CommunicationEndpoint();
 
+    /**
+     * @note calling this method does NOT prolong the lifetime of CommunicationEndpoint object
+     */
     void run();
 
     // Proto: EXTENSION POINT
