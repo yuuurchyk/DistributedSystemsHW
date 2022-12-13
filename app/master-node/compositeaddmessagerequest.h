@@ -25,8 +25,6 @@ class CompositeAddMessageRequest : public std::enable_shared_from_this<Composite
     DISABLE_COPY_MOVE(CompositeAddMessageRequest)
 public:
     /**
-     * @brief
-     *
      * @param ioContext         - io context to perform CompositeAddMessageRequest operations in
      * @param weakMasterNode    - weak connection to MasterNode
      * @param message           - message request

@@ -102,6 +102,20 @@ void SecondaryNode::establishMasterEndpoint(boost::asio::ip::tcp::socket socket)
             messages_.insert({ request->timestamp, request->message });
             responsePromise->set_value(Proto::Response::AddMessage{ Proto::Response::AddMessage::Status::OK });
         });
+    endpoint->incoming_ping.connect(
+        [this, weakSelf = weak_from_this()](
+            std::shared_ptr<Proto::Request::Ping>                  request,
+            std::shared_ptr<boost::promise<Proto::Response::Pong>> responsePromise)
+        {
+            auto self = weakSelf.lock();
+
+            if (self == nullptr)
+                return;
+
+            EN_LOGI << "Incoming ping request";
+
+            responsePromise->set_value(Proto::Response::Pong{ Proto::getCurrentTimestamp() });
+        });
     endpoint->invalidated.connect(
         [this, weakSelf = weak_from_this()]()
         {

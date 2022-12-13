@@ -19,10 +19,12 @@
 #include "utils/copymove.h"
 
 class CompositeAddMessageRequest;
+class CompositePingRequest;
 
 class MasterNode : public std::enable_shared_from_this<MasterNode>, private logger::Entity<MasterNode>
 {
     friend class CompositeAddMessageRequest;
+    friend class CompositePingRequest;
     DISABLE_COPY_MOVE(MasterNode)
 public:
     /**
