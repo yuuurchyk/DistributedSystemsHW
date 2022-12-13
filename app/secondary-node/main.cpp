@@ -35,9 +35,9 @@ CmdArgs readCmdArgs(int argc, char **argv)
     desc.add_options()
         ("help,h", "produce help message")
 
-        ("name",         po::value<std::string>(&args.nodeName),                 "friendly name of the node")
-        ("http-port",    po::value<unsigned short>(&args.httpPort)->required(),  "http port")
-        ("http-workers", po::value<size_t>(&args.httpWorkers)->default_value(3), "number of http threads to use")
+        ("name",         po::value<std::string>(&args.nodeName)->default_value("secondary"), "friendly name of the node")
+        ("http-port",    po::value<unsigned short>(&args.httpPort)->required(),              "http port")
+        ("http-workers", po::value<size_t>(&args.httpWorkers)->default_value(3),             "number of http threads to use")
 
         ("master-ip",        po::value<std::string>(&args.masterIp)->required(),          "ip of the master node")
         ("master-comm-port", po::value<unsigned short>(&args.masterCommPort)->required(), "master internal communication port");
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 {
     const auto args = readCmdArgs(argc, argv);
 
-    logger::setup(args.nodeName.empty() ? std::string{ "secondary" } : args.nodeName);
+    logger::setup(args.nodeName);
     BOOST_SCOPE_EXIT(void)
     {
         logger::teardown();
@@ -91,6 +91,7 @@ int main(int argc, char **argv)
     utilityPool->runInSeparateThreads();
     LOGI << "Master internal communication, ip=" << args.masterIp << ", port=" << args.masterCommPort;
     auto secondaryNode = SecondaryNode::create(
+        args.nodeName,
         utilityPool->getNext(),
         boost::asio::ip::tcp::endpoint{ boost::asio::ip::address::from_string(args.masterIp), args.masterCommPort });
     secondaryNode->run();

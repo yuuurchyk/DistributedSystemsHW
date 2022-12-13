@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <boost/asio.hpp>
@@ -21,8 +22,10 @@ public:
      * @param masterSocketEndpoint  - master endpoint to connect to
      * @return std::shared_ptr<SecondaryNode>
      */
-    [[nodiscard]] static std::shared_ptr<SecondaryNode>
-        create(boost::asio::io_context &ioContext, boost::asio::ip::tcp::endpoint masterSocketEndpoint);
+    [[nodiscard]] static std::shared_ptr<SecondaryNode> create(
+        std::string                    friendlyName,
+        boost::asio::io_context       &ioContext,
+        boost::asio::ip::tcp::endpoint masterSocketEndpoint);
 
     void run();
 
@@ -32,13 +35,15 @@ public:
     std::vector<Proto::Message> getMessages();
 
 private:
-    SecondaryNode(boost::asio::io_context &, boost::asio::ip::tcp::endpoint);
+    SecondaryNode(std::string friendlyName, boost::asio::io_context &, boost::asio::ip::tcp::endpoint);
 
     void reconnect();
     void establishMasterEndpoint(boost::asio::ip::tcp::socket);
 
     void sendGetMessagesRequest(std::weak_ptr<Proto::CommunicationEndpoint>);
     void sendSecondaryNodeReadyRequest(std::weak_ptr<Proto::CommunicationEndpoint>);
+
+    const std::string friendlyName_;
 
     tbb::concurrent_unordered_map<Proto::Timestamp_t, std::string> messages_;
 

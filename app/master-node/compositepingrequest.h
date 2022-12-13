@@ -48,6 +48,7 @@ private:
 
     std::vector<size_t>                               ids_;
     std::vector<MasterNode::SecondaryStatus>          statuses_;
+    std::vector<std::string>                          friendlyNames_;
     std::vector<boost::future<Proto::Response::Pong>> futures_;
 
     boost::promise<std::optional<std::string>> promise_;

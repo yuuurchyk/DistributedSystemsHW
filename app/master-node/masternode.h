@@ -76,6 +76,7 @@ private:
         Secondary() = default;
 
         size_t                                              id{};
+        std::string                                         friendlyName;
         SecondaryStatus                                     status{ SecondaryStatus::Registering };
         std::shared_ptr<Proto::CommunicationEndpoint>       endpoint{};
         std::unique_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard{};
@@ -83,8 +84,11 @@ private:
 
     size_t getNextSecondaryId();
     void   addSecondary(boost::asio::ip::tcp::socket, std::unique_ptr<NetUtils::IOContextPool::LoadGuard>);
-    void   markRegistered(size_t secondaryId, std::shared_ptr<boost::promise<Proto::Response::SecondaryNodeReady>>);
-    void   removeSecondary(size_t secondaryId);
+    void   markRegistered(
+          size_t secondaryId,
+          std::shared_ptr<Proto::Request::SecondaryNodeReady>,
+          std::shared_ptr<boost::promise<Proto::Response::SecondaryNodeReady>>);
+    void removeSecondary(size_t secondaryId);
 
     tbb::concurrent_unordered_map<Proto::Timestamp_t, std::string> messages_;
 

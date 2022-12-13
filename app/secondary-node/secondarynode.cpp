@@ -5,10 +5,13 @@
 
 #include "constants.h"
 
-std::shared_ptr<SecondaryNode>
-    SecondaryNode::create(boost::asio::io_context &ioContext, boost::asio::ip::tcp::endpoint masterSocketEndpoint)
+std::shared_ptr<SecondaryNode> SecondaryNode::create(
+    std::string                    friendlyName,
+    boost::asio::io_context       &ioContext,
+    boost::asio::ip::tcp::endpoint masterSocketEndpoint)
 {
-    return std::shared_ptr<SecondaryNode>{ new SecondaryNode{ ioContext, std::move(masterSocketEndpoint) } };
+    return std::shared_ptr<SecondaryNode>{ new SecondaryNode{
+        std::move(friendlyName), ioContext, std::move(masterSocketEndpoint) } };
 }
 
 void SecondaryNode::run()
@@ -32,8 +35,14 @@ std::vector<Proto::Message> SecondaryNode::getMessages()
     return res;
 }
 
-SecondaryNode::SecondaryNode(boost::asio::io_context &ioContext, boost::asio::ip::tcp::endpoint masterSocketEndpoint)
-    : ioContext_{ ioContext }, masterSocketEndpoint_{ std::move(masterSocketEndpoint) }, reconnectTimer_{ ioContext }
+SecondaryNode::SecondaryNode(
+    std::string                    friendlyName,
+    boost::asio::io_context       &ioContext,
+    boost::asio::ip::tcp::endpoint masterSocketEndpoint)
+    : friendlyName_{ std::move(friendlyName) },
+      ioContext_{ ioContext },
+      masterSocketEndpoint_{ std::move(masterSocketEndpoint) },
+      reconnectTimer_{ ioContext }
 {
 }
 
@@ -187,7 +196,7 @@ void SecondaryNode::sendSecondaryNodeReadyRequest(std::weak_ptr<Proto::Communica
 
     EN_LOGI << "Sending secondary node ready request";
 
-    endpoint->send_secondaryNodeReady(std::make_shared<Proto::Request::SecondaryNodeReady>())
+    endpoint->send_secondaryNodeReady(std::make_shared<Proto::Request::SecondaryNodeReady>(friendlyName_))
         .then(
             [this, weakEndpoint, weakSelf = weak_from_this()](
                 boost::future<Proto::Response::SecondaryNodeReady> responseFuture)

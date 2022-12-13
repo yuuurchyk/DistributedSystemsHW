@@ -82,8 +82,10 @@ namespace Request
 
     struct SecondaryNodeReady
     {
-        auto tie() const { return std::make_tuple(); }
-        auto tie() { return std::make_tuple(); }
+        std::string friendlyName;
+
+        auto tie() const { return std::tie(friendlyName); }
+        auto tie() { return std::tie(friendlyName); }
     };
 
     struct Ping

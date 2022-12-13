@@ -42,11 +42,13 @@ void CompositePingRequest::sendRequestToSecondaries()
 
     ids_.reserve(masterNode->secondaries_.size());
     statuses_.reserve(masterNode->secondaries_.size());
+    friendlyNames_.reserve(masterNode->secondaries_.size());
     futures_.reserve(masterNode->secondaries_.size());
     for (auto &[id, secondary] : masterNode->secondaries_)
     {
         ids_.push_back(id);
         statuses_.push_back(secondary->status);
+        friendlyNames_.push_back(secondary->friendlyName);
         futures_.push_back(secondary->endpoint->send_ping(std::make_shared<Proto::Request::Ping>(sendTimestamp_)));
     }
 
@@ -101,6 +103,9 @@ void CompositePingRequest::onAllResponsesRecieved(
             obj["status"] = "UNKNOWN";
             break;
         }
+
+        if (status == MasterNode::SecondaryStatus::Active)
+            obj["friendlyName"] = friendlyNames_[i];
 
         try
         {

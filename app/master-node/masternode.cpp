@@ -99,12 +99,12 @@ void MasterNode::addSecondary(
         });
     endpoint->incoming_secondaryNodeReady.connect(
         [this, id, weakSelf = weak_from_this()](
-            std::shared_ptr<Proto::Request::SecondaryNodeReady>,
+            std::shared_ptr<Proto::Request::SecondaryNodeReady>                  request,
             std::shared_ptr<boost::promise<Proto::Response::SecondaryNodeReady>> responsePromise)
         {
             auto self = weakSelf.lock();
             if (self != nullptr)
-                markRegistered(id, std::move(responsePromise));
+                markRegistered(id, std::move(request), std::move(responsePromise));
         });
     endpoint->incoming_addMessage.connect(
         [](std::shared_ptr<Proto::Request::AddMessage>,
@@ -146,6 +146,7 @@ void MasterNode::addSecondary(
 
 void MasterNode::markRegistered(
     size_t                                                               secondaryId,
+    std::shared_ptr<Proto::Request::SecondaryNodeReady>                  request,
     std::shared_ptr<boost::promise<Proto::Response::SecondaryNodeReady>> responsePromise)
 {
     EN_LOGI << "markRegistered(secondaryId=" << secondaryId << ")";
@@ -154,7 +155,10 @@ void MasterNode::markRegistered(
         std::unique_lock<std::shared_mutex> lck{ secondariesMutex_ };
         auto                                it = secondaries_.find(secondaryId);
         if (it != secondaries_.end())
-            it->second->status = SecondaryStatus::Active;
+        {
+            it->second->status       = SecondaryStatus::Active;
+            it->second->friendlyName = request->friendlyName;
+        }
     }
 
     responsePromise->set_value(Proto::Response::SecondaryNodeReady{});
