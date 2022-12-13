@@ -109,6 +109,8 @@ void SecondaryNode::establishMasterEndpoint(boost::asio::ip::tcp::socket socket)
             EN_LOGI << "Endpoint invalidated";
 
             communicationEndpoint_ = nullptr;
+
+            reconnect();
         });
 
     communicationEndpoint_ = std::move(endpoint);
