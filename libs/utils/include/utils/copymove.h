@@ -21,3 +21,8 @@
 #define DISABLE_COPY_DEFAULT_MOVE(ClassName) \
     DISABLE_COPY(ClassName)                  \
     DEFAULT_MOVE(ClassName)
+
+#define DISABLE_ALL(ClassName)   \
+    DISABLE_COPY_MOVE(ClassName) \
+    ClassName()  = delete;       \
+    ~ClassName() = delete;

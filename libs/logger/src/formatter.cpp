@@ -1,6 +1,7 @@
 #include "formatter.hpp"
 
 #include <iomanip>
+#include <limits>
 #include <string_view>
 #include <type_traits>
 
@@ -10,7 +11,6 @@
 
 #include "logger/detail/attributes.h"
 #include "logger/detail/severity.h"
-#include "logger/identity.hpp"
 
 namespace logger
 {
@@ -18,44 +18,73 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
 {
     using namespace detail::attributes;
 
-    if (const auto programNameIt = rec[kProgramNameAttr].extract<program_name_t>())
+    if (const auto uptimeMsIt = rec[kUpTimeMs].extract<uptime_ms_t>())
     {
-        strm << "[" << *programNameIt;
+        const auto sec  = (*uptimeMsIt) / 1000;
+        const auto msec = (*uptimeMsIt) % 1000;
+
+        strm << "[" << std::setw(4) << std::right << sec << "." << std::setw(3)
+             << std::right << std::setfill('0') << msec << "s]" << std::setfill(' ')
+             << std::left;
+    }
+
+    if (const auto programNameIt = rec[kProgramName].extract<program_name_t>())
+    {
+        strm << " [" << *programNameIt;
         BOOST_SCOPE_EXIT(&strm)
         {
             strm << "]";
         }
         BOOST_SCOPE_EXIT_END
 
-        if (const auto threadIdIt = rec[kThreadIdAttr].extract<thread_id_t>())
+        if (const auto threadIdIt = rec[kThreadId].extract<thread_id_t>())
         {
-            strm << "," << std::hex << ((*threadIdIt).native_id() & (0xfffff))
-                 << std::dec;
+            strm << "," << std::hex << std::setw(5)
+                 << (threadIdIt->native_id() & (0xfffff)) << std::dec;
         }
     }
 
-    if (const auto entityNameIt = rec[kEntityNameAttr].extract<entity_name_t>())
+    if (const auto fileNameIt = rec[kCodeFilename].extract<code_file_name_t>())
     {
-        strm << " [" << *entityNameIt;
+        strm << " [" << std::setw(20) << std::right << *fileNameIt;
+
         BOOST_SCOPE_EXIT(&strm)
         {
             strm << "]";
         }
         BOOST_SCOPE_EXIT_END
 
-        if (const auto loggerIdIt = rec[kIdAttr].extract<logger_id_t>())
-            strm << ",id=" << std::setw(3) << *loggerIdIt;
+        if (const auto lineNumberIt = rec[kCodeLineNumber].extract<code_line_number_t>())
+            strm << ":" << std::setw(4) << std::left << *lineNumberIt;
+        else
+            strm << std::setw(5) << "";
     }
 
+    static constexpr size_t kChannelCharactersWidth{ 35 };
+    if (const auto channelIt = rec[kChannel].extract<channel_t>())
     {
-        const auto fileNameIt   = rec[kFilenameAttr].extract<file_name_t>();
-        const auto lineNumberIt = rec[kLineNumberAttr].extract<line_number_t>();
+        auto representation = std::string{};
+        representation.reserve(channelIt->size() +
+                               std::numeric_limits<num_id_t>::digits10 + 10);
 
-        if (fileNameIt && lineNumberIt)
-            strm << " [" << *fileNameIt << ":" << *lineNumberIt << "]";
+        representation += '[';
+        representation += *channelIt;
+
+        if (const auto numIdIt = rec[kNumId].extract<num_id_t>())
+            representation += ",id=" + std::to_string(*numIdIt);
+        if (const auto stringIdIt = rec[kStringId].extract<string_id_t>())
+            representation += ",id=" + *stringIdIt;
+
+        representation += ']';
+
+        strm << std::setw(kChannelCharactersWidth) << representation;
+    }
+    else
+    {
+        strm << std::setw(kChannelCharactersWidth) << "";
     }
 
-    if (auto severityIt = rec[kSeverityAttr].extract<::logger::detail::Severity>())
+    if (auto severityIt = rec[kSeverity].extract<severity_t>())
         strm << " [" << *severityIt << "]";
 
     strm << " : " << rec[boost::log::expressions::smessage];
