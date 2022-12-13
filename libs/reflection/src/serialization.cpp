@@ -2,15 +2,14 @@
 
 namespace Reflection
 {
-const std::vector<boost::asio::const_buffer> &
-    SerializationContext::constBufferSequence() const noexcept
+const std::vector<boost::asio::const_buffer> &SerializationContext::constBufferSequence() const noexcept
 {
     return seq_;
 }
 
 std::byte &SerializationContext::getContiguousMemory(size_t bytesNum)
 {
-    if (currentChunk_ + bytesNum < currentChunkEnd_)
+    if (currentChunk_ + bytesNum > currentChunkEnd_)
         allocateChunk(bytesNum);
 
     auto &res = *currentChunk_;
