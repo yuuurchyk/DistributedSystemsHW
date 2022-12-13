@@ -169,6 +169,8 @@ void IncomingRequestsManager::onIncomingBuffer(boost::asio::const_buffer buffer)
         return readIncomingRequest<Request::GetMessages>(requestId, context, incoming_getMessages);
     case OpCode::SECONDARY_NODE_READY:
         return readIncomingRequest<Request::SecondaryNodeReady>(requestId, context, incoming_secondaryNodeReady);
+    case OpCode::PING_PONG:
+        return readIncomingRequest<Request::Ping>(requestId, context, incoming_ping);
     default:
         EN_LOGW << "wrong opcode for incoming request";
         break;

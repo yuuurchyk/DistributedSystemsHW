@@ -49,6 +49,11 @@ boost::future<Response::SecondaryNodeReady>
     return outcomingRequestsManager_->send(std::move(request));
 }
 
+boost::future<Response::Pong> CommunicationEndpoint::send_ping(std::shared_ptr<const Request::Ping> request)
+{
+    return outcomingRequestsManager_->send(std::move(request));
+}
+
 CommunicationEndpoint::CommunicationEndpoint(
     boost::asio::io_context     &ioContext,
     boost::asio::ip::tcp::socket socket,
@@ -96,6 +101,7 @@ void CommunicationEndpoint::registerConnections()
     forwardIncomingRequestConnection(incomingRequestsManager_->incoming_getMessages, incoming_getMessages);
     forwardIncomingRequestConnection(
         incomingRequestsManager_->incoming_secondaryNodeReady, incoming_secondaryNodeReady);
+    forwardIncomingRequestConnection(incomingRequestsManager_->incoming_ping, incoming_ping);
 }
 
 }    // namespace Proto

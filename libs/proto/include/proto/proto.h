@@ -19,7 +19,8 @@ enum class OpCode : uint8_t
 {
     ADD_MESSAGE = 0,
     GET_MESSAGES,
-    SECONDARY_NODE_READY
+    SECONDARY_NODE_READY,
+    PING_PONG
 };
 }    // namespace Proto
 
@@ -84,6 +85,14 @@ namespace Request
         auto tie() const { return std::make_tuple(); }
         auto tie() { return std::make_tuple(); }
     };
+
+    struct Ping
+    {
+        Timestamp_t timestamp;
+
+        auto tie() const { return std::tie(timestamp); }
+        auto tie() { return std::tie(timestamp); }
+    };
 }    // namespace Request
 
 namespace Response
@@ -115,11 +124,20 @@ namespace Response
         auto tie() { return std::make_tuple(); }
         auto tie() const { return std::make_tuple(); }
     };
+
+    struct Pong
+    {
+        Timestamp_t timestamp;
+
+        auto tie() { return std::tie(timestamp); }
+        auto tie() const { return std::tie(timestamp); }
+    };
 }    // namespace Response
 
 // Proto: EXTENSION POINT
 PROTO_REG_REQUEST_RESPONSE(Request::AddMessage, Response::AddMessage, OpCode::ADD_MESSAGE)
 PROTO_REG_REQUEST_RESPONSE(Request::GetMessages, Response::GetMessages, OpCode::GET_MESSAGES)
 PROTO_REG_REQUEST_RESPONSE(Request::SecondaryNodeReady, Response::SecondaryNodeReady, OpCode::SECONDARY_NODE_READY)
+PROTO_REG_REQUEST_RESPONSE(Request::Ping, Response::Pong, OpCode::PING_PONG)
 
 }    // namespace Proto

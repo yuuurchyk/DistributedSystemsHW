@@ -47,12 +47,14 @@ public:
     boost::future<Response::AddMessage>  send_addMessage(std::shared_ptr<const Request::AddMessage>);
     boost::future<Response::GetMessages> send_getMessages(std::shared_ptr<const Request::GetMessages>);
     boost::future<Response::SecondaryNodeReady>
-        send_secondaryNodeReady(std::shared_ptr<const Request::SecondaryNodeReady>);
+                                  send_secondaryNodeReady(std::shared_ptr<const Request::SecondaryNodeReady>);
+    boost::future<Response::Pong> send_ping(std::shared_ptr<const Request::Ping>);
 
     // Proto: EXTENSION POINT
     RequestSignal<Request::AddMessage>         incoming_addMessage;
     RequestSignal<Request::GetMessages>        incoming_getMessages;
     RequestSignal<Request::SecondaryNodeReady> incoming_secondaryNodeReady;
+    RequestSignal<Request::Ping>               incoming_ping;
 
     signal<void()> invalidated;
 

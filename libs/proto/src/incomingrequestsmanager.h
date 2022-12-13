@@ -36,6 +36,7 @@ public:
     RequestSignal<Request::AddMessage>         incoming_addMessage;
     RequestSignal<Request::GetMessages>        incoming_getMessages;
     RequestSignal<Request::SecondaryNodeReady> incoming_secondaryNodeReady;
+    RequestSignal<Request::Ping>               incoming_ping;
 
 private:
     struct PendingResponse
