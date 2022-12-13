@@ -18,6 +18,20 @@ struct Sample
     auto tie() const { return std::tie(a, b, c, v, s1, s2); }
 };
 
+struct Message
+{
+    std::string s;
+    int         a;
+
+    auto tie() const { return std::tie(s, a); }
+};
+struct Sample1
+{
+    std::vector<Message> messages;
+
+    auto tie() const { return std::tie(messages); }
+};
+
 TEST(Serialization, CustomClass)
 {
     static_assert(Reflection::HasSerializableTie<Sample>);
@@ -27,6 +41,16 @@ TEST(Serialization, CustomClass)
     context.serializeAndHold(val);
 
     ASSERT_EQ(context.constBufferSequence().size(), 12);
+}
+
+TEST(Serialization, LotsOfData)
+{
+    auto val = std::make_shared<Sample1>();
+    for (auto i = 0; i < 100; ++i)
+        val->messages.emplace_back("asdasdasdasdasd", 1000);
+
+    auto context = std::make_shared<Reflection::SerializationContext>();
+    context->serializeAndHold(std::move(val));
 }
 
 }    // namespace
