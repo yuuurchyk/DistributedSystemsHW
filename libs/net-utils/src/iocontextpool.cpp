@@ -20,11 +20,13 @@ IOContextPool::IOContextPool(size_t size)
     : size_{ std::max<size_t>(size, 1) },
       contexts_{ [size]()
                  {
+                     const auto n = std::max<size_t>(size, 1);
+
                      auto res = std::vector<std::unique_ptr<io_context>>{};
 
-                     res.reserve(size);
+                     res.reserve(n);
 
-                     for (auto i = size_t{}; i < size; ++i)
+                     for (auto i = size_t{}; i < n; ++i)
                          res.push_back(std::make_unique<io_context>());
 
                      return res;
