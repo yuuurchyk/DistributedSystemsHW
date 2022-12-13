@@ -83,7 +83,7 @@ int main(int argc, char **argv)
     }
     BOOST_SCOPE_EXIT_END
 
-    LOGI << "Using " << args.httpWorkers << " http workers";
+    LOGI << "Using " << args.httpWorkers << " http threads";
     auto httpWorkersPool = NetUtils::IOContextPool::create(args.httpWorkers);
     httpWorkersPool->runInSeparateThreads();
 
