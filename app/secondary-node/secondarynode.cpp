@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <utility>
 
+#include "constants.h"
+
 std::shared_ptr<SecondaryNode>
     SecondaryNode::create(boost::asio::io_context &ioContext, boost::asio::ip::tcp::endpoint masterSocketEndpoint)
 {
@@ -57,7 +59,8 @@ void SecondaryNode::reconnect()
             if (ec)
             {
                 EN_LOGW << "Failed to reconnect, scheduling reconnect timer";
-                reconnectTimer_.expires_from_now(kReconnectTimeout);
+                reconnectTimer_.expires_from_now(
+                    boost::posix_time::milliseconds{ Constants::kMasterReconnectTimeoutMs });
                 reconnectTimer_.async_wait(
                     [this, weakSelf = weak_from_this()](const boost::system::error_code &ec)
                     {
@@ -81,7 +84,8 @@ void SecondaryNode::reconnect()
 
 void SecondaryNode::establishMasterEndpoint(boost::asio::ip::tcp::socket socket)
 {
-    auto endpoint = Proto::CommunicationEndpoint::create(ioContext_, std::move(socket), kSendTimeoutMs);
+    auto endpoint =
+        Proto::CommunicationEndpoint::create(ioContext_, std::move(socket), Constants::kMasterSendTimeoutMs);
 
     endpoint->incoming_addMessage.connect(
         [this, weakSelf = weak_from_this()](

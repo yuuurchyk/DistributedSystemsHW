@@ -40,9 +40,6 @@ private:
     void sendGetMessagesRequest(std::weak_ptr<Proto::CommunicationEndpoint>);
     void sendSecondaryNodeReadyRequest(std::weak_ptr<Proto::CommunicationEndpoint>);
 
-    static constexpr boost::posix_time::milliseconds kReconnectTimeout{ 3000 };
-    static constexpr size_t                          kSendTimeoutMs{ 1500 };
-
     tbb::concurrent_unordered_map<Proto::Timestamp_t, std::string> messages_;
 
     std::shared_ptr<Proto::CommunicationEndpoint> communicationEndpoint_;
