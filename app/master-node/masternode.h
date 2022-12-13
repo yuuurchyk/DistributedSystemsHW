@@ -52,8 +52,6 @@ public:
     std::vector<Proto::Message> getMessages();
 
 private:
-    static constexpr size_t kSecondarySendTimeoutMs{ 3000 };
-
     MasterNode(boost::asio::io_context &, unsigned short, std::shared_ptr<NetUtils::IOContextPool>);
 
     enum class SecondaryStatus

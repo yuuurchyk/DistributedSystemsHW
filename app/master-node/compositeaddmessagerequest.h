@@ -52,7 +52,7 @@ private:
     void sendRequestToSecondaries();
     void onResponseRecieved(size_t secondaryId, boost::future<Proto::Response::AddMessage>);
 
-    void setPromiseValue();
+    void                        setPromiseValue();
     std::shared_ptr<MasterNode> lockMaster();
 
     boost::asio::io_context  &ioContext_;
@@ -64,10 +64,7 @@ private:
     std::unordered_map<size_t, MasterNode::SecondaryStatus> pending_;
     size_t                                                  cnt_{};
 
-    // timer is activated when write concern is not satisfied, but we still need to
-    // wait for confirmations from secondaries
-    static constexpr boost::posix_time::milliseconds kDelay{ 3000 };
-    boost::asio::deadline_timer                      waitTimer_;
+    boost::asio::deadline_timer waitTimer_;
 
     bool                 invalidated_{};
     bool                 promiseSet_{};

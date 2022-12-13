@@ -5,6 +5,7 @@
 #include "proto/communicationendpoint.h"
 
 #include "compositeaddmessagerequest.h"
+#include "constants.h"
 
 std::shared_ptr<MasterNode> MasterNode::create(
     boost::asio::io_context                 &ioContext,
@@ -74,8 +75,8 @@ void MasterNode::addSecondary(
 {
     const auto id = getNextSecondaryId();
 
-    auto endpoint =
-        Proto::CommunicationEndpoint::create(loadGuard->ioContext_, std::move(socket), kSecondarySendTimeoutMs);
+    auto endpoint = Proto::CommunicationEndpoint::create(
+        loadGuard->ioContext_, std::move(socket), Constants::kSecondarySendTimeoutMs);
 
     endpoint->invalidated.connect(
         [this, id, weakSelf = weak_from_this()]()

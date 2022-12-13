@@ -2,6 +2,8 @@
 
 #include <utility>
 
+#include "constants.h"
+
 std::shared_ptr<CompositeAddMessageRequest> CompositeAddMessageRequest::create(
     boost::asio::io_context  &ioContext,
     std::weak_ptr<MasterNode> weakMasterNode,
@@ -113,7 +115,7 @@ void CompositeAddMessageRequest::sendRequestToSecondaries()
     if (!promiseSet_ && pending_.empty())
     {
         EN_LOGI << "no pending secondary nodes present, but write concern is not met, waiting";
-        waitTimer_.expires_from_now(kDelay);
+        waitTimer_.expires_from_now(boost::posix_time::milliseconds{ Constants::kSecondariesPollingDelayMs });
         waitTimer_.async_wait(
             [this, self = shared_from_this()](const boost::system::error_code &ec)
             {
