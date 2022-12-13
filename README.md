@@ -1,51 +1,56 @@
 # DistributedSystemsHW
 
-## Progress So Far
-
-* **boost::log**: setup thread-safe logger
-* **boost::asio**: simple tcp echo server
-* custom tcp protocol definition and tests
-* **intel::tbb** concurrent vector for data storage
-* basic protocol communication via tcp socket (compose file does not work yet)
-* secondary node logic
-* master node logic
+## TODO:
+* introduce delays
+* docker container
 
 ## Approach
+Internal communication is done via sockets (each socket is (ideally) managed by a dedicated thread)
 
-* master and secondary nodes communicate via single tcp channel using custom protocol (there is always one connection between master and secondary node and a dedicated thread on master and secondary node that sends responses/reacts to requests)
-* both master and secondary nodes have a pool of worker threads, which:
-    * read and process incoming http requests
-    * parse requests, forming response frame (custom protocol), schedule them for sending via tcp channel
-* master node is considered active, since it connects to all secondary nodes
-* in case the connection between master and secondary node is dropped, master node schedules reconnect every 3 seconds
+## Progress
+* implemented replication with log concerns
+* implemented the logic of secondary reconnecting to master after connection is dropped
+* implemented simple healthcheck
 
-**P.S.** I haven't finished the docker compose file, because the task alone was quite difficult for me, please have mercy :)
+## API
 
-For now, all 3 nodes communicate via localhost (all 3 nodes use different ports). In order to test, you should build the dockerfile:
+### Master Node
+* ```GET /messages```
+* ```GET /ping```
+* ```POST /newMessage {"message": "string", "writeConcern": int}```
 
-```bash
->>> docker build --tag sample --build-arg ENABLE_CMAKE=true --build-arg ENABLE_BOOST=true --build-arg ENABLE_TBB=true --build-arg ENABLE_NINJA=true --target deploy .
+### Secondary Node
+* ```GET /messages```
+
+## Thread Model
+
+### Master Node
+* thread pool for secondary nodes (ideally 1 thread per socket)
+* thread pool for http requests
+* 1 thread for managing secondaries connect/disconnect
+
+### Secondary Node
+* 1 thread for communication with master
+* thread pool for http requests
+
+## CLI and Example Usage
+
 ```
+>>> master-node --name mstr --http-port 8084 --comm-port 8086
+[   0.000s] [mstr,17400] [            main.cpp:86  ]                                    [Info] : Using 0 internal communication threads
+[   0.000s] [mstr,17400] [   iocontextpool.cpp:36  ][NetUtils::IOContextPool]           [Warn] : replacing size 0 with 1
+[   0.000s] [mstr,17400] [            main.cpp:90  ]                                    [Info] : Using 3 http threads
+[   0.001s] [mstr,17400] [            main.cpp:96  ]                                    [Info] : Internal communication port=8086
+[   0.001s] [mstr,17400] [            main.cpp:100 ]                                    [Info] : Listening for http requests on port 8084
 
-**Note:** dockerfile will take a long time to build, because all the 3rd-party libraries are built from sources
-
-Then you should run 3 executables within the container:
-```bash
->>> master
->>> secondary --id 1
->>> secondary --id 2
+>>> secondary-node --name jerry --http-port 9090 --master-ip "192.168.0.100" --master-comm-port 8086
+[   0.000s] [jerry,26400] [            main.cpp:86  ]                                    [Info] : Using 3 http threads
+[   0.000s] [jerry,26400] [            main.cpp:92  ]                                    [Info] : Master internal communication, ip=192.168.0.100, port=8086
+[   0.000s] [jerry,26400] [   secondarynode.cpp:54  ][SecondaryNode]                     [Info] : Reconnecting to master node...
+[   0.000s] [jerry,26400] [            main.cpp:99  ]                                    [Info] : Listening for http requests on port 9090
+[   0.000s] [jerry,1b640] [   secondarynode.cpp:88  ][SecondaryNode]                     [Info] : Opened socket to master node
+[   0.000s] [jerry,1b640] [   secondarynode.cpp:154 ][SecondaryNode]                     [Info] : Sending get messages request
+[   0.001s] [jerry,1b640] [   secondarynode.cpp:181 ][SecondaryNode]                     [Warn] : Recieved 0 message(s) from master node
+[   0.001s] [jerry,1b640] [   secondarynode.cpp:197 ][SecondaryNode]                     [Info] : Sending secondary node ready request
+[   0.085s] [jerry,1b640] [   secondarynode.cpp:222 ][SecondaryNode]                     [Info] : Secondary node is considered ready
 ```
-
-The ports may be found in [constants.h](./libs/constants/include/constants/constants.h) file.
-
-The definition of the frame of the custom protocol may be fonud in [frame.h](./libs/protocol/include/protocol/frame.h)
-
-## HTTP API
-
-* ```GET /messages``` (for both master and secodary nodes). Returns json list of messages stored on the node
-* ```POST /addmessage``` (for master node only). Body should be plain text. Returns 200 only after confirmation from all secondary nodes that the message was replicated
-
-## Point for Future Improvements
-
-* use websockets instead of custom tcp protocol
-* implement log level (i.e. have a concurrent priority queue associated with websockets channel)
