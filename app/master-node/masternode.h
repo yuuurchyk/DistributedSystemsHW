@@ -49,6 +49,13 @@ public:
      */
     boost::future<bool> addMessage(boost::asio::io_context &ioContext, std::string, size_t writeConcern);
     /**
+     * @brief
+     *
+     * @param ioContext - specifies io context to perform asynchronous operations in
+     * @return boost::future<std::optional<std::string>> - resulting response as json
+     */
+    boost::future<std::optional<std::string>> pingSecondaries(boost::asio::io_context &ioContext);
+    /**
      * @note thread safe
      */
     std::vector<Proto::Message> getMessages();

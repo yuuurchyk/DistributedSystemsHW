@@ -5,6 +5,7 @@
 #include "proto/communicationendpoint.h"
 
 #include "compositeaddmessagerequest.h"
+#include "compositepingrequest.h"
 #include "constants.h"
 
 std::shared_ptr<MasterNode> MasterNode::create(
@@ -33,6 +34,17 @@ boost::future<bool> MasterNode::addMessage(boost::asio::io_context &ioContext, s
         weak_from_this(),
         Proto::Message{ timestamp, std::move(message) },
         writeConcern <= 1 ? size_t{} : writeConcern - 1);
+
+    request->run();
+
+    return request->getFuture();
+}
+
+boost::future<std::optional<std::string>> MasterNode::pingSecondaries(boost::asio::io_context &ioContext)
+{
+    EN_LOGI << "pingSecondaries()";
+
+    auto request = CompositePingRequest::create(ioContext, weak_from_this());
 
     request->run();
 

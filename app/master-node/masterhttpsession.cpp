@@ -57,6 +57,40 @@ void MasterHttpSession::processRequest()
         response_.content_length(response_.body().size());
         return writeResponse();
     }
+    else if (request_.method() == http::verb::get && request_.target() == "/ping")
+    {
+        response_.result(http::status::ok);
+        response_.set(http::field::server, "Beast");
+        response_.set(http::field::content_type, "application/json");
+
+        auto node = weakNode_.lock();
+        if (node == nullptr)
+            return fallback("node is dead (should not happen)");
+
+        node->pingSecondaries(ioContext_)
+            .then(
+                [this, self = shared_from_this()](boost::future<std::optional<std::string>> responseFuture)
+                {
+                    boost::asio::post(
+                        ioContext_,
+                        [this, responseFuture = std::move(responseFuture), self]() mutable
+                        {
+                            if (!responseFuture.has_value())
+                                return fallback("error occured for request");
+
+                            auto optResponse = responseFuture.get();
+
+                            if (!optResponse.has_value())
+                                return fallback("error occured for request");
+
+                            auto &response = optResponse.value();
+
+                            response_.body() = std::move(response);
+                            response_.content_length(response_.body().size());
+                            writeResponse();
+                        });
+                });
+    }
     else if (request_.method() == http::verb::post && request_.target() == "/newMessage")
     {
         auto message      = std::string{};
