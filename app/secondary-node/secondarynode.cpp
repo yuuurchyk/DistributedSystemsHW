@@ -111,10 +111,9 @@ void SecondaryNode::establishMasterEndpoint(boost::asio::ip::tcp::socket socket)
             communicationEndpoint_ = nullptr;
         });
 
-    sendGetMessagesRequest(communicationEndpoint_);
-
     communicationEndpoint_ = std::move(endpoint);
     communicationEndpoint_->run();
+    sendGetMessagesRequest(communicationEndpoint_);
 }
 
 void SecondaryNode::sendGetMessagesRequest(std::weak_ptr<Proto::CommunicationEndpoint> weakEndpoint)

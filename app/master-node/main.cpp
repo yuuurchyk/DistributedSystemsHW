@@ -30,7 +30,7 @@ int main()
     auto context            = boost::asio::io_context{};
     auto httpSocketAcceptor = NetUtils::SocketAcceptor::create(
         context,
-        8080,
+        8082,
         [weakMasterNode = std::weak_ptr<MasterNode>{ masterNode }](
             boost::asio::ip::tcp::socket socket, boost::asio::io_context &ioContext)
         { MasterHttpSession::create(ioContext, std::move(socket), weakMasterNode)->run(); },

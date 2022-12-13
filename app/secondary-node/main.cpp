@@ -29,7 +29,7 @@ int main()
     auto context            = boost::asio::io_context{};
     auto httpSocketAcceptor = NetUtils::SocketAcceptor::create(
         context,
-        8081,
+        8084,
         [weakSecondaryNode = std::weak_ptr<SecondaryNode>{ secondaryNode }](
             boost::asio::ip::tcp::socket socket, boost::asio::io_context &ioContext)
         { SecondaryHttpSession::create(ioContext, std::move(socket), weakSecondaryNode)->run(); },

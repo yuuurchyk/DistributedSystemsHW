@@ -32,6 +32,7 @@ IOContextPool::IOContextPool(size_t size)
 {
     if (size == 0)
         EN_LOGW << "replacing size 0 with 1";
+    load_.resize(this->size(), 0);
 }
 
 size_t IOContextPool::size() const noexcept
