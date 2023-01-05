@@ -7,7 +7,8 @@
 namespace Proto2
 {
 
-template <std::integral T>
+template <typename T>
+    requires std::is_integral_v<T> || std::is_enum_v<T>
 std::optional<T> BufferDeserializer::deserialize()
 {
     const auto mem = getMemoryAndAdvance(sizeof(T));
@@ -49,7 +50,7 @@ std::optional<std::string> BufferDeserializer::deserialize(size_t size)
     if (mem == nullptr)
         return {};
     else
-        return std::string{ mem, size };
+        return std::string{ reinterpret_cast<const char *>(mem), size };
 }
 
 }    // namespace Proto2

@@ -4,7 +4,8 @@
 
 namespace Proto2
 {
-template <std::integral T>
+template <typename T>
+    requires std::is_integral_v<T> || std::is_enum_v<T>
 void BufferSequenceSerializer::serialize(const T *val)
 {
     serialize(reinterpret_cast<const std::byte *>(val), sizeof(T));

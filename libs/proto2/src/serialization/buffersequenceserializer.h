@@ -31,7 +31,8 @@ public:
     BufferSequenceSerializer(std::vector<boost::asio::const_buffer> &seq);
     ~BufferSequenceSerializer() = default;
 
-    template <std::integral T>
+    template <typename T>
+        requires std::is_integral_v<T> || std::is_enum_v<T>
     void serialize(const T *);
 
     template <typename T>

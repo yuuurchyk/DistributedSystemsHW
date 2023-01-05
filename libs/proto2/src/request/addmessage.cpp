@@ -1,9 +1,9 @@
 #include "proto2/request/addmessage.h"
 
+#include <utility>
+
 #include "deserialization/bufferdeserializer.h"
 #include "serialization/buffersequenceserializer.h"
-
-#include <utility>
 
 namespace Proto2::Request
 {

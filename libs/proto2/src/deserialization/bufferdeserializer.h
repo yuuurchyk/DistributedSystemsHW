@@ -26,7 +26,8 @@ public:
      */
     boost::asio::const_buffer leftover() const;
 
-    template <std::integral T>
+    template <typename T>
+        requires std::is_integral_v<T> || std::is_enum_v<T>
     std::optional<T> deserialize();
 
     /**
