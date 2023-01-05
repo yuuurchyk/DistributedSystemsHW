@@ -1,5 +1,6 @@
 #include "proto2/request/ping.h"
 
+#include "deserialization/bufferdeserializer.h"
 #include "serialization/buffersequenceserializer.h"
 
 namespace Proto2::Request
@@ -11,11 +12,21 @@ std::unique_ptr<Ping> Ping::create(Timestamp_t timestamp)
 
 std::unique_ptr<Ping> Ping::fromPayload(boost::asio::const_buffer buffer)
 {
-    if (buffer.size() != sizeof(Timestamp_t) || buffer.data() == nullptr)
+    auto deserializer = BufferDeserializer{ buffer };
+
+    auto optTimestamp = deserializer.deserialize<Timestamp_t>();
+
+    if (!optTimestamp.has_value() || !deserializer.atEnd())
         return {};
 
-    auto timestamp = *reinterpret_cast<const Timestamp_t *>(buffer.data());
-    return create(timestamp);
+    return create(optTimestamp.value());
+}
+
+void Ping::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+{
+    auto serializer = BufferSequenceSerializer{ seq };
+
+    serializer.serialize(&timestamp_);
 }
 
 Timestamp_t Ping::timestamp() const noexcept
@@ -27,13 +38,6 @@ const OpCode &Ping::opCode() const
 {
     static constexpr OpCode kOpCode{ OpCode::PING_PONG };
     return kOpCode;
-}
-
-void Ping::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
-{
-    auto serializer = BufferSequenceSerializer{ seq };
-
-    serializer.serialize(&timestamp_);
 }
 
 Ping::Ping(Timestamp_t timestamp) : timestamp_{ timestamp } {}

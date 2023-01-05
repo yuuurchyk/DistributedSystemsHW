@@ -36,7 +36,7 @@ std::optional<std::string> BufferDeserializer::deserialize()
         return {};
     }
 
-    return std::string{ mem, leftover };
+    return std::string{ reinterpret_cast<const char *>(mem), static_cast<size_t>(leftover) };
 }
 
 template <typename T>

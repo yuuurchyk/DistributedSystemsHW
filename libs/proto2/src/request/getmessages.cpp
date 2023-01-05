@@ -1,5 +1,6 @@
 #include "proto2/request/getmessages.h"
 
+#include "deserialization/bufferdeserializer.h"
 #include "serialization/buffersequenceserializer.h"
 
 namespace Proto2::Request
@@ -11,11 +12,21 @@ std::unique_ptr<GetMessages> GetMessages::create(size_t startMessageId)
 
 std::unique_ptr<GetMessages> GetMessages::fromPayload(boost::asio::const_buffer buffer)
 {
-    if (buffer.size() != sizeof(size_t) || buffer.data() == nullptr)
+    auto deserializer = BufferDeserializer{ buffer };
+
+    auto optStartMessageId = deserializer.deserialize<size_t>();
+
+    if (!optStartMessageId.has_value() || !deserializer.atEnd())
         return {};
 
-    auto startMessageId = *reinterpret_cast<const size_t *>(buffer.data());
-    return create(startMessageId);
+    return create(optStartMessageId.value());
+}
+
+void GetMessages::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+{
+    auto serializer = BufferSequenceSerializer{ seq };
+
+    serializer.serialize(&startMessageId_);
 }
 
 size_t GetMessages::startMessageId() const noexcept
@@ -27,13 +38,6 @@ const OpCode &GetMessages::opCode() const
 {
     static constexpr OpCode kOpCode{ OpCode::GET_MESSAGES };
     return kOpCode;
-}
-
-void GetMessages::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
-{
-    auto serializer = BufferSequenceSerializer{ seq };
-
-    serializer.serialize(&startMessageId_);
 }
 
 }    // namespace Proto2::Request

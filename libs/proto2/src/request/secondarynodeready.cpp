@@ -1,5 +1,6 @@
 #include "proto2/request/secondarynodeready.h"
 
+#include "deserialization/bufferdeserializer.h"
 #include "serialization/buffersequenceserializer.h"
 
 #include <utility>
@@ -13,13 +14,21 @@ std::unique_ptr<SecondaryNodeReady> SecondaryNodeReady::create(std::string secon
 
 std::unique_ptr<SecondaryNodeReady> SecondaryNodeReady::fromPayload(boost::asio::const_buffer buffer)
 {
-    if (buffer.data() == nullptr)
+    auto deserializer = BufferDeserializer{ buffer };
+
+    auto optSecondaryNodeName = deserializer.deserialize<std::string>();
+
+    if (!optSecondaryNodeName.has_value() || !deserializer.atEnd())
         return {};
 
-    static_assert(sizeof(char) == 1);
-    auto secondaryNodeName = std::string{ reinterpret_cast<const char *>(buffer.data()), buffer.size() };
+    return create(std::move(optSecondaryNodeName.value()));
+}
 
-    return create(std::move(secondaryNodeName));
+void SecondaryNodeReady::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+{
+    auto serializer = BufferSequenceSerializer{ seq };
+
+    serializer.serialize(&secondaryNodeName_);
 }
 
 const std::string &SecondaryNodeReady::secondaryNodeName() const noexcept
@@ -36,13 +45,6 @@ const OpCode &SecondaryNodeReady::opCode() const
 {
     static constexpr OpCode kOpCode{ OpCode::SECONDARY_NODE_READY };
     return kOpCode;
-}
-
-void SecondaryNodeReady::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
-{
-    auto serializer = BufferSequenceSerializer{ seq };
-
-    serializer.serialize(&secondaryNodeName_);
 }
 
 }    // namespace Proto2::Request

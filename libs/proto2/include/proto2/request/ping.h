@@ -10,12 +10,13 @@ class Ping final : public AbstractRequest
 {
 public:
     [[nodiscard]] static std::unique_ptr<Ping> create(Timestamp_t);
+
     [[nodiscard]] static std::unique_ptr<Ping> fromPayload(boost::asio::const_buffer);
+    void serializePayload(std::vector<boost::asio::const_buffer> &) const override;
 
     Timestamp_t timestamp() const noexcept;
 
     const OpCode &opCode() const override;
-    void          serializePayload(std::vector<boost::asio::const_buffer> &) const override;
 
 private:
     Ping(Timestamp_t);

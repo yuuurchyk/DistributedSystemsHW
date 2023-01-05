@@ -13,7 +13,9 @@ class AddMessage final : public AbstractRequest
 {
 public:
     [[nodiscard]] static std::unique_ptr<AddMessage> create(size_t messageId, std::string_view messageView);
+
     [[nodiscard]] static std::unique_ptr<AddMessage> fromPayload(boost::asio::const_buffer);
+    void serializePayload(std::vector<boost::asio::const_buffer> &) const override;
 
     size_t           messageId() const noexcept;
     std::string_view messageView() const;
@@ -21,7 +23,6 @@ public:
     std::string flushMessage();
 
     const OpCode &opCode() const override;
-    void          serializePayload(std::vector<boost::asio::const_buffer> &) const override;
 
 private:
     AddMessage(size_t messageId, std::string_view messageView);

@@ -26,7 +26,8 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_THREAD_VERSION=4)
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # Proto2 heavily relies on operation codes and switches, so this is highly
   # preferred
-  target_compile_options(${PROJECT_NAME} PRIVATE "-Werror=switch")
+  target_compile_options(${PROJECT_NAME} PRIVATE "-Werror=switch"
+                                                 "-Werror=narrowing")
 endif()
 
 set_target_properties(
