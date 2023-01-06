@@ -1,7 +1,7 @@
 #pragma once
 
+#include "incomingrequestcontext/abstractincomingrequestcontext.h"
 #include "proto2/enums.h"
-#include "proto2/incomingrequestcontext/abstractincomingrequestcontext.h"
 
 namespace Proto2::IncomingRequestContext
 {

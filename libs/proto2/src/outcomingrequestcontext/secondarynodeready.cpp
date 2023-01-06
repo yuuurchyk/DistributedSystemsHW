@@ -1,4 +1,4 @@
-#include "proto2/outcomingrequestcontext/secondarynodeready.h"
+#include "outcomingrequestcontext/secondarynodeready.h"
 
 #include "response/secondarynodeready.h"
 

@@ -1,4 +1,4 @@
-#include "proto2/outcomingrequestcontext/ping.h"
+#include "outcomingrequestcontext/ping.h"
 
 #include "response/pong.h"
 

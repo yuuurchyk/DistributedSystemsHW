@@ -1,4 +1,4 @@
-#include "proto2/incomingrequestcontext/ping.h"
+#include "incomingrequestcontext/ping.h"
 
 #include <utility>
 

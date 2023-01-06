@@ -1,6 +1,6 @@
 #pragma once
 
-#include "proto2/incomingrequestcontext/abstractincomingrequestcontext.h"
+#include "incomingrequestcontext/abstractincomingrequestcontext.h"
 #include "proto2/timestamp.h"
 
 namespace Proto2::IncomingRequestContext

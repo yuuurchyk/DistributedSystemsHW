@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "proto2/incomingrequestcontext/abstractincomingrequestcontext.h"
+#include "incomingrequestcontext/abstractincomingrequestcontext.h"
 
 namespace Proto2::IncomingRequestContext
 {

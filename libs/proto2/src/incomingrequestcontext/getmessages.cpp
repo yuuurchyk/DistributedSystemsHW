@@ -1,4 +1,4 @@
-#include "proto2/incomingrequestcontext/getmessages.h"
+#include "incomingrequestcontext/getmessages.h"
 
 #include <utility>
 

@@ -1,4 +1,4 @@
-#include "proto2/outcomingrequestcontext/addmessage.h"
+#include "outcomingrequestcontext/addmessage.h"
 
 #include <cassert>
 

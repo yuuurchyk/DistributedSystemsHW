@@ -1,4 +1,4 @@
-#include "proto2/incomingrequestcontext/addmessage.h"
+#include "incomingrequestcontext/addmessage.h"
 
 #include <utility>
 
