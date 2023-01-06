@@ -1,4 +1,4 @@
-#include "proto2/request/getmessages.h"
+#include "request/getmessages.h"
 
 #include "deserialization/bufferdeserializer.h"
 #include "serialization/buffersequenceserializer.h"

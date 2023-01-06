@@ -1,7 +1,7 @@
 #pragma once
 
-#include "proto2/response/abstractresponse.h"
 #include "proto2/timestamp.h"
+#include "response/abstractresponse.h"
 
 namespace Proto2::Response
 {

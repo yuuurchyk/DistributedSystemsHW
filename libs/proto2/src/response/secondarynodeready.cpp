@@ -1,4 +1,4 @@
-#include "proto2/response/secondarynodeready.h"
+#include "response/secondarynodeready.h"
 
 #include "deserialization/bufferdeserializer.h"
 

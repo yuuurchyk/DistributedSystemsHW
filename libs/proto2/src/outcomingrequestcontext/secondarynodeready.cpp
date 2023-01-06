@@ -1,6 +1,6 @@
 #include "proto2/outcomingrequestcontext/secondarynodeready.h"
 
-#include "proto2/response/secondarynodeready.h"
+#include "response/secondarynodeready.h"
 
 namespace Proto2::OutcomingRequestContext
 {

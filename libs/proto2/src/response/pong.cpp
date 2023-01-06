@@ -1,4 +1,4 @@
-#include "proto2/response/pong.h"
+#include "response/pong.h"
 
 #include "deserialization/bufferdeserializer.h"
 #include "serialization/buffersequenceserializer.h"

@@ -4,7 +4,7 @@
 
 #include "net-utils/thenpost.h"
 
-#include "proto2/response/addmessage.h"
+#include "response/addmessage.h"
 
 namespace Proto2::IncomingRequestContext
 {

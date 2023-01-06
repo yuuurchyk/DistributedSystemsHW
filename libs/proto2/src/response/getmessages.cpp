@@ -1,4 +1,4 @@
-#include "proto2/response/getmessages.h"
+#include "response/getmessages.h"
 
 #include <algorithm>
 #include <cassert>

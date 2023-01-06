@@ -1,6 +1,6 @@
 #pragma once
 
-#include "proto2/response/abstractresponse.h"
+#include "response/abstractresponse.h"
 
 namespace Proto2::Response
 {

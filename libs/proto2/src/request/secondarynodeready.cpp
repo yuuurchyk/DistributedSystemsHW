@@ -1,4 +1,4 @@
-#include "proto2/request/secondarynodeready.h"
+#include "request/secondarynodeready.h"
 
 #include <utility>
 

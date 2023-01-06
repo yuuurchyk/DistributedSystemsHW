@@ -1,6 +1,6 @@
 #include "proto2/outcomingrequestcontext/getmessages.h"
 
-#include "proto2/response/getmessages.h"
+#include "response/getmessages.h"
 
 namespace Proto2::OutcomingRequestContext
 {

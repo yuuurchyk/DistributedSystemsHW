@@ -6,7 +6,7 @@
 #include <boost/signals2.hpp>
 #include <boost/thread.hpp>
 
-#include "proto2/response/abstractresponse.h"
+#include "response/abstractresponse.h"
 
 #include "utils/copymove.h"
 

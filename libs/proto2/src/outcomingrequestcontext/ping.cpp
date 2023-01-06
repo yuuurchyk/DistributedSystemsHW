@@ -1,6 +1,6 @@
 #include "proto2/outcomingrequestcontext/ping.h"
 
-#include "proto2/response/pong.h"
+#include "response/pong.h"
 
 namespace Proto2::OutcomingRequestContext
 {

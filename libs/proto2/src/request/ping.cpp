@@ -1,4 +1,4 @@
-#include "proto2/request/ping.h"
+#include "request/ping.h"
 
 #include "deserialization/bufferdeserializer.h"
 #include "serialization/buffersequenceserializer.h"

@@ -1,4 +1,4 @@
-#include "proto2/response/addmessage.h"
+#include "response/addmessage.h"
 
 #include "deserialization/bufferdeserializer.h"
 #include "serialization/buffersequenceserializer.h"

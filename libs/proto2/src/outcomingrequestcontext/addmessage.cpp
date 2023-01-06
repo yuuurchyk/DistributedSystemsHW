@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "proto2/exceptions.h"
-#include "proto2/response/addmessage.h"
+#include "response/addmessage.h"
 
 namespace Proto2::OutcomingRequestContext
 {

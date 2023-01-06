@@ -1,4 +1,4 @@
-#include "proto2/request/addmessage.h"
+#include "request/addmessage.h"
 
 #include <utility>
 

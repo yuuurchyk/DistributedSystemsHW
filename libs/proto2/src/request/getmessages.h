@@ -1,6 +1,6 @@
 #pragma once
 
-#include "proto2/request/abstractrequest.h"
+#include "request/abstractrequest.h"
 
 namespace Proto2::Request
 {

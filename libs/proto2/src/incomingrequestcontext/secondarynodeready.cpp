@@ -4,7 +4,7 @@
 
 #include "net-utils/thenpost.h"
 
-#include "proto2/response/secondarynodeready.h"
+#include "response/secondarynodeready.h"
 
 namespace Proto2::IncomingRequestContext
 {
