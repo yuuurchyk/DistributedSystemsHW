@@ -5,12 +5,12 @@
 namespace Proto2::Response
 {
 
-std::unique_ptr<SecondaryNodeReady> SecondaryNodeReady::create()
+std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::create()
 {
-    return std::unique_ptr<SecondaryNodeReady>{ new SecondaryNodeReady{} };
+    return std::shared_ptr<SecondaryNodeReady>{ new SecondaryNodeReady{} };
 }
 
-std::unique_ptr<SecondaryNodeReady> SecondaryNodeReady::fromPayload(boost::asio::const_buffer buffer)
+std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 

@@ -6,12 +6,12 @@
 namespace Proto2::Response
 {
 
-std::unique_ptr<AddMessage> AddMessage::create(Status status)
+std::shared_ptr<AddMessage> AddMessage::create(Status status)
 {
-    return std::unique_ptr<AddMessage>{ new AddMessage{ status } };
+    return std::shared_ptr<AddMessage>{ new AddMessage{ status } };
 }
 
-std::unique_ptr<AddMessage> AddMessage::fromPayload(boost::asio::const_buffer buffer)
+std::shared_ptr<AddMessage> AddMessage::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 

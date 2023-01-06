@@ -13,9 +13,9 @@ namespace Proto2::Response
 class GetMessages final : public AbstractResponse
 {
 public:
-    [[nodiscard]] static std::unique_ptr<GetMessages> create(std::vector<std::string_view>);
+    [[nodiscard]] static std::shared_ptr<GetMessages> create(std::vector<std::string_view>);
 
-    [[nodiscard]] static std::unique_ptr<GetMessages> fromPayload(boost::asio::const_buffer);
+    [[nodiscard]] static std::shared_ptr<GetMessages> fromPayload(boost::asio::const_buffer);
     void serializePayload(std::vector<boost::asio::const_buffer> &) const override;
 
     std::vector<std::string_view> messagesView() const;

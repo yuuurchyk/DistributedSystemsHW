@@ -8,7 +8,7 @@ namespace Proto2::OutcomingRequestContext
 class Ping final : public AbstractOutcomingRequestContext
 {
 public:
-    [[nodiscard]] static std::unique_ptr<Ping> create();
+    [[nodiscard]] static std::shared_ptr<Ping> create();
 
     boost::future<Timestamp_t> future();
 

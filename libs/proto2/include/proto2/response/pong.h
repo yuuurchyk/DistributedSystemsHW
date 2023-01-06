@@ -9,9 +9,9 @@ namespace Proto2::Response
 class Pong : public AbstractResponse
 {
 public:
-    [[nodiscard]] static std::unique_ptr<Pong> create(Timestamp_t);
+    [[nodiscard]] static std::shared_ptr<Pong> create(Timestamp_t);
 
-    [[nodiscard]] static std::unique_ptr<Pong> fromPayload(boost::asio::const_buffer);
+    [[nodiscard]] static std::shared_ptr<Pong> fromPayload(boost::asio::const_buffer);
     void serializePayload(std::vector<boost::asio::const_buffer> &) const override;
 
     Timestamp_t timestamp() const;

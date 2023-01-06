@@ -25,12 +25,12 @@ std::vector<size_t> calcSizes(const std::vector<std::string_view> &views)
 namespace Proto2::Response
 {
 
-std::unique_ptr<GetMessages> GetMessages::create(std::vector<std::string_view> messagesView)
+std::shared_ptr<GetMessages> GetMessages::create(std::vector<std::string_view> messagesView)
 {
-    return std::unique_ptr<GetMessages>{ new GetMessages{ std::move(messagesView) } };
+    return std::shared_ptr<GetMessages>{ new GetMessages{ std::move(messagesView) } };
 }
 
-std::unique_ptr<GetMessages> GetMessages::fromPayload(boost::asio::const_buffer buffer)
+std::shared_ptr<GetMessages> GetMessages::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 
@@ -63,7 +63,7 @@ std::unique_ptr<GetMessages> GetMessages::fromPayload(boost::asio::const_buffer 
     if (!deserializer.atEnd())
         return {};
     else
-        return std::unique_ptr<GetMessages>{ new GetMessages{ std::move(messages) } };
+        return std::shared_ptr<GetMessages>{ new GetMessages{ std::move(messages) } };
 }
 
 void GetMessages::serializePayload(std::vector<boost::asio::const_buffer> &seq) const

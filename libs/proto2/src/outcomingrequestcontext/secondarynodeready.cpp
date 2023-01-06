@@ -4,9 +4,9 @@
 
 namespace Proto2::OutcomingRequestContext
 {
-std::unique_ptr<SecondaryNodeReady> SecondaryNodeReady::create()
+std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::create()
 {
-    return std::unique_ptr<SecondaryNodeReady>{ new SecondaryNodeReady{} };
+    return std::shared_ptr<SecondaryNodeReady>{ new SecondaryNodeReady{} };
 }
 
 boost::future<void> SecondaryNodeReady::future()

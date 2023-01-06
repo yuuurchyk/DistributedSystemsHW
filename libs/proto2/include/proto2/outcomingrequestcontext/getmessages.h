@@ -10,7 +10,7 @@ namespace Proto2::OutcomingRequestContext
 class GetMessages final : public AbstractOutcomingRequestContext
 {
 public:
-    [[nodiscard]] static std::unique_ptr<GetMessages> create();
+    [[nodiscard]] static std::shared_ptr<GetMessages> create();
 
     boost::future<std::vector<std::string>> future();
 

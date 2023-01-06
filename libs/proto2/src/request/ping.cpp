@@ -5,12 +5,12 @@
 
 namespace Proto2::Request
 {
-std::unique_ptr<Ping> Ping::create(Timestamp_t timestamp)
+std::shared_ptr<Ping> Ping::create(Timestamp_t timestamp)
 {
-    return std::unique_ptr<Ping>{ new Ping{ timestamp } };
+    return std::shared_ptr<Ping>{ new Ping{ timestamp } };
 }
 
-std::unique_ptr<Ping> Ping::fromPayload(boost::asio::const_buffer buffer)
+std::shared_ptr<Ping> Ping::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 

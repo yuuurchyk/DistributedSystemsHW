@@ -7,12 +7,12 @@
 
 namespace Proto2::Request
 {
-std::unique_ptr<AddMessage> AddMessage::create(size_t messageId, std::string_view messageView)
+std::shared_ptr<AddMessage> AddMessage::create(size_t messageId, std::string_view messageView)
 {
-    return std::unique_ptr<AddMessage>{ new AddMessage{ messageId, messageView } };
+    return std::shared_ptr<AddMessage>{ new AddMessage{ messageId, messageView } };
 }
 
-std::unique_ptr<AddMessage> AddMessage::fromPayload(boost::asio::const_buffer buffer)
+std::shared_ptr<AddMessage> AddMessage::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 

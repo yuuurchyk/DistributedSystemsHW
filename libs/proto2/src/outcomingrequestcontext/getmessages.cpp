@@ -5,9 +5,9 @@
 namespace Proto2::OutcomingRequestContext
 {
 
-std::unique_ptr<GetMessages> GetMessages::create()
+std::shared_ptr<GetMessages> GetMessages::create()
 {
-    return std::unique_ptr<GetMessages>{ new GetMessages{} };
+    return std::shared_ptr<GetMessages>{ new GetMessages{} };
 }
 
 boost::future<std::vector<std::string>> GetMessages::future()

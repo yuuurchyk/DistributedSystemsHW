@@ -5,9 +5,9 @@
 namespace Proto2::OutcomingRequestContext
 {
 
-std::unique_ptr<Ping> Ping::create()
+std::shared_ptr<Ping> Ping::create()
 {
-    return std::unique_ptr<Ping>{ new Ping{} };
+    return std::shared_ptr<Ping>{ new Ping{} };
 }
 
 boost::future<Timestamp_t> Ping::future()

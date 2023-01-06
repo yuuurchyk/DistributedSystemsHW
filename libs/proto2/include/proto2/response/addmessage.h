@@ -16,9 +16,9 @@ public:
         NOT_ALLOWED
     };
 
-    [[nodiscard]] static std::unique_ptr<AddMessage> create(Status);
+    [[nodiscard]] static std::shared_ptr<AddMessage> create(Status);
 
-    [[nodiscard]] static std::unique_ptr<AddMessage> fromPayload(boost::asio::const_buffer);
+    [[nodiscard]] static std::shared_ptr<AddMessage> fromPayload(boost::asio::const_buffer);
     void serializePayload(std::vector<boost::asio::const_buffer> &seq) const override;
 
     Status status() const;

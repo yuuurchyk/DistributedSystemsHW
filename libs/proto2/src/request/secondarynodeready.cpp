@@ -7,12 +7,12 @@
 
 namespace Proto2::Request
 {
-std::unique_ptr<SecondaryNodeReady> SecondaryNodeReady::create(std::string secondaryNodeName)
+std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::create(std::string secondaryNodeName)
 {
-    return std::unique_ptr<SecondaryNodeReady>(new SecondaryNodeReady{ std::move(secondaryNodeName) });
+    return std::shared_ptr<SecondaryNodeReady>(new SecondaryNodeReady{ std::move(secondaryNodeName) });
 }
 
-std::unique_ptr<SecondaryNodeReady> SecondaryNodeReady::fromPayload(boost::asio::const_buffer buffer)
+std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 

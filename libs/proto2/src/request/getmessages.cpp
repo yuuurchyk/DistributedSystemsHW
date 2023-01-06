@@ -5,12 +5,12 @@
 
 namespace Proto2::Request
 {
-std::unique_ptr<GetMessages> GetMessages::create(size_t startMessageId)
+std::shared_ptr<GetMessages> GetMessages::create(size_t startMessageId)
 {
-    return std::unique_ptr<GetMessages>{ new GetMessages{ startMessageId } };
+    return std::shared_ptr<GetMessages>{ new GetMessages{ startMessageId } };
 }
 
-std::unique_ptr<GetMessages> GetMessages::fromPayload(boost::asio::const_buffer buffer)
+std::shared_ptr<GetMessages> GetMessages::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 

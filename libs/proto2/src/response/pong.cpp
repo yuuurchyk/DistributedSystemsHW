@@ -6,12 +6,12 @@
 namespace Proto2::Response
 {
 
-std::unique_ptr<Pong> Pong::create(Timestamp_t timestamp)
+std::shared_ptr<Pong> Pong::create(Timestamp_t timestamp)
 {
-    return std::unique_ptr<Pong>{ new Pong{ timestamp } };
+    return std::shared_ptr<Pong>{ new Pong{ timestamp } };
 }
 
-std::unique_ptr<Pong> Pong::fromPayload(boost::asio::const_buffer buffer)
+std::shared_ptr<Pong> Pong::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 

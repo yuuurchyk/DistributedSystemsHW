@@ -12,7 +12,7 @@
 namespace Proto2::Response
 {
 
-class AbstractResponse
+class AbstractResponse : public std::enable_shared_from_this<AbstractResponse>
 {
     DISABLE_COPY_MOVE(AbstractResponse)
 

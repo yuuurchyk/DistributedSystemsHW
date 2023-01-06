@@ -7,9 +7,9 @@
 namespace Proto2::OutcomingRequestContext
 {
 
-std::unique_ptr<AddMessage> AddMessage::create()
+std::shared_ptr<AddMessage> AddMessage::create()
 {
-    return std::unique_ptr<AddMessage>{ new AddMessage{} };
+    return std::shared_ptr<AddMessage>{ new AddMessage{} };
 }
 
 boost::future<Response::AddMessage::Status> AddMessage::future()

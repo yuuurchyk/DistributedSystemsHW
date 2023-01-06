@@ -7,7 +7,7 @@ namespace Proto2::OutcomingRequestContext
 class SecondaryNodeReady final : public AbstractOutcomingRequestContext
 {
 public:
-    [[nodiscard]] static std::unique_ptr<SecondaryNodeReady> create();
+    [[nodiscard]] static std::shared_ptr<SecondaryNodeReady> create();
 
     boost::future<void> future();
 

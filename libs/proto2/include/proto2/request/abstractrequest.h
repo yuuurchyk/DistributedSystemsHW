@@ -11,7 +11,7 @@
 
 namespace Proto2::Request
 {
-class AbstractRequest
+class AbstractRequest : public std::enable_shared_from_this<AbstractRequest>
 {
     DISABLE_COPY_MOVE(AbstractRequest)
 public:
@@ -30,7 +30,7 @@ public:
     virtual void serializePayload(std::vector<boost::asio::const_buffer> &constBufferSeq) const = 0;
 
     // note: all implementations of request should also have
-    // static std::unique_ptr<RequestClass> fromPayload(boost::asio::const_buffer)
+    // static std::shared_ptr<RequestClass> fromPayload(boost::asio::const_buffer)
 };
 
 }    // namespace Proto2::Request

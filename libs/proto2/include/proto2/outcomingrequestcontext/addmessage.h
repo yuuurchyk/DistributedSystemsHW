@@ -8,7 +8,7 @@ namespace Proto2::OutcomingRequestContext
 class AddMessage final : public AbstractOutcomingRequestContext
 {
 public:
-    [[nodiscard]] static std::unique_ptr<AddMessage> create();
+    [[nodiscard]] static std::shared_ptr<AddMessage> create();
 
     boost::future<Response::AddMessage::Status> future();
 

@@ -11,7 +11,7 @@
 
 namespace Proto2::OutcomingRequestContext
 {
-class AbstractOutcomingRequestContext
+class AbstractOutcomingRequestContext : std::enable_shared_from_this<AbstractOutcomingRequestContext>
 {
     DISABLE_COPY_MOVE(AbstractOutcomingRequestContext)
 public:
