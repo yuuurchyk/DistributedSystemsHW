@@ -4,7 +4,7 @@
 
 #include <boost/asio.hpp>
 
-#include "proto2/codes.h"
+#include "codes.h"
 
 /**
  * The structure of request frame:
@@ -35,6 +35,6 @@ struct ResponseFrame
     size_t                    requestId{};
     boost::asio::const_buffer payload{};
 };
-std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer response);
+std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer frame);
 
 }    // namespace Proto2::Frame

@@ -7,7 +7,7 @@
 
 #include "utils/copymove.h"
 
-#include "proto2/codes.h"
+#include "codes.h"
 
 namespace Proto2::Request
 {

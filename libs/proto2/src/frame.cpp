@@ -1,4 +1,4 @@
-#include "proto2/frame.hpp"
+#include "frame.hpp"
 
 #include "deserialization/bufferdeserializer.h"
 

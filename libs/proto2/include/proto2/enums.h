@@ -4,7 +4,6 @@
 
 namespace Proto2
 {
-
 // used for add message response
 enum class AddMessageStatus : uint8_t
 {
