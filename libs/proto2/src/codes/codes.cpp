@@ -1,4 +1,4 @@
-#include "codes.h"
+#include "codes/codes.h"
 
 namespace Proto2
 {

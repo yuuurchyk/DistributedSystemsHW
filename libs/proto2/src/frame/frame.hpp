@@ -4,7 +4,7 @@
 
 #include <boost/asio.hpp>
 
-#include "codes.h"
+#include "codes/codes.h"
 
 /**
  * The structure of request frame:
