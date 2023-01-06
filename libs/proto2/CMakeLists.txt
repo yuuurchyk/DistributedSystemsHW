@@ -19,8 +19,9 @@ target_include_directories(
   ${PROJECT_NAME}
   PUBLIC include
   PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads Boost::boost
-                                             Boost::thread logger utils)
+target_link_libraries(
+  ${PROJECT_NAME} PUBLIC Threads::Threads Boost::boost Boost::thread logger
+                         net-utils utils)
 target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_THREAD_VERSION=4)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
