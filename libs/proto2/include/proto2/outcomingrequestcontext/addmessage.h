@@ -1,6 +1,6 @@
 #pragma once
 
-#include "abstractoutcomingrequestcontext.h"
+#include "proto2/outcomingrequestcontext/abstractoutcomingrequestcontext.h"
 #include "proto2/response/addmessage.h"
 
 namespace Proto2::OutcomingRequestContext

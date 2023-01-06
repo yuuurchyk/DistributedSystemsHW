@@ -1,11 +1,11 @@
 #include "proto2/response/getmessages.h"
 
-#include "deserialization/bufferdeserializer.h"
-#include "serialization/buffersequenceserializer.h"
-
 #include <algorithm>
 #include <cassert>
 #include <utility>
+
+#include "deserialization/bufferdeserializer.h"
+#include "serialization/buffersequenceserializer.h"
 
 namespace
 {

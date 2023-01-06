@@ -4,7 +4,6 @@
 
 namespace Proto2
 {
-
 struct ResponseException : std::exception
 {
 };

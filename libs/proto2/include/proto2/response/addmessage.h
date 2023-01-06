@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "abstractresponse.h"
+#include "proto2/response/abstractresponse.h"
 
 namespace Proto2::Response
 {

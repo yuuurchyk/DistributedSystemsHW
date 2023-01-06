@@ -1,8 +1,7 @@
 #pragma once
 
+#include "proto2/request/abstractrequest.h"
 #include "proto2/timestamp.h"
-
-#include "abstractrequest.h"
 
 namespace Proto2::Request
 {
