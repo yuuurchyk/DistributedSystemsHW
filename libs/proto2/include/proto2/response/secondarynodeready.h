@@ -4,7 +4,6 @@
 
 namespace Proto2::Response
 {
-
 class SecondaryNodeReady final : public AbstractResponse
 {
 public:
