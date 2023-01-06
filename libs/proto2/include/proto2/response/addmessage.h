@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cstdint>
-
+#include "proto2/enums.h"
 #include "proto2/response/abstractresponse.h"
 
 namespace Proto2::Response
@@ -10,25 +9,19 @@ namespace Proto2::Response
 class AddMessage final : public AbstractResponse
 {
 public:
-    enum class Status : uint8_t
-    {
-        OK = 0,
-        NOT_ALLOWED
-    };
-
-    [[nodiscard]] static std::shared_ptr<AddMessage> create(Status);
+    [[nodiscard]] static std::shared_ptr<AddMessage> create(AddMessageStatus);
 
     [[nodiscard]] static std::shared_ptr<AddMessage> fromPayload(boost::asio::const_buffer);
     void serializePayload(std::vector<boost::asio::const_buffer> &seq) const override;
 
-    Status status() const;
+    AddMessageStatus status() const;
 
     const OpCode &opCode() const override;
 
 private:
-    AddMessage(Status);
+    AddMessage(AddMessageStatus);
 
-    const Status status_;
+    const AddMessageStatus status_;
 };
 
 }    // namespace Proto2::Response

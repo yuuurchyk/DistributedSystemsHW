@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "proto2/exceptions.h"
+#include "proto2/response/addmessage.h"
 
 namespace Proto2::OutcomingRequestContext
 {
@@ -12,7 +13,7 @@ std::shared_ptr<AddMessage> AddMessage::create()
     return std::shared_ptr<AddMessage>{ new AddMessage{} };
 }
 
-boost::future<Response::AddMessage::Status> AddMessage::future()
+boost::future<AddMessageStatus> AddMessage::future()
 {
     return promise_.get_future();
 }

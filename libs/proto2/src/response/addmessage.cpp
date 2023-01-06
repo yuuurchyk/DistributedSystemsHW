@@ -6,7 +6,7 @@
 namespace Proto2::Response
 {
 
-std::shared_ptr<AddMessage> AddMessage::create(Status status)
+std::shared_ptr<AddMessage> AddMessage::create(AddMessageStatus status)
 {
     return std::shared_ptr<AddMessage>{ new AddMessage{ status } };
 }
@@ -15,7 +15,7 @@ std::shared_ptr<AddMessage> AddMessage::fromPayload(boost::asio::const_buffer bu
 {
     auto deserializer = BufferDeserializer{ buffer };
 
-    const auto optStatus = deserializer.deserialize<Status>();
+    const auto optStatus = deserializer.deserialize<AddMessageStatus>();
 
     if (!optStatus.has_value() || !deserializer.atEnd())
     {
@@ -29,8 +29,8 @@ std::shared_ptr<AddMessage> AddMessage::fromPayload(boost::asio::const_buffer bu
 
         switch (status)
         {
-        case Status::OK:
-        case Status::NOT_ALLOWED:
+        case AddMessageStatus::OK:
+        case AddMessageStatus::NOT_ALLOWED:
             statusOk = true;
             break;
         }
@@ -49,7 +49,7 @@ void AddMessage::serializePayload(std::vector<boost::asio::const_buffer> &seq) c
     serializer.serialize(&status_);
 }
 
-auto AddMessage::status() const -> Status
+AddMessageStatus AddMessage::status() const
 {
     return status_;
 }
@@ -60,6 +60,6 @@ const OpCode &AddMessage::opCode() const
     return kOpCode;
 }
 
-AddMessage::AddMessage(Status status) : status_{ status } {}
+AddMessage::AddMessage(AddMessageStatus status) : status_{ status } {}
 
 }    // namespace Proto2::Response

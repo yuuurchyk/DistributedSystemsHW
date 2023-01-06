@@ -4,6 +4,8 @@
 
 #include "net-utils/thenpost.h"
 
+#include "proto2/response/addmessage.h"
+
 namespace Proto2::IncomingRequestContext
 {
 
@@ -16,7 +18,7 @@ std::shared_ptr<AddMessage> AddMessage::create(boost::asio::io_context &ioContex
     return self;
 }
 
-boost::promise<Response::AddMessage::Status> AddMessage::flushPromise()
+boost::promise<AddMessageStatus> AddMessage::flushPromise()
 {
     return std::move(promise_);
 }
@@ -26,7 +28,7 @@ void AddMessage::connectPromise()
     NetUtils::thenPost(
         promise_.get_future(),
         ioContext_,
-        [this, weakSelf = weak_from_this()](boost::future<Response::AddMessage::Status> future)
+        [this, weakSelf = weak_from_this()](boost::future<AddMessageStatus> future)
         {
             const auto self = weakSelf.lock();
             if (self == nullptr)
