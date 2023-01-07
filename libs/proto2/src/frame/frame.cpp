@@ -78,6 +78,21 @@ std::optional<RequestFrame> parseRequestFrame(boost::asio::const_buffer frame)
     return RequestFrame{ requestId, opCode, payload };
 }
 
+std::optional<std::vector<boost::asio::const_buffer>>
+    constructRequestFrame(const size_t &requestId, const OpCode &opCode)
+{
+    static constexpr EventType kEventType{ EventType::REQUEST };
+
+    auto res = std::vector<boost::asio::const_buffer>{};
+    res.reserve(3);
+
+    res.push_back(boost::asio::const_buffer{ &kEventType, sizeof(EventType) });
+    res.push_back(boost::asio::const_buffer{ &requestId, sizeof(size_t) });
+    res.push_back(boost::asio::const_buffer{ &opCode, sizeof(OpCode) });
+
+    return res;
+}
+
 std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer frame)
 {
     auto deserializer = BufferDeserializer{ frame };

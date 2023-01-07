@@ -89,7 +89,7 @@ void SocketWrapper::readFrame()
                 return invalidate();
             }
 
-            incomingBuffer(boost::asio::const_buffer(buffer_.get(), incomingFrameSize_));
+            incomingFrame(boost::asio::const_buffer(buffer_.get(), incomingFrameSize_));
 
             readFrameSize();
         });
@@ -109,6 +109,11 @@ void SocketWrapper::invalidate()
 
     if (firstTime)
         invalidated();
+}
+
+boost::asio::io_context &SocketWrapper::ioContext()
+{
+    return ioContext_;
 }
 
 void SocketWrapper::writeFrameImpl()
@@ -138,6 +143,16 @@ void SocketWrapper::writeFrameImpl()
     auto seq      = std::move(context.seq);
     auto callback = std::move(context.callback);
 
+    // add frame size
+    {
+        outcomingFrameSizeBuffer_ = 0;
+        for (auto &buffer : seq)
+            outcomingFrameSizeBuffer_ += buffer.size();
+        std::reverse(seq.begin(), seq.end());
+        seq.push_back(boost::asio::const_buffer(&outcomingFrameSizeBuffer_, sizeof(size_t)));
+        std::reverse(seq.begin(), seq.end());
+    }
+
     boost::asio::async_write(
         socket_,
         seq,
@@ -148,7 +163,15 @@ void SocketWrapper::writeFrameImpl()
             if (callback != nullptr)
                 callback(ec, transferred);
 
-            writeFrameImpl();
+            if (ec)
+            {
+                EN_LOGE << "Failed to write frame, invalidating";
+                invalidate();
+            }
+            else
+            {
+                writeFrameImpl();
+            }
         });
 }
 

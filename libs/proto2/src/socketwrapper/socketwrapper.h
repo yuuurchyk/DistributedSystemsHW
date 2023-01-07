@@ -29,12 +29,23 @@ public:
 
     ~SocketWrapper();
 
-    boost::signals2::signal<void(boost::asio::const_buffer)> incomingBuffer;
+    boost::signals2::signal<void(boost::asio::const_buffer)> incomingFrame;
     boost::signals2::signal<void()>                          invalidated;
 
     void run();
 
-    // thread safe
+    void invalidate();
+
+    boost::asio::io_context &ioContext();
+
+    /**
+     * @brief
+     *
+     * @note this method is thread safe
+     *
+     * @param frame - buffer sequence to send as a frame
+     * @param callback - should hold the data referenced in @p frame
+     */
     void writeFrame(
         std::vector<boost::asio::const_buffer>                         frame,
         std::function<void(const boost::system::error_code &, size_t)> callback);
@@ -45,8 +56,6 @@ private:
     void readFrameSize();
     void readFrame();
 
-    void invalidate();
-
     void writeFrameImpl();
 
     void allocateBuffer(size_t bytes);
@@ -56,6 +65,8 @@ private:
     boost::asio::ip::tcp::socket socket_;
 
     bool invalidated_{};
+
+    size_t outcomingFrameSizeBuffer_;
 
     // if buffer gets bigger than kMaxReusedBufferSize, it
     // shrinks on the next iteration

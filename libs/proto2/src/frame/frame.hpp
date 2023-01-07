@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <vector>
 
 #include <boost/asio.hpp>
 
@@ -29,6 +30,12 @@ struct RequestFrame
     boost::asio::const_buffer payload{};
 };
 std::optional<RequestFrame> parseRequestFrame(boost::asio::const_buffer frame);
+
+/**
+ * @note make sure that passed @p requestId and @p opCode live
+ * long enough for the buffer to remain valid
+ */
+std::vector<boost::asio::const_buffer> constructRequestHeader(const size_t &requestId, const OpCode &opCode);
 
 struct ResponseFrame
 {
