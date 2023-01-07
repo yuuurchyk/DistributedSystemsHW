@@ -109,7 +109,7 @@ void OutcomingRequestsManager::sendImpl(Pending pending)
     EN_LOGI << "sending request: id=" << pending.id << ", op code=" << pending.request->opCode();
 
     requestIdBuffer_  = id;
-    auto requestFrame = Frame::constructRequestHeader(requestIdBuffer_, pending.request->opCode());
+    auto requestFrame = Frame::constructRequestHeaderWoOwnership(requestIdBuffer_, pending.request->opCode());
     pending.request->serializePayload(requestFrame);
 
     socketWrapper_->writeFrame(
@@ -119,12 +119,11 @@ void OutcomingRequestsManager::sendImpl(Pending pending)
             if (!ec)
                 return;
 
-            const auto it = requests_.find(id);
-            if (it == requests_.end())
-                return;
-
-            it->second.context->invalidate(InvalidationReason::DISCONNECTED);
-            requests_.erase(it);
+            if (const auto it = requests_.find(id); it != requests_.end())
+            {
+                it->second.context->invalidate(InvalidationReason::DISCONNECTED);
+                requests_.erase(it);
+            }
         });
 
     requests_.insert({ id, std::move(pending) });

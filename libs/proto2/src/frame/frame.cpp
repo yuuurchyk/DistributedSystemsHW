@@ -78,8 +78,7 @@ std::optional<RequestFrame> parseRequestFrame(boost::asio::const_buffer frame)
     return RequestFrame{ requestId, opCode, payload };
 }
 
-std::optional<std::vector<boost::asio::const_buffer>>
-    constructRequestFrame(const size_t &requestId, const OpCode &opCode)
+std::vector<boost::asio::const_buffer> constructRequestHeaderWoOwnership(const size_t &requestId, const OpCode &opCode)
 {
     static constexpr EventType kEventType{ EventType::REQUEST };
 
