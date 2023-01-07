@@ -6,9 +6,10 @@
 #include <boost/signals2.hpp>
 #include <boost/thread.hpp>
 
-#include "response/abstractresponse.h"
-
 #include "utils/copymove.h"
+
+#include "proto2/signal.h"
+#include "response/abstractresponse.h"
 
 namespace Proto2::IncomingRequestContext
 {
@@ -23,8 +24,8 @@ public:
 
     // NOTE: this signals should be emitted within the thread that runs the
     // io context
-    boost::signals2::signal<void(std::shared_ptr<Response::AbstractResponse>)> responseRecieved;
-    boost::signals2::signal<void()>                                            invalidResponseRecieved;
+    signal<std::shared_ptr<Response::AbstractResponse>> responseRecieved;
+    signal<>                                            invalidResponseRecieved;
 
 protected:
     /**
