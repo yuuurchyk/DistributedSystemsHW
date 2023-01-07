@@ -20,7 +20,7 @@ std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::fromPayload(boost::asio:
         return create();
 }
 
-void SecondaryNodeReady::serializePayload(std::vector<boost::asio::const_buffer> &) const
+void SecondaryNodeReady::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &) const
 {
     // noop
 }

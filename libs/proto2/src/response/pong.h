@@ -12,7 +12,7 @@ public:
     [[nodiscard]] static std::shared_ptr<Pong> create(Timestamp_t);
 
     [[nodiscard]] static std::shared_ptr<Pong> fromPayload(boost::asio::const_buffer);
-    void serializePayload(std::vector<boost::asio::const_buffer> &) const override;
+    void serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &) const override;
 
     Timestamp_t timestamp() const;
 

@@ -2,7 +2,6 @@
 
 namespace Proto2
 {
-
 BufferDeserializer::BufferDeserializer(boost::asio::const_buffer buffer)
     : begin_{ reinterpret_cast<const std::byte *>(buffer.data()) },
       end_{ begin_ == nullptr ? nullptr : begin_ + buffer.size() },

@@ -22,7 +22,7 @@ std::shared_ptr<Ping> Ping::fromPayload(boost::asio::const_buffer buffer)
     return create(optTimestamp.value());
 }
 
-void Ping::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+void Ping::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &seq) const
 {
     auto serializer = BufferSequenceSerializer{ seq };
 

@@ -24,7 +24,7 @@ std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::fromPayload(boost::asio:
     return create(std::move(optSecondaryNodeName.value()));
 }
 
-void SecondaryNodeReady::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+void SecondaryNodeReady::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &seq) const
 {
     auto serializer = BufferSequenceSerializer{ seq };
 

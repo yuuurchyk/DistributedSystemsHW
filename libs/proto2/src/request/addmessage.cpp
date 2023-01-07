@@ -25,7 +25,7 @@ std::shared_ptr<AddMessage> AddMessage::fromPayload(boost::asio::const_buffer bu
         return create(optId.value(), std::move(optMessage.value()));
 }
 
-void AddMessage::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+void AddMessage::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &seq) const
 {
     auto serializer = BufferSequenceSerializer{ seq };
 

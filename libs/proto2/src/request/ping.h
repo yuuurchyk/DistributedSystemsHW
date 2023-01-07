@@ -1,7 +1,7 @@
 #pragma once
 
-#include "request/abstractrequest.h"
 #include "proto2/timestamp.h"
+#include "request/abstractrequest.h"
 
 namespace Proto2::Request
 {
@@ -11,7 +11,7 @@ public:
     [[nodiscard]] static std::shared_ptr<Ping> create(Timestamp_t);
 
     [[nodiscard]] static std::shared_ptr<Ping> fromPayload(boost::asio::const_buffer);
-    void serializePayload(std::vector<boost::asio::const_buffer> &) const override;
+    void serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &) const override;
 
     Timestamp_t timestamp() const noexcept;
 

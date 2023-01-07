@@ -27,7 +27,7 @@ public:
      * should live as long as the request is alive
      * @note this function should only serialize the request payload
      */
-    virtual void serializePayload(std::vector<boost::asio::const_buffer> &constBufferSeq) const = 0;
+    virtual void serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &constBufferSeq) const = 0;
 
     // note: all implementations of request should also have
     // static std::shared_ptr<RequestClass> fromPayload(boost::asio::const_buffer)

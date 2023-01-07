@@ -22,7 +22,7 @@ std::shared_ptr<GetMessages> GetMessages::fromPayload(boost::asio::const_buffer 
     return create(optStartMessageId.value());
 }
 
-void GetMessages::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+void GetMessages::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &seq) const
 {
     auto serializer = BufferSequenceSerializer{ seq };
 

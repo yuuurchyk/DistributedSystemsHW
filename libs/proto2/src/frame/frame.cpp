@@ -24,7 +24,7 @@ std::optional<EventType> parseEventType(boost::asio::const_buffer frame)
 
         switch (eventType)
         {
-        case EventType::REQUEST:
+        case EventType::REQUEST:    // fall-through
         case EventType::RESPONSE:
             good = true;
             break;
@@ -61,9 +61,9 @@ std::optional<RequestFrame> parseRequestFrame(boost::asio::const_buffer frame)
 
         switch (optOpCode.value())
         {
-        case OpCode::ADD_MESSAGE:
-        case OpCode::GET_MESSAGES:
-        case OpCode::SECONDARY_NODE_READY:
+        case OpCode::ADD_MESSAGE:             // fall-through
+        case OpCode::GET_MESSAGES:            // fall-through
+        case OpCode::SECONDARY_NODE_READY:    // fall-through
         case OpCode::PING_PONG:
             good = true;
         }
@@ -76,20 +76,6 @@ std::optional<RequestFrame> parseRequestFrame(boost::asio::const_buffer frame)
     const auto payload = deserializer.leftover();
 
     return RequestFrame{ requestId, opCode, payload };
-}
-
-std::vector<boost::asio::const_buffer> constructRequestHeaderWoOwnership(const size_t &requestId, const OpCode &opCode)
-{
-    static constexpr EventType kEventType{ EventType::REQUEST };
-
-    auto res = std::vector<boost::asio::const_buffer>{};
-    res.reserve(3);
-
-    res.push_back(boost::asio::const_buffer{ &kEventType, sizeof(EventType) });
-    res.push_back(boost::asio::const_buffer{ &requestId, sizeof(size_t) });
-    res.push_back(boost::asio::const_buffer{ &opCode, sizeof(OpCode) });
-
-    return res;
 }
 
 std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer frame)
@@ -109,6 +95,20 @@ std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer frame)
     const auto payload = deserializer.leftover();
 
     return ResponseFrame{ requestId, payload };
+}
+
+std::vector<boost::asio::const_buffer> constructRequestHeaderWoOwnership(const size_t &requestId, const OpCode &opCode)
+{
+    static constexpr EventType kEventType{ EventType::REQUEST };
+
+    auto res = std::vector<boost::asio::const_buffer>{};
+    res.reserve(3);
+
+    res.push_back(boost::asio::const_buffer{ &kEventType, sizeof(EventType) });
+    res.push_back(boost::asio::const_buffer{ &requestId, sizeof(size_t) });
+    res.push_back(boost::asio::const_buffer{ &opCode, sizeof(OpCode) });
+
+    return res;
 }
 
 std::vector<boost::asio::const_buffer> constructResponseHeaderWoOwnership(const size_t &responseId)

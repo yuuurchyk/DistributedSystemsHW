@@ -23,7 +23,7 @@ std::shared_ptr<Pong> Pong::fromPayload(boost::asio::const_buffer buffer)
         return create(optTimestamp.value());
 }
 
-void Pong::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+void Pong::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &seq) const
 {
     auto serializer = BufferSequenceSerializer{ seq };
 

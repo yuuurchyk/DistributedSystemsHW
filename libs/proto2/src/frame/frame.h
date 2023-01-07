@@ -29,7 +29,15 @@ struct RequestFrame
     OpCode                    opCode{};
     boost::asio::const_buffer payload{};
 };
-std::optional<RequestFrame> parseRequestFrame(boost::asio::const_buffer frame);
+
+struct ResponseFrame
+{
+    size_t                    requestId{};
+    boost::asio::const_buffer payload{};
+};
+
+std::optional<RequestFrame>  parseRequestFrame(boost::asio::const_buffer frame);
+std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer frame);
 
 /**
  * @note make sure that passed @p requestId and @p opCode live
@@ -38,13 +46,6 @@ std::optional<RequestFrame> parseRequestFrame(boost::asio::const_buffer frame);
  * @note payload should be added separately
  */
 std::vector<boost::asio::const_buffer> constructRequestHeaderWoOwnership(const size_t &requestId, const OpCode &opCode);
-
-struct ResponseFrame
-{
-    size_t                    requestId{};
-    boost::asio::const_buffer payload{};
-};
-std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer frame);
 
 /**
  * @note make sure that passed @p responseId live

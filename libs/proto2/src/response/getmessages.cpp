@@ -66,7 +66,7 @@ std::shared_ptr<GetMessages> GetMessages::fromPayload(boost::asio::const_buffer 
         return std::shared_ptr<GetMessages>{ new GetMessages{ std::move(messages) } };
 }
 
-void GetMessages::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
+void GetMessages::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &seq) const
 {
     auto serializer = BufferSequenceSerializer{ seq };
 

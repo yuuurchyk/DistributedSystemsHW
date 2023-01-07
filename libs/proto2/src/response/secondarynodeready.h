@@ -10,7 +10,7 @@ public:
     [[nodiscard]] static std::shared_ptr<SecondaryNodeReady> create();
 
     [[nodiscard]] static std::shared_ptr<SecondaryNodeReady> fromPayload(boost::asio::const_buffer);
-    void serializePayload(std::vector<boost::asio::const_buffer> &) const override;
+    void serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &) const override;
 
     const OpCode &opCode() const override;
 

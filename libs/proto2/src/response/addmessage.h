@@ -12,7 +12,7 @@ public:
     [[nodiscard]] static std::shared_ptr<AddMessage> create(AddMessageStatus);
 
     [[nodiscard]] static std::shared_ptr<AddMessage> fromPayload(boost::asio::const_buffer);
-    void serializePayload(std::vector<boost::asio::const_buffer> &seq) const override;
+    void serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &seq) const override;
 
     AddMessageStatus status() const;
 
