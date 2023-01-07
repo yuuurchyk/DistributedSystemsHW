@@ -26,7 +26,7 @@ void Ping::serializePayload(std::vector<boost::asio::const_buffer> &seq) const
 {
     auto serializer = BufferSequenceSerializer{ seq };
 
-    serializer.serialize(&timestamp_);
+    serializer.serializeWoOwnership(timestamp_);
 }
 
 Timestamp_t Ping::timestamp() const noexcept

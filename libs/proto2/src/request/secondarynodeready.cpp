@@ -28,7 +28,7 @@ void SecondaryNodeReady::serializePayload(std::vector<boost::asio::const_buffer>
 {
     auto serializer = BufferSequenceSerializer{ seq };
 
-    serializer.serialize(&secondaryNodeName_);
+    serializer.serializeWoOwnership(secondaryNodeName_);
 }
 
 const std::string &SecondaryNodeReady::secondaryNodeName() const noexcept

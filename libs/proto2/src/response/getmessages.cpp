@@ -70,7 +70,7 @@ void GetMessages::serializePayload(std::vector<boost::asio::const_buffer> &seq) 
 {
     auto serializer = BufferSequenceSerializer{ seq };
 
-    serializer.serialize(&messagesNum_);
+    serializer.serializeWoOwnership(messagesNum_);
 
     assert(messagesNum_ == views_.size());
     assert(messagesNum_ == sizes_.size());
@@ -81,8 +81,8 @@ void GetMessages::serializePayload(std::vector<boost::asio::const_buffer> &seq) 
         const auto &size = sizes_[i];
         const auto &view = views_[i];
 
-        serializer.serialize(&size);
-        serializer.serialize(&view);
+        serializer.serializeWoOwnership(size);
+        serializer.serializeWoOwnership(view);
     }
 }
 

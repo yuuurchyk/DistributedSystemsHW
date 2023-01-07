@@ -46,7 +46,7 @@ void AddMessage::serializePayload(std::vector<boost::asio::const_buffer> &seq) c
 {
     auto serializer = BufferSequenceSerializer{ seq };
 
-    serializer.serialize(&status_);
+    serializer.serializeWoOwnership(status_);
 }
 
 AddMessageStatus AddMessage::status() const

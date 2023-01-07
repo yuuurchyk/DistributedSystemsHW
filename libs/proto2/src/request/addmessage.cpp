@@ -29,8 +29,8 @@ void AddMessage::serializePayload(std::vector<boost::asio::const_buffer> &seq) c
 {
     auto serializer = BufferSequenceSerializer{ seq };
 
-    serializer.serialize(&messageId_);
-    serializer.serialize(&messageView_);
+    serializer.serializeWoOwnership(messageId_);
+    serializer.serializeWoOwnership(messageView_);
 }
 
 size_t AddMessage::messageId() const noexcept
