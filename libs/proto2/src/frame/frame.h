@@ -34,6 +34,8 @@ std::optional<RequestFrame> parseRequestFrame(boost::asio::const_buffer frame);
 /**
  * @note make sure that passed @p requestId and @p opCode live
  * long enough for the buffer to remain valid
+ *
+ * @note payload should be added separately
  */
 std::vector<boost::asio::const_buffer> constructRequestHeaderWoOwnership(const size_t &requestId, const OpCode &opCode);
 
@@ -43,5 +45,13 @@ struct ResponseFrame
     boost::asio::const_buffer payload{};
 };
 std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer frame);
+
+/**
+ * @note make sure that passed @p responseId live
+ * long enough for the buffer to remain valid
+ *
+ * @note payload should be added separately
+ */
+std::vector<boost::asio::const_buffer> constructResponseHeaderWoOwnership(const size_t &responseId);
 
 }    // namespace Proto2::Frame

@@ -1,4 +1,4 @@
-#include "frame.hpp"
+#include "frame.h"
 
 #include "deserialization/bufferdeserializer.h"
 
@@ -109,6 +109,19 @@ std::optional<ResponseFrame> parseResponseFrame(boost::asio::const_buffer frame)
     const auto payload = deserializer.leftover();
 
     return ResponseFrame{ requestId, payload };
+}
+
+std::vector<boost::asio::const_buffer> constructResponseHeaderWoOwnership(const size_t &responseId)
+{
+    static constexpr EventType kEventType{ EventType::RESPONSE };
+
+    auto res = std::vector<boost::asio::const_buffer>{};
+    res.reserve(2);
+
+    res.push_back(boost::asio::const_buffer{ &kEventType, sizeof(EventType) });
+    res.push_back(boost::asio::const_buffer{ &responseId, sizeof(size_t) });
+
+    return res;
 }
 
 }    // namespace Proto2::Frame

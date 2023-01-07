@@ -108,6 +108,7 @@ void OutcomingRequestsManager::sendImpl(Pending pending)
 
     EN_LOGI << "sending request: id=" << pending.id << ", op code=" << pending.request->opCode();
 
+    static_assert(false);    // this is wrong
     requestIdBuffer_  = id;
     auto requestFrame = Frame::constructRequestHeaderWoOwnership(requestIdBuffer_, pending.request->opCode());
     pending.request->serializePayload(requestFrame);

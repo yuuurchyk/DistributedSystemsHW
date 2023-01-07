@@ -12,7 +12,6 @@
 
 namespace Proto2::IncomingRequestContext
 {
-
 class AbstractIncomingRequestContext : public std::enable_shared_from_this<AbstractIncomingRequestContext>
 {
     DISABLE_COPY_MOVE(AbstractIncomingRequestContext)
