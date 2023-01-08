@@ -22,6 +22,7 @@ void SocketWrapper::writeFrame(std::vector<boost::asio::const_buffer> frame, Wri
 {
     auto pendingWrite = PendingWrite{ std::move(frame), std::move(callback) };
     boost::asio::post(
+        ioContext_,
         [this, pendingWrite = std::move(pendingWrite), self = shared_from_this()]() mutable
         {
             pendingWrites_.push(std::move(pendingWrite));

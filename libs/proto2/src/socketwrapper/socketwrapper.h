@@ -65,7 +65,7 @@ private:
     bool invalidated_{};
 
     static constexpr size_t kIncomingBufferMaxReuseSize{ 128 };
-    size_t                  incomingFrameSize_;
+    size_t                  incomingFrameSize_{};
     Buffer                  incomingFrameBuffer_;
 
     bool                     writeInProgress_{};

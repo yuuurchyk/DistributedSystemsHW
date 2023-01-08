@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 
 #include <boost/asio.hpp>
 
@@ -22,9 +23,9 @@ class IncomingRequestsManager : public std::enable_shared_from_this<IncomingRequ
 public:
     [[nodiscard]] static std::shared_ptr<IncomingRequestsManager> create(std::shared_ptr<SocketWrapper> socketWrapper);
 
-    using Context_t = IncomingRequestContext::AbstractIncomingRequestContext;
+    using Context_t = std::shared_ptr<IncomingRequestContext::AbstractIncomingRequestContext>;
 
-    void registerContext(size_t responseId, std::shared_ptr<Context_t> context);
+    void registerContext(size_t responseId, Context_t context);
 
 public:    // signals
     signal<Frame::RequestFrame> incomingRequestFrame;
@@ -53,6 +54,8 @@ private:
 private:
     boost::asio::io_context             &ioContext_;
     const std::shared_ptr<SocketWrapper> socketWrapper_;
+
+    std::unordered_map<size_t, Context_t> registeredContexts_;
 };
 
 }    // namespace Proto2

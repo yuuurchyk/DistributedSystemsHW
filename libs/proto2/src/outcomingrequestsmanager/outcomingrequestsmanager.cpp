@@ -14,8 +14,12 @@ namespace Proto2
 std::shared_ptr<OutcomingRequestsManager>
     OutcomingRequestsManager::create(std::shared_ptr<SocketWrapper> socketWrapper, size_t responseTimeoutMs)
 {
-    return std::shared_ptr<OutcomingRequestsManager>{ new OutcomingRequestsManager{ std::move(socketWrapper),
-                                                                                    responseTimeoutMs } };
+    auto self = std::shared_ptr<OutcomingRequestsManager>{ new OutcomingRequestsManager{ std::move(socketWrapper),
+                                                                                         responseTimeoutMs } };
+
+    self->establishConnections();
+
+    return self;
 }
 
 OutcomingRequestsManager::~OutcomingRequestsManager()
@@ -81,6 +85,10 @@ OutcomingRequestsManager::OutcomingRequestsManager(
       socketWrapper_{ std::move(socketWrapper) },
       responseTimeoutMs_{ responseTimeoutMs }
 {
+}
+
+void OutcomingRequestsManager::establishConnections()
+{
     socketWrapper_->incomingFrame.connect(
         [this, weakSelf = weak_from_this()](boost::asio::const_buffer frame)
         {
@@ -128,15 +136,18 @@ void OutcomingRequestsManager::onIncomingFrame(boost::asio::const_buffer frame)
     if (!optEventType.has_value() || optEventType.value() != EventType::RESPONSE)
         return;
 
-    const auto optResponseHeader = Frame::parseResponseFrame(frame);
-    if (!optResponseHeader.has_value())
+    const auto optResponseFrame = Frame::parseResponseFrame(frame);
+    if (!optResponseFrame.has_value())
     {
         EN_LOGW << "Failed to parse response frame";
         return;
     }
 
-    const auto &responseHeader = optResponseHeader.value();
-    onResponseRecieved(responseHeader.requestId, responseHeader.payload);
+    auto responseFrame = std::move(optResponseFrame.value());
+
+    EN_LOGI << "processing response frame for request with id " << responseFrame.requestId;
+
+    onResponseRecieved(responseFrame.requestId, responseFrame.payload);
 }
 
 auto OutcomingRequestsManager::PendingRequest::create(

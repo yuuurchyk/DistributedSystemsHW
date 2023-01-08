@@ -32,6 +32,8 @@ public:
 private:
     OutcomingRequestsManager(std::shared_ptr<SocketWrapper>, size_t responseTimeoutMs);
 
+    void establishConnections();
+
     void sendRequestImpl(Request_t, Context_t);
 
     void onExpired(size_t requestId);
