@@ -25,7 +25,6 @@ int main()
     acceptor.accept(socket);
 
     auto endpoint = Proto2::Endpoint::create(context, std::move(socket), std::chrono::milliseconds{ 1500 });
-    endpoint->run();
 
     std::string message{ "Hello from master" };
     endpoint->addMessage(150, message)
