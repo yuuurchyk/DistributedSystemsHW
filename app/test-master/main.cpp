@@ -41,6 +41,12 @@ int main()
                     LOGW << "exception recieved";
                 }
             });
+    endpoint->incoming_secondaryNodeReady.connect(
+        [](std::string secondaryNodeName, Proto2::SharedPromise<void> response)
+        {
+            LOGI << "incoming secondary node ready, secondary name=" << secondaryNodeName;
+            response->set_value();
+        });
     endpoint->run();
 
     context.run();

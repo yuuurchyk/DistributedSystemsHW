@@ -23,10 +23,12 @@ int main()
     auto endpoint = Proto2::Endpoint::create(context, std::move(socket), std::chrono::milliseconds{ 1500 });
 
     endpoint->incoming_addMessage.connect(
-        [](size_t id, std::string message, Proto2::SharedPromise<Proto2::AddMessageStatus> response)
+        [endpoint](size_t id, std::string message, Proto2::SharedPromise<Proto2::AddMessageStatus> response)
         {
             LOGI << "Incoming add message: id =" << id << ", message = " << message;
             response->set_value(Proto2::AddMessageStatus::NOT_ALLOWED);
+
+            endpoint->secondaryNodeReady("here is a secondary name");
         });
     endpoint->run();
 
