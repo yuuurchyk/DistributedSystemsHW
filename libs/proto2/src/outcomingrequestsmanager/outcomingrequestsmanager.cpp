@@ -48,6 +48,9 @@ void OutcomingRequestsManager::sendRequestImpl(Request_t request, Context_t cont
         return;
     }
 
+    EN_LOGI << "sending request through SocketWrapper: requestId = " << pendingRequest->requestId
+            << ", opCode=" << pendingRequest->request->opCode();
+
     auto frame = Frame::constructRequestHeaderWoOwnership(pendingRequest->requestId, pendingRequest->request->opCode());
     pendingRequest->request->serializePayloadWoOwnership(frame);
 
@@ -91,6 +94,8 @@ OutcomingRequestsManager::OutcomingRequestsManager(
 
 void OutcomingRequestsManager::onExpired(size_t requestId)
 {
+    EN_LOGI << "onExpired(requestId=" << requestId << ")";
+
     const auto it = pendingRequests_.find(requestId);
     if (it == pendingRequests_.end())
         return;
@@ -102,6 +107,8 @@ void OutcomingRequestsManager::onExpired(size_t requestId)
 
 void OutcomingRequestsManager::onResponseRecieved(size_t requestId, boost::asio::const_buffer payload)
 {
+    EN_LOGI << "onResponseRecieved(requestId=" << requestId << ")";
+
     const auto it = pendingRequests_.find(requestId);
     if (it == pendingRequests_.end())
     {

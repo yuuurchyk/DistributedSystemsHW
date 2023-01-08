@@ -10,7 +10,11 @@ namespace Proto2
 {
 std::shared_ptr<IncomingRequestsManager> IncomingRequestsManager::create(std::shared_ptr<SocketWrapper> socketWrapper)
 {
-    return std::shared_ptr<IncomingRequestsManager>{ new IncomingRequestsManager{ std::move(socketWrapper) } };
+    auto self = std::shared_ptr<IncomingRequestsManager>{ new IncomingRequestsManager{ std::move(socketWrapper) } };
+
+    self->establishConnections();
+
+    return self;
 }
 
 void IncomingRequestsManager::registerContext(size_t responseId, std::shared_ptr<Context_t> context)
@@ -61,6 +65,10 @@ IncomingRequestsManager::PendingResponse::PendingResponse(
 IncomingRequestsManager::IncomingRequestsManager(std::shared_ptr<SocketWrapper> socketWrapper)
     : ioContext_{ socketWrapper->ioContext() }, socketWrapper_{ std::move(socketWrapper) }
 {
+}
+
+void IncomingRequestsManager::establishConnections()
+{
     socketWrapper_->incomingFrame.connect(
         [this, weakSelf = weak_from_this()](boost::asio::const_buffer frame)
         {
@@ -74,9 +82,21 @@ IncomingRequestsManager::IncomingRequestsManager(std::shared_ptr<SocketWrapper> 
 
 void IncomingRequestsManager::onIncomingFrame(boost::asio::const_buffer frame)
 {
+    const auto optEventType = Frame::parseEventType(frame);
+    if (!optEventType.has_value() || optEventType.value() != EventType::REQUEST)
+        return;
+
+    EN_LOGI << "onIncomingRequestFrame: got request frame, parsing";
+
     auto optRequestFrame = Frame::parseRequestFrame(frame);
     if (optRequestFrame.has_value())
+    {
         incomingRequestFrame(std::move(optRequestFrame.value()));
+    }
+    else
+    {
+        EN_LOGW << "failed to parse request frame";
+    }
 }
 
 }    // namespace Proto2

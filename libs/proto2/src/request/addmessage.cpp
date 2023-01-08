@@ -22,7 +22,7 @@ std::shared_ptr<AddMessage> AddMessage::fromPayload(boost::asio::const_buffer bu
     if (!optId.has_value() || !optMessage.has_value() || !deserializer.atEnd())
         return {};
     else
-        return create(optId.value(), std::move(optMessage.value()));
+        return std::shared_ptr<AddMessage>{ new AddMessage{ optId.value(), std::move(optMessage.value()) } };
 }
 
 void AddMessage::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &seq) const

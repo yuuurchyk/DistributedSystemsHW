@@ -23,9 +23,8 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
         const auto sec  = (*uptimeMsIt) / 1000;
         const auto msec = (*uptimeMsIt) % 1000;
 
-        strm << "[" << std::setw(4) << std::right << sec << "." << std::setw(3)
-             << std::right << std::setfill('0') << msec << "s]" << std::setfill(' ')
-             << std::left;
+        strm << "[" << std::setw(4) << std::right << sec << "." << std::setw(3) << std::right << std::setfill('0')
+             << msec << "s]" << std::setfill(' ') << std::left;
     }
 
     if (const auto programNameIt = rec[kProgramName].extract<program_name_t>())
@@ -39,14 +38,13 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
 
         if (const auto threadIdIt = rec[kThreadId].extract<thread_id_t>())
         {
-            strm << "," << std::hex << std::setw(5)
-                 << (threadIdIt->native_id() & (0xfffff)) << std::dec;
+            strm << "," << std::hex << std::setw(5) << (threadIdIt->native_id() & (0xfffff)) << std::dec;
         }
     }
 
     if (const auto fileNameIt = rec[kCodeFilename].extract<code_file_name_t>())
     {
-        strm << " [" << std::setw(20) << std::right << *fileNameIt;
+        strm << " [" << std::setw(30) << std::right << *fileNameIt;
 
         BOOST_SCOPE_EXIT(&strm)
         {
@@ -64,8 +62,7 @@ void formatter(const boost::log::record_view &rec, boost::log::formatting_ostrea
     if (const auto channelIt = rec[kChannel].extract<channel_t>())
     {
         auto representation = std::string{};
-        representation.reserve(channelIt->size() +
-                               std::numeric_limits<num_id_t>::digits10 + 10);
+        representation.reserve(channelIt->size() + std::numeric_limits<num_id_t>::digits10 + 10);
 
         representation += '[';
         representation += *channelIt;

@@ -77,6 +77,8 @@ void Endpoint::run()
 
 boost::future<AddMessageStatus> Endpoint::addMessage(size_t msgId, std::string_view msg)
 {
+    EN_LOGI << "sending addMessage(msgId=" << msgId << ", msg=" << msg << ")";
+
     auto request = Request::AddMessage::create(msgId, msg);
     auto context = OutcomingRequestContext::AddMessage::create();
 
@@ -89,6 +91,8 @@ boost::future<AddMessageStatus> Endpoint::addMessage(size_t msgId, std::string_v
 
 boost::future<std::vector<std::string>> Endpoint::getMessages(size_t startMsgId)
 {
+    EN_LOGI << "sending getMessages(startMsgId=" << startMsgId << ")";
+
     auto request = Request::GetMessages::create(startMsgId);
     auto context = OutcomingRequestContext::GetMessages::create();
 
@@ -101,6 +105,8 @@ boost::future<std::vector<std::string>> Endpoint::getMessages(size_t startMsgId)
 
 boost::future<Timestamp_t> Endpoint::ping(Timestamp_t pingTimestamp)
 {
+    EN_LOGI << "sending ping(pingTimestamp=" << pingTimestamp << ")";
+
     auto request = Request::Ping::create(pingTimestamp);
     auto context = OutcomingRequestContext::Ping::create();
 
@@ -113,6 +119,8 @@ boost::future<Timestamp_t> Endpoint::ping(Timestamp_t pingTimestamp)
 
 boost::future<void> Endpoint::secondaryNodeReady(std::string secondaryName)
 {
+    EN_LOGI << "sending secondaryNodeReady(secondaryName=" << secondaryName << ")";
+
     auto request = Request::SecondaryNodeReady::create(std::move(secondaryName));
     auto context = OutcomingRequestContext::SecondaryNodeReady::create();
 
@@ -157,7 +165,12 @@ void Endpoint::establishConnections()
                 auto promise = makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
-                incoming_addMessage(request->messageId(), request->flushMessage(), promise);
+                const auto msgId = request->messageId();
+                auto       msg   = request->flushMessage();
+
+                EN_LOGI << "incoming_addMessage(msgId=" << msgId << ", msg=" << msg << ")";
+
+                incoming_addMessage(msgId, std::move(msg), promise);
 
                 break;
             }
@@ -171,7 +184,11 @@ void Endpoint::establishConnections()
                 auto promise = makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
-                incoming_getMessages(request->startMessageId(), promise);
+                const auto startMsgId = request->startMessageId();
+
+                EN_LOGI << "incoming_getMessages(startMsgId=" << startMsgId << ")";
+
+                incoming_getMessages(startMsgId, promise);
 
                 break;
             }
@@ -185,7 +202,11 @@ void Endpoint::establishConnections()
                 auto promise = makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
-                incoming_ping(request->timestamp(), promise);
+                const auto pingTimestamp = request->timestamp();
+
+                EN_LOGI << "incoming_ping(pingTimestamp=" << pingTimestamp << ")";
+
+                incoming_ping(pingTimestamp, promise);
 
                 break;
             }
@@ -199,7 +220,11 @@ void Endpoint::establishConnections()
                 auto promise = makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
-                incoming_secondaryNodeReady(request->flushSecondaryNodeName(), promise);
+                auto secondaryNodeName = request->flushSecondaryNodeName();
+
+                EN_LOGI << "incoing_secondaryNodeReady(secondaryNodeName=" << secondaryNodeName << ")";
+
+                incoming_secondaryNodeReady(std::move(secondaryNodeName), promise);
 
                 break;
             }

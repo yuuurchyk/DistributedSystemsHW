@@ -46,6 +46,8 @@ private:
 
     IncomingRequestsManager(std::shared_ptr<SocketWrapper>);
 
+    void establishConnections();
+
     void onIncomingFrame(boost::asio::const_buffer frame);
 
 private:

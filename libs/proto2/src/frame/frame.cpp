@@ -13,10 +13,6 @@ std::optional<EventType> parseEventType(boost::asio::const_buffer frame)
 
     if (optEventType.has_value())
     {
-        return {};
-    }
-    else
-    {
         // validating EventType value
 
         const auto eventType = optEventType.value();
@@ -34,6 +30,10 @@ std::optional<EventType> parseEventType(boost::asio::const_buffer frame)
             return eventType;
         else
             return {};
+        }
+    else
+    {
+        return {};
     }
 }
 
