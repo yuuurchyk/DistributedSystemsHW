@@ -25,14 +25,16 @@ public:
     [[nodiscard]] static std::shared_ptr<SocketWrapper> create(boost::asio::io_context &, boost::asio::ip::tcp::socket);
     ~SocketWrapper();
 
-    using WriteFrameCallback = std::function<void(const boost::system::error_code &, size_t)>;
+    using WriteFrameCallback_fn = std::function<void(const boost::system::error_code &, size_t)>;
 
     // note: thread safe
     // expected callback capture the data, that is referenced in frame for the buffers to remain valid
-    void writeFrame(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback callback);
+    void writeFrame(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback_fn callback);
 
     void run();
     void invalidate();
+
+    boost::asio::io_context &ioContext();
 
 public:    // signals
     signal<boost::asio::const_buffer> incomingFrame;
@@ -43,10 +45,10 @@ private:
     {
         DISABLE_COPY_DEFAULT_MOVE(PendingWrite);
 
-        PendingWrite(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback callback);
+        PendingWrite(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback_fn callback);
 
         std::vector<boost::asio::const_buffer> frame;
-        WriteFrameCallback                     callback;
+        WriteFrameCallback_fn                  callback;
     };
 
     SocketWrapper(boost::asio::io_context &, boost::asio::ip::tcp::socket);

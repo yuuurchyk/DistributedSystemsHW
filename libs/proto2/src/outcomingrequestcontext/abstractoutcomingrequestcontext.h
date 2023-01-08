@@ -23,8 +23,7 @@ public:
     enum class InvalidationReason
     {
         TIMEOUT,
-        BAD_FRAME,
-        DISCONNECTED
+        BAD_FRAME
     };
 
     virtual void invalidate(InvalidationReason) = 0;
@@ -54,8 +53,6 @@ void AbstractOutcomingRequestContext::invalidatePromise(boost::promise<T> &promi
             throw TimeoutException{};
         case InvalidationReason::BAD_FRAME:
             throw BadFrameException{};
-        case InvalidationReason::DISCONNECTED:
-            throw DisconnectedException{};
         }
     }
     catch (const ResponseException &)

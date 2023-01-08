@@ -18,9 +18,4 @@ struct TimeoutException : ResponseException
     const char *what() const noexcept { return "Timeout occured for request"; }
 };
 
-struct DisconnectedException : ResponseException
-{
-    const char *what() const noexcept { return "Peer disconnected"; }
-};
-
 }    // namespace Proto2

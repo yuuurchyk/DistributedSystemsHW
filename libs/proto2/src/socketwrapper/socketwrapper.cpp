@@ -18,7 +18,7 @@ SocketWrapper::~SocketWrapper()
     invalidate();
 }
 
-void SocketWrapper::writeFrame(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback callback)
+void SocketWrapper::writeFrame(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback_fn callback)
 {
     auto pendingWrite = PendingWrite{ std::move(frame), std::move(callback) };
     boost::asio::post(
@@ -50,7 +50,12 @@ void SocketWrapper::invalidate()
         invalidated();
 }
 
-SocketWrapper::PendingWrite::PendingWrite(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback callback)
+boost::asio::io_context &SocketWrapper::ioContext()
+{
+    return ioContext_;
+}
+
+SocketWrapper::PendingWrite::PendingWrite(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback_fn callback)
     : frame{ std::move(frame) }, callback{ std::move(callback) }
 {
 }
