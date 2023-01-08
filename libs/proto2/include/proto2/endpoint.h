@@ -42,10 +42,10 @@ public:
     signal<> invalidated;
 
 public:    // outcoming requests (thread safe)
-    boost::future<AddMessageStatus>               addMessage(size_t msgId, std::string_view msg);
-    boost::future<std::vector<std::string>>       getMessages(size_t startMsgId);
-    boost::future<Timestamp_t /*pong timestamp*/> ping(Timestamp_t pingTimestamp);
-    boost::future<void>                           secondaryNodeReady(std::string secondaryName);
+    boost::future<AddMessageStatus>               send_addMessage(size_t msgId, std::string_view msg);
+    boost::future<std::vector<std::string>>       send_getMessages(size_t startMsgId);
+    boost::future<Timestamp_t /*pong timestamp*/> send_ping(Timestamp_t pingTimestamp);
+    boost::future<void>                           send_secondaryNodeReady(std::string secondaryName);
 
 public:    // incoming requests (emitted in socket thread)
     // clang-format off

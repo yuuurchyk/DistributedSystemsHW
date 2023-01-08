@@ -27,7 +27,7 @@ int main()
     auto endpoint = Proto2::Endpoint::create(context, std::move(socket), std::chrono::milliseconds{ 1500 });
 
     std::string message{ "Hello from master" };
-    endpoint->addMessage(150, message)
+    endpoint->send_addMessage(150, message)
         .then(
             [](boost::future<Proto2::AddMessageStatus> future)
             {

@@ -75,7 +75,7 @@ void Endpoint::run()
     impl().socketWrapper->run();
 }
 
-boost::future<AddMessageStatus> Endpoint::addMessage(size_t msgId, std::string_view msg)
+boost::future<AddMessageStatus> Endpoint::send_addMessage(size_t msgId, std::string_view msg)
 {
     EN_LOGI << "sending addMessage(msgId=" << msgId << ", msg=" << msg << ")";
 
@@ -89,7 +89,7 @@ boost::future<AddMessageStatus> Endpoint::addMessage(size_t msgId, std::string_v
     return future;
 }
 
-boost::future<std::vector<std::string>> Endpoint::getMessages(size_t startMsgId)
+boost::future<std::vector<std::string>> Endpoint::send_getMessages(size_t startMsgId)
 {
     EN_LOGI << "sending getMessages(startMsgId=" << startMsgId << ")";
 
@@ -103,7 +103,7 @@ boost::future<std::vector<std::string>> Endpoint::getMessages(size_t startMsgId)
     return future;
 }
 
-boost::future<Timestamp_t> Endpoint::ping(Timestamp_t pingTimestamp)
+boost::future<Timestamp_t> Endpoint::send_ping(Timestamp_t pingTimestamp)
 {
     EN_LOGI << "sending ping(pingTimestamp=" << pingTimestamp << ")";
 
@@ -117,7 +117,7 @@ boost::future<Timestamp_t> Endpoint::ping(Timestamp_t pingTimestamp)
     return future;
 }
 
-boost::future<void> Endpoint::secondaryNodeReady(std::string secondaryName)
+boost::future<void> Endpoint::send_secondaryNodeReady(std::string secondaryName)
 {
     EN_LOGI << "sending secondaryNodeReady(secondaryName=" << secondaryName << ")";
 

@@ -28,7 +28,7 @@ int main()
             LOGI << "Incoming add message: id =" << id << ", message = " << message;
             response->set_value(Proto2::AddMessageStatus::NOT_ALLOWED);
 
-            endpoint->secondaryNodeReady("here is a secondary name");
+            endpoint->send_secondaryNodeReady("here is a secondary name");
         });
     endpoint->run();
 
