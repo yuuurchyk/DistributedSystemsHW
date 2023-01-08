@@ -34,7 +34,7 @@ private:
     {
         DISABLE_COPY_MOVE(PendingResponse)
 
-        [[nodiscard]] static std::unique_ptr<PendingResponse>
+        [[nodiscard]] static std::shared_ptr<PendingResponse>
             create(size_t responseId, std::shared_ptr<Response::AbstractResponse> response);
 
         size_t                                      responseId;
