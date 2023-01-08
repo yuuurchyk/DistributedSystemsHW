@@ -28,7 +28,8 @@ int main()
     endpoint->run();
 
     std::string message{ "Hello from master" };
-    endpoint->addMessage(0, message).then([](boost::future<Proto2::AddMessageStatus> future) { future.get(); });
+    endpoint->addMessage(0, message)
+        .then([](boost::future<Proto2::AddMessageStatus> future) { LOGI << "response recieved: " << future.get(); });
 
     context.run();
 

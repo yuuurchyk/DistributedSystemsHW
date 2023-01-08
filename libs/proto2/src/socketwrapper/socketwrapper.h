@@ -17,7 +17,7 @@
 
 namespace Proto2
 {
-class SocketWrapper : std::enable_shared_from_this<SocketWrapper>, private logger::Entity<SocketWrapper>
+class SocketWrapper : public std::enable_shared_from_this<SocketWrapper>, private logger::Entity<SocketWrapper>
 {
     DISABLE_COPY_MOVE(SocketWrapper)
 public:
