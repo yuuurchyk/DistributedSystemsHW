@@ -47,4 +47,9 @@ const OpCode &SecondaryNodeReady::opCode() const
     return kOpCode;
 }
 
+SecondaryNodeReady::SecondaryNodeReady(std::string secondaryNodeName)
+    : secondaryNodeName_{ std::move(secondaryNodeName) }
+{
+}
+
 }    // namespace Proto2::Request

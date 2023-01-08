@@ -40,4 +40,6 @@ const OpCode &GetMessages::opCode() const
     return kOpCode;
 }
 
+GetMessages::GetMessages(size_t startMessageId) : startMessageId_{ startMessageId } {}
+
 }    // namespace Proto2::Request

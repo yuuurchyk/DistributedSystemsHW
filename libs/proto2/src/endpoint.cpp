@@ -70,6 +70,11 @@ std::shared_ptr<Endpoint> Endpoint::create(
 
 Endpoint::~Endpoint() = default;
 
+void Endpoint::run()
+{
+    impl().socketWrapper->run();
+}
+
 boost::future<AddMessageStatus> Endpoint::addMessage(size_t msgId, std::string_view msg)
 {
     auto request = Request::AddMessage::create(msgId, msg);
@@ -152,7 +157,7 @@ void Endpoint::establishConnections()
                 auto promise = makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
-                incoming_addMessage(request->messageId(), request->messageView(), promise);
+                incoming_addMessage(request->messageId(), request->flushMessage(), promise);
 
                 break;
             }

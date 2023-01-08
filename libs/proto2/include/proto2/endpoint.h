@@ -37,6 +37,8 @@ public:
         std::chrono::milliseconds    outcomingRequestTimeout);
     ~Endpoint();
 
+    void run();
+
     signal<> invalidated;
 
 public:    // outcoming requests (thread safe)
@@ -49,7 +51,7 @@ public:    // incoming requests (emitted in socket thread)
     // clang-format off
     signal<
         size_t                          /*msgId*/,
-        std::string_view                /*msg*/,
+        std::string                     /*msg*/,
         SharedPromise<AddMessageStatus> /*responseStatus*/
     > incoming_addMessage;
 
