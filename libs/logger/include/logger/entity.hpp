@@ -26,7 +26,7 @@ protected:
         ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
 
     auto d3WzdZnJOpenRecord_(
-        detail::Severity                       severity,
+        Severity                               severity,
         detail::attributes::code_file_name_t   codeFileName,
         detail::attributes::code_line_number_t codeLineNumber)
     {
@@ -53,7 +53,7 @@ protected:
         ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
 
     auto d3WzdZnJOpenRecord_(
-        detail::Severity                       severity,
+        Severity                               severity,
         detail::attributes::code_file_name_t   codeFileName,
         detail::attributes::code_line_number_t codeLineNumber)
     {
@@ -86,7 +86,7 @@ protected:
         ::boost::log::keywords::channel = detail::EntityName<Entity_t>::kEntityName) };
 
     auto d3WzdZnJOpenRecord_(
-        detail::Severity                       severity,
+        Severity                               severity,
         detail::attributes::code_file_name_t   codeFileName,
         detail::attributes::code_line_number_t codeLineNumber)
     {
@@ -103,9 +103,9 @@ private:
 
 }    // namespace logger
 
-#define _EN_LOG_IMPL(sev, rec_var)                                             \
+#define _EN_LOG_IMPL(sev, rec_var)                                            \
     for (::boost::log::record rec_var = this->d3WzdZnJOpenRecord_(            \
-             ::logger::detail::Severity::sev,                                 \
+             ::logger::Severity::sev,                                         \
              ::logger::detail::extractBaseName(std::string_view{ __FILE__ }), \
              ::logger::detail::attributes::code_line_number_t{ __LINE__ });   \
          !!rec_var;)                                                          \

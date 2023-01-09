@@ -1,8 +1,8 @@
-#include "logger/detail/severity.h"
+#include "logger/severity.h"
 
 #include <array>
 
-namespace logger::detail
+namespace logger
 {
 std::ostream &operator<<(std::ostream &strm, Severity severity)
 {
@@ -15,4 +15,4 @@ std::ostream &operator<<(std::ostream &strm, Severity severity)
         return strm << i;
 }
 
-}    // namespace logger::detail
+}    // namespace logger

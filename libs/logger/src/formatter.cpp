@@ -10,7 +10,7 @@
 #include <boost/scope_exit.hpp>
 
 #include "logger/detail/attributes.h"
-#include "logger/detail/severity.h"
+#include "logger/severity.h"
 
 namespace logger
 {
