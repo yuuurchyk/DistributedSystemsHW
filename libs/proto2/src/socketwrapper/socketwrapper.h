@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <queue>
+#include <string>
 #include <vector>
 
 #include <boost/asio.hpp>
@@ -17,12 +18,13 @@
 
 namespace Proto2
 {
-class SocketWrapper : public std::enable_shared_from_this<SocketWrapper>, private logger::Entity<SocketWrapper>
+class SocketWrapper : public std::enable_shared_from_this<SocketWrapper>, private logger::StringIdEntity<SocketWrapper>
 {
     DISABLE_COPY_MOVE(SocketWrapper)
 public:
     // expected io context that is associated with the socket
-    [[nodiscard]] static std::shared_ptr<SocketWrapper> create(boost::asio::io_context &, boost::asio::ip::tcp::socket);
+    [[nodiscard]] static std::shared_ptr<SocketWrapper>
+        create(std::string id, boost::asio::io_context &, boost::asio::ip::tcp::socket);
     ~SocketWrapper();
 
     using WriteFrameCallback_fn = std::function<void(const boost::system::error_code &, size_t)>;
@@ -51,7 +53,7 @@ private:
         WriteFrameCallback_fn                  callback;
     };
 
-    SocketWrapper(boost::asio::io_context &, boost::asio::ip::tcp::socket);
+    SocketWrapper(std::string id, boost::asio::io_context &, boost::asio::ip::tcp::socket);
 
     void readFrameSize();
     void readFrame();

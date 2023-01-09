@@ -1,6 +1,5 @@
 #pragma once
 
-#include <chrono>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -28,12 +27,13 @@ namespace Proto2
  * @note outcoming requests functions are thread safe, however
  * communication with the socket is done in a single thread
  */
-class Endpoint : public std::enable_shared_from_this<Endpoint>, private logger::NumIdEntity<Endpoint>
+class Endpoint : public std::enable_shared_from_this<Endpoint>, private logger::StringIdEntity<Endpoint>
 {
     DISABLE_COPY_MOVE(Endpoint)
 
 public:
     [[nodiscard]] static std::shared_ptr<Endpoint> create(
+        std::string                                                 id,
         boost::asio::io_context                                    &ioContext,
         boost::asio::ip::tcp::socket                                socket,
         duration_milliseconds_t                                     outcomingRequestTimeout,
@@ -76,6 +76,7 @@ public:    // incoming requests (emitted in socket thread)
 
 private:
     Endpoint(
+        std::string,
         boost::asio::io_context &,
         boost::asio::ip::tcp::socket,
         duration_milliseconds_t                                     outcomingRequestTimeout,
@@ -89,7 +90,7 @@ private:
     impl_t       &impl();
     const impl_t &impl() const;
 
-    std::unique_ptr<impl_t> TW5VNznK_;
+    const std::unique_ptr<impl_t> TW5VNznK_;
 };
 
 }    // namespace Proto2

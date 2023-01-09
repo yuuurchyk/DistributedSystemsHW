@@ -25,6 +25,7 @@ int main()
     acceptor.accept(socket);
 
     auto endpoint = Proto2::Endpoint::create(
+        "secondr",
         context,
         std::move(socket),
         Proto2::duration_milliseconds_t{ 1500 },

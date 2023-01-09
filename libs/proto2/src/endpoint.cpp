@@ -41,14 +41,15 @@ struct Endpoint::impl_t
     DISABLE_COPY_MOVE(impl_t)
 
     impl_t(
+        std::string                                                 endpointId,
         boost::asio::io_context                                    &ioContext,
         boost::asio::ip::tcp::socket                                socket,
         duration_milliseconds_t                                     responseTimeout,
         std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds)
         : ioContext{ ioContext },
-          socketWrapper{ SocketWrapper::create(ioContext, std::move(socket)) },
-          incomingRequestsManager{ IncomingRequestsManager::create(socketWrapper) },
-          outcomingRequestsManager{ OutcomingRequestsManager::create(socketWrapper, responseTimeout) },
+          socketWrapper{ SocketWrapper::create(endpointId, ioContext, std::move(socket)) },
+          incomingRequestsManager{ IncomingRequestsManager::create(endpointId, socketWrapper) },
+          outcomingRequestsManager{ OutcomingRequestsManager::create(endpointId, socketWrapper, responseTimeout) },
           sendDelayDistribution_{ artificialSendDelayBounds.first.count(), artificialSendDelayBounds.second.count() },
           artificialSendDelayBounds_{ std::move(artificialSendDelayBounds) }
     {
@@ -80,6 +81,7 @@ thread_local std::seed_seq Endpoint::impl_t::engineSeq_{ std::hash<std::thread::
 thread_local std::mt19937  Endpoint::impl_t::engine_{ engineSeq_ };
 
 std::shared_ptr<Endpoint> Endpoint::create(
+    std::string                                                 id,
     boost::asio::io_context                                    &ioContext,
     boost::asio::ip::tcp::socket                                socket,
     duration_milliseconds_t                                     outcomingRequestTimeout,
@@ -92,7 +94,7 @@ std::shared_ptr<Endpoint> Endpoint::create(
     }
 
     auto self = std::shared_ptr<Endpoint>{ new Endpoint{
-        ioContext, std::move(socket), outcomingRequestTimeout, std::move(artificialSendDelayBounds) } };
+        std::move(id), ioContext, std::move(socket), outcomingRequestTimeout, std::move(artificialSendDelayBounds) } };
 
     self->establishConnections();
 
@@ -175,13 +177,18 @@ boost::future<void> Endpoint::send_secondaryNodeReady(std::string secondaryName)
 }
 
 Endpoint::Endpoint(
+    std::string                                                 id,
     boost::asio::io_context                                    &ioContext,
     boost::asio::ip::tcp::socket                                socket,
     duration_milliseconds_t                                     responseTimeout,
     std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds)
-    : TW5VNznK_{
-          std::make_unique<impl_t>(ioContext, std::move(socket), responseTimeout, std::move(artificialSendDelayBounds))
-      }
+    : StringIdEntity<Endpoint>{ id },
+      TW5VNznK_{ std::make_unique<impl_t>(
+          id,
+          ioContext,
+          std::move(socket),
+          responseTimeout,
+          std::move(artificialSendDelayBounds)) }
 {
 }
 

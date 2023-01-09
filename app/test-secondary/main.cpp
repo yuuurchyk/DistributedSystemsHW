@@ -21,6 +21,7 @@ int main()
     socket.connect(boost::asio::ip::tcp::endpoint{ boost::asio::ip::address::from_string("127.0.0.1"), 6006 });
 
     auto endpoint = Proto2::Endpoint::create(
+        "mstr",
         context,
         std::move(socket),
         Proto2::duration_milliseconds_t{ 1500 },

@@ -8,9 +8,11 @@ using error_code = boost::system::error_code;
 
 namespace Proto2
 {
-std::shared_ptr<IncomingRequestsManager> IncomingRequestsManager::create(std::shared_ptr<SocketWrapper> socketWrapper)
+std::shared_ptr<IncomingRequestsManager>
+    IncomingRequestsManager::create(std::string id, std::shared_ptr<SocketWrapper> socketWrapper)
 {
-    auto self = std::shared_ptr<IncomingRequestsManager>{ new IncomingRequestsManager{ std::move(socketWrapper) } };
+    auto self = std::shared_ptr<IncomingRequestsManager>{ new IncomingRequestsManager{ std::move(id),
+                                                                                       std::move(socketWrapper) } };
 
     self->establishConnections();
 
@@ -85,8 +87,10 @@ IncomingRequestsManager::PendingResponse::PendingResponse(
 {
 }
 
-IncomingRequestsManager::IncomingRequestsManager(std::shared_ptr<SocketWrapper> socketWrapper)
-    : ioContext_{ socketWrapper->ioContext() }, socketWrapper_{ std::move(socketWrapper) }
+IncomingRequestsManager::IncomingRequestsManager(std::string id, std::shared_ptr<SocketWrapper> socketWrapper)
+    : logger::StringIdEntity<IncomingRequestsManager>{ std::move(id) },
+      ioContext_{ socketWrapper->ioContext() },
+      socketWrapper_{ std::move(socketWrapper) }
 {
 }
 

@@ -8,9 +8,9 @@ using error_code = boost::system::error_code;
 namespace Proto2
 {
 std::shared_ptr<SocketWrapper>
-    SocketWrapper::create(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket)
+    SocketWrapper::create(std::string id, boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket)
 {
-    return std::shared_ptr<SocketWrapper>{ new SocketWrapper{ ioContext, std::move(socket) } };
+    return std::shared_ptr<SocketWrapper>{ new SocketWrapper{ std::move(id), ioContext, std::move(socket) } };
 }
 
 SocketWrapper::~SocketWrapper()
@@ -61,8 +61,8 @@ SocketWrapper::PendingWrite::PendingWrite(std::vector<boost::asio::const_buffer>
 {
 }
 
-SocketWrapper::SocketWrapper(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket)
-    : ioContext_{ ioContext }, socket_{ std::move(socket) }
+SocketWrapper::SocketWrapper(std::string id, boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket)
+    : logger::StringIdEntity<SocketWrapper>{ std::move(id) }, ioContext_{ ioContext }, socket_{ std::move(socket) }
 {
 }
 

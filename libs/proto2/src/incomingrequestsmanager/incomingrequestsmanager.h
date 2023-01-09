@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 #include <boost/asio.hpp>
@@ -17,11 +18,12 @@
 namespace Proto2
 {
 class IncomingRequestsManager : public std::enable_shared_from_this<IncomingRequestsManager>,
-                                private logger::Entity<IncomingRequestsManager>
+                                private logger::StringIdEntity<IncomingRequestsManager>
 {
     DISABLE_COPY_MOVE(IncomingRequestsManager)
 public:
-    [[nodiscard]] static std::shared_ptr<IncomingRequestsManager> create(std::shared_ptr<SocketWrapper> socketWrapper);
+    [[nodiscard]] static std::shared_ptr<IncomingRequestsManager>
+        create(std::string id, std::shared_ptr<SocketWrapper> socketWrapper);
 
     using Context_t = std::shared_ptr<IncomingRequestContext::AbstractIncomingRequestContext>;
 
@@ -45,7 +47,7 @@ private:
         PendingResponse(size_t, std::shared_ptr<Response::AbstractResponse>);
     };
 
-    IncomingRequestsManager(std::shared_ptr<SocketWrapper>);
+    IncomingRequestsManager(std::string id, std::shared_ptr<SocketWrapper>);
 
     void establishConnections();
 

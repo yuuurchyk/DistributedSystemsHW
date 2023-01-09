@@ -14,11 +14,12 @@ namespace Proto2
 {
 
 std::shared_ptr<OutcomingRequestsManager> OutcomingRequestsManager::create(
+    std::string                    id,
     std::shared_ptr<SocketWrapper> socketWrapper,
     duration_milliseconds_t        responseTimeout)
 {
-    auto self = std::shared_ptr<OutcomingRequestsManager>{ new OutcomingRequestsManager{ std::move(socketWrapper),
-                                                                                         responseTimeout } };
+    auto self = std::shared_ptr<OutcomingRequestsManager>{ new OutcomingRequestsManager{
+        std::move(id), std::move(socketWrapper), responseTimeout } };
 
     self->establishConnections();
 
@@ -103,9 +104,11 @@ void OutcomingRequestsManager::sendRequestImpl(
 }
 
 OutcomingRequestsManager::OutcomingRequestsManager(
+    std::string                    id,
     std::shared_ptr<SocketWrapper> socketWrapper,
     duration_milliseconds_t        responseTimeout)
-    : ioContext_{ socketWrapper->ioContext() },
+    : logger::StringIdEntity<OutcomingRequestsManager>{ std::move(id) },
+      ioContext_{ socketWrapper->ioContext() },
       socketWrapper_{ std::move(socketWrapper) },
       responseTimeout_{ responseTimeout }
 {

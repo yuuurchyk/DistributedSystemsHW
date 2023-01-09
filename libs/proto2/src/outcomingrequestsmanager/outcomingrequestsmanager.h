@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <queue>
+#include <string>
 #include <unordered_map>
 
 #include "logger/logger.h"
@@ -16,12 +17,12 @@
 namespace Proto2
 {
 class OutcomingRequestsManager : public std::enable_shared_from_this<OutcomingRequestsManager>,
-                                 private logger::Entity<OutcomingRequestsManager>
+                                 private logger::StringIdEntity<OutcomingRequestsManager>
 {
     DISABLE_COPY_MOVE(OutcomingRequestsManager)
 public:
     [[nodiscard]] static std::shared_ptr<OutcomingRequestsManager>
-        create(std::shared_ptr<SocketWrapper>, duration_milliseconds_t responseTimeout);
+        create(std::string id, std::shared_ptr<SocketWrapper>, duration_milliseconds_t responseTimeout);
 
     ~OutcomingRequestsManager();
 
@@ -32,7 +33,7 @@ public:
     void sendRequest(Request_t request, Context_t context, duration_milliseconds_t artificialDelay);
 
 private:
-    OutcomingRequestsManager(std::shared_ptr<SocketWrapper>, duration_milliseconds_t responseTimeout);
+    OutcomingRequestsManager(std::string id, std::shared_ptr<SocketWrapper>, duration_milliseconds_t responseTimeout);
 
     void establishConnections();
 
