@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include <boost/asio.hpp>
@@ -12,6 +13,7 @@
 #include "logger/logger.h"
 #include "utils/copymove.h"
 
+#include "proto2/duration.h"
 #include "proto2/enums.h"
 #include "proto2/sharedpromise.h"
 #include "proto2/signal.h"
@@ -32,9 +34,10 @@ class Endpoint : public std::enable_shared_from_this<Endpoint>, private logger::
 
 public:
     [[nodiscard]] static std::shared_ptr<Endpoint> create(
-        boost::asio::io_context     &ioContext,
-        boost::asio::ip::tcp::socket socket,
-        std::chrono::milliseconds    outcomingRequestTimeout);
+        boost::asio::io_context                                    &ioContext,
+        boost::asio::ip::tcp::socket                                socket,
+        duration_milliseconds_t                                     outcomingRequestTimeout,
+        std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds);
     ~Endpoint();
 
     void run();
@@ -72,7 +75,11 @@ public:    // incoming requests (emitted in socket thread)
     // clang-format on
 
 private:
-    Endpoint(boost::asio::io_context &, boost::asio::ip::tcp::socket, size_t outcomingRequestTimeoutMs);
+    Endpoint(
+        boost::asio::io_context &,
+        boost::asio::ip::tcp::socket,
+        duration_milliseconds_t                                     outcomingRequestTimeout,
+        std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds);
 
     void establishConnections();
 

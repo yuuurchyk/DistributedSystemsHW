@@ -2,6 +2,8 @@
 
 #include <utility>
 
+#include "net-utils/launchwithdelay.h"
+
 #include "codes/codes.h"
 #include "frame/frame.h"
 
@@ -11,11 +13,12 @@ using InvalidationReason = Proto2::OutcomingRequestContext::AbstractOutcomingReq
 namespace Proto2
 {
 
-std::shared_ptr<OutcomingRequestsManager>
-    OutcomingRequestsManager::create(std::shared_ptr<SocketWrapper> socketWrapper, size_t responseTimeoutMs)
+std::shared_ptr<OutcomingRequestsManager> OutcomingRequestsManager::create(
+    std::shared_ptr<SocketWrapper> socketWrapper,
+    duration_milliseconds_t        responseTimeout)
 {
     auto self = std::shared_ptr<OutcomingRequestsManager>{ new OutcomingRequestsManager{ std::move(socketWrapper),
-                                                                                         responseTimeoutMs } };
+                                                                                         responseTimeout } };
 
     self->establishConnections();
 
@@ -32,15 +35,25 @@ OutcomingRequestsManager::~OutcomingRequestsManager()
     pendingRequests_.clear();
 }
 
-void OutcomingRequestsManager::sendRequest(Request_t request, Context_t context)
+void OutcomingRequestsManager::sendRequest(
+    Request_t               request,
+    Context_t               context,
+    duration_milliseconds_t artificialDelay)
 {
     boost::asio::post(
         ioContext_,
-        [this, request, context, self = shared_from_this()]() mutable
-        { sendRequestImpl(std::move(request), std::move(context)); });
+        [this,
+         request = std::move(request),
+         context = std::move(context),
+         artificialDelay,
+         self = shared_from_this()]() mutable
+        { sendRequestImpl(std::move(request), std::move(context), artificialDelay); });
 }
 
-void OutcomingRequestsManager::sendRequestImpl(Request_t request, Context_t context)
+void OutcomingRequestsManager::sendRequestImpl(
+    Request_t               request,
+    Context_t               context,
+    duration_milliseconds_t artificialDelay)
 {
     auto pendingRequest =
         PendingRequest::create(ioContext_, ++requestIdCounter_, std::move(request), std::move(context));
@@ -53,12 +66,12 @@ void OutcomingRequestsManager::sendRequestImpl(Request_t request, Context_t cont
     }
 
     EN_LOGD << "sending request through SocketWrapper: requestId = " << pendingRequest->requestId
-            << ", opCode=" << pendingRequest->request->opCode();
+            << ", opCode=" << pendingRequest->request->opCode() << ", delayed by " << artificialDelay.count() << "ms";
 
     auto frame = Frame::constructRequestHeaderWoOwnership(pendingRequest->requestId, pendingRequest->request->opCode());
     pendingRequest->request->serializePayloadWoOwnership(frame);
 
-    pendingRequest->timeoutTimer.expires_from_now(boost::posix_time::milliseconds{ responseTimeoutMs_ });
+    pendingRequest->timeoutTimer.expires_from_now(toPosixTime(responseTimeout_));
     pendingRequest->timeoutTimer.async_wait(
         [this, requestId = pendingRequest->requestId, weakSelf = weak_from_this()](const error_code &ec)
         {
@@ -72,7 +85,18 @@ void OutcomingRequestsManager::sendRequestImpl(Request_t request, Context_t cont
             onExpired(requestId);
         });
 
-    socketWrapper_->writeFrame(std::move(frame), [pendingRequest](const error_code &, size_t) {});
+    NetUtils::launchWithDelay(
+        ioContext_,
+        toPosixTime(artificialDelay),
+        [this, frame = std::move(frame), pendingRequest, weakSelf = weak_from_this()]() mutable
+        {
+            const auto self = weakSelf.lock();
+            if (self == nullptr)
+                return;
+
+            socketWrapper_->writeFrame(
+                std::move(frame), [pendingRequest = std::move(pendingRequest)](const error_code &, size_t) {});
+        });
 
     const auto requestId = pendingRequest->requestId;
     pendingRequests_.insert({ requestId, std::move(pendingRequest) });
@@ -80,10 +104,10 @@ void OutcomingRequestsManager::sendRequestImpl(Request_t request, Context_t cont
 
 OutcomingRequestsManager::OutcomingRequestsManager(
     std::shared_ptr<SocketWrapper> socketWrapper,
-    size_t                         responseTimeoutMs)
+    duration_milliseconds_t        responseTimeout)
     : ioContext_{ socketWrapper->ioContext() },
       socketWrapper_{ std::move(socketWrapper) },
-      responseTimeoutMs_{ responseTimeoutMs }
+      responseTimeout_{ responseTimeout }
 {
 }
 
@@ -120,7 +144,7 @@ void OutcomingRequestsManager::onResponseRecieved(size_t requestId, boost::asio:
     const auto it = pendingRequests_.find(requestId);
     if (it == pendingRequests_.end())
     {
-        EN_LOGW << "Recived response for request " << requestId << ", but it is not marked as pending";
+        EN_LOGW << "Recieved response for request " << requestId << ", but it is not marked as pending";
         return;
     }
 

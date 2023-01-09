@@ -8,7 +8,7 @@
 
 int main()
 {
-    logger::setup("test-master");
+    logger::setup("test-master", logger::Severity::Info);
     BOOST_SCOPE_EXIT(void)
     {
         logger::teardown();
@@ -24,7 +24,11 @@ int main()
     auto socket = boost::asio::ip::tcp::socket{ context };
     acceptor.accept(socket);
 
-    auto endpoint = Proto2::Endpoint::create(context, std::move(socket), std::chrono::milliseconds{ 1500 });
+    auto endpoint = Proto2::Endpoint::create(
+        context,
+        std::move(socket),
+        Proto2::duration_milliseconds_t{ 1500 },
+        std::make_pair(Proto2::duration_milliseconds_t{ 1000 }, Proto2::duration_milliseconds_t{ 2000 }));
 
     std::string message{ "Hello from master" };
     endpoint->send_addMessage(150, message)

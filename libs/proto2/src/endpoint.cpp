@@ -1,7 +1,8 @@
 #include "proto2/endpoint.h"
 
-#include <algorithm>
-#include <utility>
+#include <functional>
+#include <random>
+#include <thread>
 
 #include "codes/codes.h"
 #include "frame/frame.h"
@@ -39,29 +40,59 @@ struct Endpoint::impl_t
 {
     DISABLE_COPY_MOVE(impl_t)
 
-    impl_t(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket, size_t responseTimeoutMs)
+    impl_t(
+        boost::asio::io_context                                    &ioContext,
+        boost::asio::ip::tcp::socket                                socket,
+        duration_milliseconds_t                                     responseTimeout,
+        std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds)
         : ioContext{ ioContext },
           socketWrapper{ SocketWrapper::create(ioContext, std::move(socket)) },
           incomingRequestsManager{ IncomingRequestsManager::create(socketWrapper) },
-          outcomingRequestsManager{ OutcomingRequestsManager::create(socketWrapper, responseTimeoutMs) }
+          outcomingRequestsManager{ OutcomingRequestsManager::create(socketWrapper, responseTimeout) },
+          sendDelayDistribution_{ artificialSendDelayBounds.first.count(), artificialSendDelayBounds.second.count() },
+          artificialSendDelayBounds_{ std::move(artificialSendDelayBounds) }
     {
+    }
+
+    // thread safe
+    duration_milliseconds_t chooseSendDelay()
+    {
+        auto distribution = std::uniform_int_distribution<size_t>{ artificialSendDelayBounds_.first.count(),
+                                                                   artificialSendDelayBounds_.second.count() };
+        return duration_milliseconds_t{ distribution(engine_) };
     }
 
     boost::asio::io_context                  &ioContext;
     std::shared_ptr<SocketWrapper>            socketWrapper;
     std::shared_ptr<IncomingRequestsManager>  incomingRequestsManager;
     std::shared_ptr<OutcomingRequestsManager> outcomingRequestsManager;
+
+private:
+    static thread_local std::seed_seq                                 engineSeq_;
+    static thread_local std::mt19937                                  engine_;
+    const std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds_;
+
+    std::uniform_int_distribution<size_t> sendDelayDistribution_;
 };
 
-std::shared_ptr<Endpoint> Endpoint::create(
-    boost::asio::io_context     &ioContext,
-    boost::asio::ip::tcp::socket socket,
-    std::chrono::milliseconds    outcomingRequestTimeout)
-{
-    const auto signedCount = outcomingRequestTimeout.count();
-    const auto count       = signedCount < 0 ? size_t{} : static_cast<size_t>(signedCount);
+thread_local std::seed_seq Endpoint::impl_t::engineSeq_{ std::hash<std::thread::id>{}(std::this_thread::get_id()),
+                                                         size_t{ 47 } };
+thread_local std::mt19937  Endpoint::impl_t::engine_{ engineSeq_ };
 
-    auto self = std::shared_ptr<Endpoint>{ new Endpoint{ ioContext, std::move(socket), count } };
+std::shared_ptr<Endpoint> Endpoint::create(
+    boost::asio::io_context                                    &ioContext,
+    boost::asio::ip::tcp::socket                                socket,
+    duration_milliseconds_t                                     outcomingRequestTimeout,
+    std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds)
+{
+    if (artificialSendDelayBounds.first.count() > artificialSendDelayBounds.second.count())
+    {
+        LOGW << "Passed wrong artificialSendDelayBounds when constructing Endpoint, fixing up";
+        std::swap(artificialSendDelayBounds.first, artificialSendDelayBounds.second);
+    }
+
+    auto self = std::shared_ptr<Endpoint>{ new Endpoint{
+        ioContext, std::move(socket), outcomingRequestTimeout, std::move(artificialSendDelayBounds) } };
 
     self->establishConnections();
 
@@ -77,62 +108,80 @@ void Endpoint::run()
 
 boost::future<AddMessageStatus> Endpoint::send_addMessage(size_t msgId, std::string_view msg)
 {
-    EN_LOGI << "sending addMessage(msgId=" << msgId << ", msg=" << msg << ")";
+    const auto artificialDelay = impl().chooseSendDelay();
+
+    EN_LOGI << "sending addMessage(msgId=" << msgId << ", msg='" << msg << "') (artificially delayed by "
+            << artificialDelay.count() << "ms)";
 
     auto request = Request::AddMessage::create(msgId, msg);
     auto context = OutcomingRequestContext::AddMessage::create();
 
     auto future = context->future();
 
-    impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context));
+    impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context), artificialDelay);
 
     return future;
 }
 
 boost::future<std::vector<std::string>> Endpoint::send_getMessages(size_t startMsgId)
 {
-    EN_LOGI << "sending getMessages(startMsgId=" << startMsgId << ")";
+    const auto artificialDelay = impl().chooseSendDelay();
+
+    EN_LOGI << "sending getMessages(startMsgId=" << startMsgId << ") (artificially delayed by "
+            << artificialDelay.count() << "ms)";
 
     auto request = Request::GetMessages::create(startMsgId);
     auto context = OutcomingRequestContext::GetMessages::create();
 
     auto future = context->future();
 
-    impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context));
+    impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context), artificialDelay);
 
     return future;
 }
 
 boost::future<Timestamp_t> Endpoint::send_ping(Timestamp_t pingTimestamp)
 {
-    EN_LOGI << "sending ping(pingTimestamp=" << pingTimestamp << ")";
+    const auto artificialDelay = impl().chooseSendDelay();
+
+    EN_LOGI << "sending ping(pingTimestamp=" << pingTimestamp << ") (artificially delayed by "
+            << artificialDelay.count() << "ms)";
 
     auto request = Request::Ping::create(pingTimestamp);
     auto context = OutcomingRequestContext::Ping::create();
 
     auto future = context->future();
 
-    impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context));
+    impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context), artificialDelay);
 
     return future;
 }
 
 boost::future<void> Endpoint::send_secondaryNodeReady(std::string secondaryName)
 {
-    EN_LOGI << "sending secondaryNodeReady(secondaryName='" << secondaryName << "')";
+    const auto artificialDelay = impl().chooseSendDelay();
+
+    EN_LOGI << "sending secondaryNodeReady(secondaryName='" << secondaryName << "') (artificially delayed by "
+            << artificialDelay.count() << "ms)";
 
     auto request = Request::SecondaryNodeReady::create(std::move(secondaryName));
     auto context = OutcomingRequestContext::SecondaryNodeReady::create();
 
     auto future = context->future();
 
-    impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context));
+    impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context), artificialDelay);
 
     return future;
 }
 
-Endpoint::Endpoint(boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket, size_t responseTimeoutMs)
-    : TW5VNznK_{ std::make_unique<impl_t>(ioContext, std::move(socket), responseTimeoutMs) }
+Endpoint::Endpoint(
+    boost::asio::io_context                                    &ioContext,
+    boost::asio::ip::tcp::socket                                socket,
+    duration_milliseconds_t                                     responseTimeout,
+    std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds)
+    : TW5VNznK_{
+          std::make_unique<impl_t>(ioContext, std::move(socket), responseTimeout, std::move(artificialSendDelayBounds))
+      }
 {
 }
 
@@ -222,7 +271,7 @@ void Endpoint::establishConnections()
 
                 auto secondaryNodeName = request->flushSecondaryNodeName();
 
-                EN_LOGI << "incoing_secondaryNodeReady(secondaryNodeName='" << secondaryNodeName << "')";
+                EN_LOGI << "incoming_secondaryNodeReady(secondaryNodeName='" << secondaryNodeName << "')";
 
                 incoming_secondaryNodeReady(std::move(secondaryNodeName), promise);
 

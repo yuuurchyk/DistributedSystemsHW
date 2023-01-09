@@ -7,6 +7,8 @@
 #include "logger/logger.h"
 #include "utils/copymove.h"
 
+#include "proto2/duration.h"
+
 #include "outcomingrequestcontext/abstractoutcomingrequestcontext.h"
 #include "request/abstractrequest.h"
 #include "socketwrapper/socketwrapper.h"
@@ -19,7 +21,7 @@ class OutcomingRequestsManager : public std::enable_shared_from_this<OutcomingRe
     DISABLE_COPY_MOVE(OutcomingRequestsManager)
 public:
     [[nodiscard]] static std::shared_ptr<OutcomingRequestsManager>
-        create(std::shared_ptr<SocketWrapper>, size_t responseTimeoutMs);
+        create(std::shared_ptr<SocketWrapper>, duration_milliseconds_t responseTimeout);
 
     ~OutcomingRequestsManager();
 
@@ -27,14 +29,14 @@ public:
     using Context_t = std::shared_ptr<OutcomingRequestContext::AbstractOutcomingRequestContext>;
 
     // thread safe
-    void sendRequest(Request_t request, Context_t context);
+    void sendRequest(Request_t request, Context_t context, duration_milliseconds_t artificialDelay);
 
 private:
-    OutcomingRequestsManager(std::shared_ptr<SocketWrapper>, size_t responseTimeoutMs);
+    OutcomingRequestsManager(std::shared_ptr<SocketWrapper>, duration_milliseconds_t responseTimeout);
 
     void establishConnections();
 
-    void sendRequestImpl(Request_t, Context_t);
+    void sendRequestImpl(Request_t, Context_t, duration_milliseconds_t artificialDelay);
 
     void onExpired(size_t requestId);
     void onResponseRecieved(size_t requestId, boost::asio::const_buffer payload);
@@ -44,7 +46,7 @@ private:
     boost::asio::io_context             &ioContext_;
     const std::shared_ptr<SocketWrapper> socketWrapper_;
 
-    const size_t responseTimeoutMs_{};
+    const duration_milliseconds_t responseTimeout_{};
 
     size_t requestIdCounter_{};
 
