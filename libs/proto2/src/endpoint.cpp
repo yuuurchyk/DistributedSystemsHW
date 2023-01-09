@@ -77,7 +77,8 @@ private:
 };
 
 thread_local std::seed_seq Endpoint::impl_t::engineSeq_{ std::hash<std::thread::id>{}(std::this_thread::get_id()),
-                                                         size_t{ 47 } };
+                                                         size_t{ 47 },
+                                                         static_cast<size_t>(std::random_device{}()) };
 thread_local std::mt19937  Endpoint::impl_t::engine_{ engineSeq_ };
 
 std::shared_ptr<Endpoint> Endpoint::create(
