@@ -52,7 +52,7 @@ void OutcomingRequestsManager::sendRequestImpl(Request_t request, Context_t cont
         return;
     }
 
-    EN_LOGI << "sending request through SocketWrapper: requestId = " << pendingRequest->requestId
+    EN_LOGD << "sending request through SocketWrapper: requestId = " << pendingRequest->requestId
             << ", opCode=" << pendingRequest->request->opCode();
 
     auto frame = Frame::constructRequestHeaderWoOwnership(pendingRequest->requestId, pendingRequest->request->opCode());
@@ -102,7 +102,7 @@ void OutcomingRequestsManager::establishConnections()
 
 void OutcomingRequestsManager::onExpired(size_t requestId)
 {
-    EN_LOGI << "onExpired(requestId=" << requestId << ")";
+    EN_LOGD << "onExpired(requestId=" << requestId << ")";
 
     const auto it = pendingRequests_.find(requestId);
     if (it == pendingRequests_.end())
@@ -115,7 +115,7 @@ void OutcomingRequestsManager::onExpired(size_t requestId)
 
 void OutcomingRequestsManager::onResponseRecieved(size_t requestId, boost::asio::const_buffer payload)
 {
-    EN_LOGI << "onResponseRecieved(requestId=" << requestId << ")";
+    EN_LOGD << "onResponseRecieved(requestId=" << requestId << ")";
 
     const auto it = pendingRequests_.find(requestId);
     if (it == pendingRequests_.end())
@@ -145,7 +145,7 @@ void OutcomingRequestsManager::onIncomingFrame(boost::asio::const_buffer frame)
 
     auto responseFrame = std::move(optResponseFrame.value());
 
-    EN_LOGI << "processing response frame for request with id " << responseFrame.requestId;
+    EN_LOGD << "processing response frame for request with id " << responseFrame.requestId;
 
     onResponseRecieved(responseFrame.requestId, responseFrame.payload);
 }

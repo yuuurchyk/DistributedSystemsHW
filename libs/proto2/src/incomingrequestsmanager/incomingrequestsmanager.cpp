@@ -45,7 +45,7 @@ void IncomingRequestsManager::registerContext(size_t responseId, Context_t conte
                     if (response == nullptr)
                         return;
 
-                    EN_LOGI << "writing response for request " << responseId << " through socket";
+                    EN_LOGD << "writing response for request " << responseId << " through socket";
 
                     auto pendingResponse = PendingResponse::create(responseId, std::move(response));
 
@@ -109,14 +109,14 @@ void IncomingRequestsManager::onIncomingFrame(boost::asio::const_buffer frame)
     if (!optEventType.has_value() || optEventType.value() != EventType::REQUEST)
         return;
 
-    EN_LOGI << "onIncomingFrame: got request frame, parsing";
+    EN_LOGD << "onIncomingFrame: got request frame, parsing";
 
     auto optRequestFrame = Frame::parseRequestFrame(frame);
     if (optRequestFrame.has_value())
     {
         auto requestFrame = std::move(optRequestFrame.value());
 
-        EN_LOGI << "incoming request frame: requestId=" << requestFrame.requestId << ", opCode=" << requestFrame.opCode;
+        EN_LOGD << "incoming request frame: requestId=" << requestFrame.requestId << ", opCode=" << requestFrame.opCode;
 
         incomingRequestFrame(std::move(requestFrame));
     }

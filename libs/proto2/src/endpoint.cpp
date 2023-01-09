@@ -119,7 +119,7 @@ boost::future<Timestamp_t> Endpoint::send_ping(Timestamp_t pingTimestamp)
 
 boost::future<void> Endpoint::send_secondaryNodeReady(std::string secondaryName)
 {
-    EN_LOGI << "sending secondaryNodeReady(secondaryName=" << secondaryName << ")";
+    EN_LOGI << "sending secondaryNodeReady(secondaryName='" << secondaryName << "')";
 
     auto request = Request::SecondaryNodeReady::create(std::move(secondaryName));
     auto context = OutcomingRequestContext::SecondaryNodeReady::create();
@@ -168,7 +168,7 @@ void Endpoint::establishConnections()
                 const auto msgId = request->messageId();
                 auto       msg   = request->flushMessage();
 
-                EN_LOGI << "incoming_addMessage(msgId=" << msgId << ", msg=" << msg << ")";
+                EN_LOGI << "incoming_addMessage(msgId=" << msgId << ", msg='" << msg << "')";
 
                 incoming_addMessage(msgId, std::move(msg), promise);
 
@@ -222,7 +222,7 @@ void Endpoint::establishConnections()
 
                 auto secondaryNodeName = request->flushSecondaryNodeName();
 
-                EN_LOGI << "incoing_secondaryNodeReady(secondaryNodeName=" << secondaryNodeName << ")";
+                EN_LOGI << "incoing_secondaryNodeReady(secondaryNodeName='" << secondaryNodeName << "')";
 
                 incoming_secondaryNodeReady(std::move(secondaryNodeName), promise);
 

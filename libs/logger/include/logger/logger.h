@@ -54,6 +54,7 @@ namespace detail
             ::logger::detail::keywords::CodeLineNumber =                          \
                 ::logger::detail::attributes::code_line_number_t{ __LINE__ }))
 
+#define LOGD _LOGIMPL(Debug)
 #define LOGI _LOGIMPL(Info)
 #define LOGW _LOGIMPL(Warning)
 #define LOGE _LOGIMPL(Error)

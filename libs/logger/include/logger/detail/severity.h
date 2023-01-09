@@ -6,6 +6,7 @@ namespace logger::detail
 {
 enum class Severity
 {
+    Debug,
     Info,
     Warning,
     Error
