@@ -5,7 +5,6 @@
 
 namespace Proto2::Response
 {
-
 class Pong : public AbstractResponse
 {
 public:

@@ -9,7 +9,6 @@
 
 namespace Proto2::Response
 {
-
 class GetMessages final : public AbstractResponse
 {
 public:

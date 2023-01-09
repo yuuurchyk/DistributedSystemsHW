@@ -11,7 +11,7 @@
 
 namespace Proto2::Request
 {
-class AbstractRequest : public std::enable_shared_from_this<AbstractRequest>
+class AbstractRequest
 {
     DISABLE_COPY_MOVE(AbstractRequest)
 public:
