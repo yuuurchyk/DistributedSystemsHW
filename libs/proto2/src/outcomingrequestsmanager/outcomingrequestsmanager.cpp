@@ -28,12 +28,7 @@ std::shared_ptr<OutcomingRequestsManager> OutcomingRequestsManager::create(
 
 OutcomingRequestsManager::~OutcomingRequestsManager()
 {
-    for (auto &[_, pendingRequest] : pendingRequests_)
-    {
-        pendingRequest->timeoutTimer.cancel();
-        pendingRequest->context->invalidate(InvalidationReason::TIMEOUT);
-    }
-    pendingRequests_.clear();
+    invalidateAll();
 }
 
 void OutcomingRequestsManager::sendRequest(
@@ -86,21 +81,32 @@ void OutcomingRequestsManager::sendRequestImpl(
             onExpired(requestId);
         });
 
+    const auto requestId = pendingRequest->requestId;
+    pendingRequests_.insert({ requestId, pendingRequest });
+
     NetUtils::launchWithDelay(
         ioContext_,
         toPosixTime(artificialDelay),
-        [this, frame = std::move(frame), pendingRequest, weakSelf = weak_from_this()]() mutable
+        [this,
+         frame = std::move(frame),
+         requestId,
+         pendingRequest = std::move(pendingRequest),
+         weakSelf       = weak_from_this()]() mutable
         {
             const auto self = weakSelf.lock();
             if (self == nullptr)
                 return;
 
-            socketWrapper_->writeFrame(
-                std::move(frame), [pendingRequest = std::move(pendingRequest)](const error_code &, size_t) {});
+            if (socketWrapper_->wasInvalidated())
+            {
+                onPeerDisconnected(requestId);
+            }
+            else
+            {
+                socketWrapper_->writeFrame(
+                    std::move(frame), [pendingRequest = std::move(pendingRequest)](const error_code &, size_t) {});
+            }
         });
-
-    const auto requestId = pendingRequest->requestId;
-    pendingRequests_.insert({ requestId, std::move(pendingRequest) });
 }
 
 OutcomingRequestsManager::OutcomingRequestsManager(
@@ -124,6 +130,15 @@ void OutcomingRequestsManager::establishConnections()
                 return;
             else
                 onIncomingFrame(frame);
+        });
+    socketWrapper_->invalidated.connect(
+        [this, weakSelf = weak_from_this()]()
+        {
+            const auto self = weakSelf.lock();
+            if (self == nullptr)
+                return;
+            else
+                invalidateAll();
         });
 }
 
@@ -175,6 +190,31 @@ void OutcomingRequestsManager::onIncomingFrame(boost::asio::const_buffer frame)
     EN_LOGD << "processing response frame for request with id " << responseFrame.requestId;
 
     onResponseRecieved(responseFrame.requestId, responseFrame.payload);
+}
+
+void OutcomingRequestsManager::onPeerDisconnected(size_t requestId)
+{
+    const auto it = pendingRequests_.find(requestId);
+    if (it == pendingRequests_.end())
+        return;
+
+    EN_LOGW << "onPeerDisconnected(requestId=" << requestId << ")";
+
+    auto &pendingRequest = it->second;
+    pendingRequest->timeoutTimer.cancel();
+    pendingRequest->context->invalidate(InvalidationReason::PEER_DISCONNECTED);
+}
+
+void OutcomingRequestsManager::invalidateAll()
+{
+    for (auto &[requestId, pendingRequest] : pendingRequests_)
+    {
+        EN_LOGW << "peer disconnected for request " << requestId;
+
+        pendingRequest->timeoutTimer.cancel();
+        pendingRequest->context->invalidate(InvalidationReason::PEER_DISCONNECTED);
+    }
+    pendingRequests_.clear();
 }
 
 auto OutcomingRequestsManager::PendingRequest::create(

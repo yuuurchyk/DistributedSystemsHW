@@ -10,12 +10,17 @@ struct ResponseException : std::exception
 
 struct BadFrameException : ResponseException
 {
-    const char *what() const noexcept { return "Bad response frame format"; }
+    const char *what() const noexcept override { return "Bad response frame format"; }
 };
 
 struct TimeoutException : ResponseException
 {
-    const char *what() const noexcept { return "Timeout occured for request"; }
+    const char *what() const noexcept override { return "Timeout occured for request"; }
+};
+
+struct PeerDisconnectedException : ResponseException
+{
+    const char *what() const noexcept override { return "Peer disconnected"; }
 };
 
 }    // namespace Proto2

@@ -36,6 +36,8 @@ public:
     void run();
     void invalidate();
 
+    bool wasInvalidated() const;
+
     boost::asio::io_context &ioContext();
 
 public:    // signals

@@ -42,6 +42,9 @@ private:
     void onExpired(size_t requestId);
     void onResponseRecieved(size_t requestId, boost::asio::const_buffer payload);
     void onIncomingFrame(boost::asio::const_buffer frame);
+    void onPeerDisconnected(size_t requestId);
+
+    void invalidateAll();
 
 private:
     boost::asio::io_context             &ioContext_;

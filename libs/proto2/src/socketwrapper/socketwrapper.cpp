@@ -51,6 +51,11 @@ void SocketWrapper::invalidate()
         invalidated();
 }
 
+bool SocketWrapper::wasInvalidated() const
+{
+    return invalidated_;
+}
+
 boost::asio::io_context &SocketWrapper::ioContext()
 {
     return ioContext_;
