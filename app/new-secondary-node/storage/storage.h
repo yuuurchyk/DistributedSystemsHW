@@ -13,12 +13,12 @@
 /**
  * @note all methods are thread safe
  */
-class SecondaryStorage : private logger::Entity<SecondaryStorage>
+class Storage : private logger::Entity<Storage>
 {
-    DISABLE_COPY_MOVE(SecondaryStorage)
+    DISABLE_COPY_MOVE(Storage)
 public:
-    SecondaryStorage()  = default;
-    ~SecondaryStorage() = default;
+    Storage()  = default;
+    ~Storage() = default;
 
     void addMessage(size_t id, std::string message);
     void addMessages(size_t startId, std::vector<std::string> messages);

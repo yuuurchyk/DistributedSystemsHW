@@ -1,6 +1,5 @@
 #include "secondarynode/secondarynode.h"
 
-#include "constants2/constants2.h"
 #include "net-utils/launchwithdelay.h"
 #include "net-utils/thenpost.h"
 
@@ -18,6 +17,11 @@ std::shared_ptr<SecondaryNode> SecondaryNode::create(
         std::move(friendlyName), ioContext, std::move(masterAddress), std::move(masterReconnectInterval) } };
 }
 
+SecondaryNode::~SecondaryNode()
+{
+    disconnectMasterSession();
+}
+
 void SecondaryNode::run()
 {
     reconnectToMaster();
@@ -29,7 +33,7 @@ bool SecondaryNode::valid() const
     return valid_;
 }
 
-const SecondaryStorage &SecondaryNode::storage() const
+const Storage &SecondaryNode::storage() const
 {
     return storage_;
 }
@@ -77,129 +81,47 @@ void SecondaryNode::reconnectToMaster()
 
             EN_LOGI << "connected to master node, establising endpoint";
 
-            establishMasterEndpoint(std::move(*socket));
+            runMasterSession(std::move(*socket));
         });
 }
 
-void SecondaryNode::establishMasterEndpoint(boost::asio::ip::tcp::socket socket)
+void SecondaryNode::disconnectMasterSession()
 {
-    masterEndpoint_ = Proto2::Endpoint::create(
-        "master",
-        ioContext_,
-        std::move(socket),
-        Constants2::kOutcomingRequestTimeout,
-        Constants2::kArtificialSendDelayBounds);
-    masterEndpoint_->run();
-
-    masterEndpoint_->invalidated.connect(
-        [this, weakSelf = weak_from_this()]()
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-
-            EN_LOGW << "socket invalidated";
-            invalidateMasterEndpoint();
-        });
-
-    masterEndpoint_->incoming_addMessage.connect(
-        [this, weakSelf = weak_from_this()](
-            size_t msgId, std::string msg, Proto2::SharedPromise<Proto2::AddMessageStatus> response)
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-
-            storage_.addMessage(msgId, std::move(msg));
-            response->set_value(Proto2::AddMessageStatus::OK);
-        });
-    masterEndpoint_->incoming_ping.connect(
-        [this, weakSelf = weak_from_this()](Proto2::Timestamp_t, Proto2::SharedPromise<Proto2::Timestamp_t> response)
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-
-            response->set_value(Proto2::getCurrentTimestamp());
-        });
-
-    askMasterForMessages();
-}
-
-void SecondaryNode::askMasterForMessages()
-{
-    const auto gap = storage_.getFirstGap();
-
-    EN_LOGI << "asking master for messages, starting from messageId=" << gap;
-
-    NetUtils::thenPost(
-        masterEndpoint_->send_getMessages(gap),
-        ioContext_,
-        [this, gap, weakEndpoint = masterEndpoint_->weak_from_this(), weakSelf = weak_from_this()](
-            boost::future<std::vector<std::string>> response)
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-            const auto endpoint = weakEndpoint.lock();
-            if (endpoint == nullptr || endpoint != masterEndpoint_)
-                return;
-
-            if (response.has_value())
-            {
-                EN_LOGI << "Successfully retrieved messages from master, filling storage";
-                storage_.addMessages(gap, response.get());
-                EN_LOGI << "Making ready";
-                {
-                    std::unique_lock lck{ validMutex_ };
-                    valid_ = true;
-                }
-                sendFriendlyNameToMaster();
-            }
-            else
-            {
-                EN_LOGW << "Failed to recieve messages from master, retrying";
-                askMasterForMessages();
-            }
-        });
-}
-
-void SecondaryNode::sendFriendlyNameToMaster()
-{
-    EN_LOGI << "sending friendly name to master";
-
-    NetUtils::thenPost(
-        masterEndpoint_->send_secondaryNodeReady(friendlyName_),
-        ioContext_,
-        [this, weakEndpoint = masterEndpoint_->weak_from_this(), weakSelf = weak_from_this()](
-            boost::future<void> response)
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-            const auto endpoint = weakEndpoint.lock();
-            if (endpoint == nullptr || endpoint != masterEndpoint_)
-                return;
-
-            if (response.has_value())
-            {
-                EN_LOGI << "recieved ack from master on secondaryNodeReady request";
-            }
-            else
-            {
-                EN_LOGW << "failed to recieve ack from master on secondaryNodeReady request, retrying";
-                sendFriendlyNameToMaster();
-            }
-        });
-}
-
-void SecondaryNode::invalidateMasterEndpoint()
-{
-    LOGI << "invalidating master endpoint";
     {
         std::unique_lock lck{ validMutex_ };
         valid_ = false;
     }
-    masterEndpoint_ = nullptr;
-    reconnectToMaster();
+    for (auto &connection : sessionConnections_)
+        connection.disconnect();
+    session_ = {};
+}
+
+void SecondaryNode::runMasterSession(boost::asio::ip::tcp::socket socket)
+{
+    disconnectMasterSession();
+
+    session_ = MasterSession::create(friendlyName_, ioContext_, std::move(socket), storage_);
+
+    auto invalidatedConnection = session_->invalidated.connect(
+        [this]()
+        {
+            EN_LOGI << "master session invalidated";
+            disconnectMasterSession();
+            reconnectToMaster();
+        });
+
+    auto operationalConnection = session_->operational.connect(
+        [this]()
+        {
+            EN_LOGI << "master session operational";
+            {
+                std::unique_lock lck{ validMutex_ };
+                valid_ = true;
+            }
+        });
+
+    sessionConnections_.push_back(std::move(invalidatedConnection));
+    sessionConnections_.push_back(std::move(operationalConnection));
+
+    session_->run();
 }

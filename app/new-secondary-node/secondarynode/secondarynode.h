@@ -1,18 +1,20 @@
 #pragma once
 
-#include <atomic>
 #include <chrono>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include <boost/asio.hpp>
+#include <boost/signals2.hpp>
 
 #include "logger/logger.h"
 #include "proto2/endpoint.h"
 #include "utils/copymove.h"
 
-#include "secondarystorage/secondarystorage.h"
+#include "mastersession/mastersession.h"
+#include "storage/storage.h"
 
 class SecondaryNode : public std::enable_shared_from_this<SecondaryNode>, private logger::Entity<SecondaryNode>
 {
@@ -23,14 +25,13 @@ public:
         boost::asio::io_context                  &ioContext,
         boost::asio::ip::tcp::endpoint            masterAddress,
         std::chrono::duration<size_t, std::milli> masterReconnectInterval);
-    ~SecondaryNode() = default;
+    ~SecondaryNode();
 
-    // does not prolong the lifetime of SecondaryNode
     void run();
 
     // thread safe
-    [[nodiscard]] bool      valid() const;
-    const SecondaryStorage &storage() const;
+    [[nodiscard]] bool valid() const;
+    const Storage     &storage() const;
 
 private:
     SecondaryNode(
@@ -41,17 +42,13 @@ private:
 
     void reconnectToMaster();
 
-    void establishMasterEndpoint(boost::asio::ip::tcp::socket);
-
-    void askMasterForMessages();
-    void sendFriendlyNameToMaster();
-
-    void invalidateMasterEndpoint();
+    void disconnectMasterSession();
+    void runMasterSession(boost::asio::ip::tcp::socket);
 
 private:
     const std::string friendlyName_;
 
-    SecondaryStorage storage_;
+    Storage storage_;
 
     boost::asio::io_context              &ioContext_;
     const boost::asio::ip::tcp::endpoint  masterAddress_;
@@ -60,4 +57,7 @@ private:
 
     mutable std::shared_mutex validMutex_;
     bool                      valid_{};
+
+    std::vector<boost::signals2::connection> sessionConnections_{};
+    std::shared_ptr<MasterSession>           session_{};
 };

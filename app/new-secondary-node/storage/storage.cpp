@@ -1,8 +1,8 @@
-#include "secondarystorage/secondarystorage.h"
+#include "storage/storage.h"
 
 #include <utility>
 
-void SecondaryStorage::addMessage(size_t id, std::string message)
+void Storage::addMessage(size_t id, std::string message)
 {
     const auto res = messages_.insert({ id, std::move(message) });
     if (!res.second)
@@ -11,13 +11,13 @@ void SecondaryStorage::addMessage(size_t id, std::string message)
     }
 }
 
-void SecondaryStorage::addMessages(size_t startId, std::vector<std::string> messages)
+void Storage::addMessages(size_t startId, std::vector<std::string> messages)
 {
     for (auto i = size_t{}; i < messages.size(); ++i)
         addMessage(startId + i, std::move(messages[i]));
 }
 
-size_t SecondaryStorage::getFirstGap() const
+size_t Storage::getFirstGap() const
 {
     auto res = size_t{};
 
@@ -33,7 +33,7 @@ size_t SecondaryStorage::getFirstGap() const
     return res;
 }
 
-std::vector<std::string_view> SecondaryStorage::getContiguousChunk(size_t startId) const
+std::vector<std::string_view> Storage::getContiguousChunk(size_t startId) const
 {
     auto res = std::vector<std::string_view>{};
 
