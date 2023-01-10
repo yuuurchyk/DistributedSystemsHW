@@ -27,10 +27,10 @@ void SecondaryNode::run()
     reconnectToMaster();
 }
 
-bool SecondaryNode::valid() const
+bool SecondaryNode::operational() const
 {
-    std::shared_lock lck{ validMutex_ };
-    return valid_;
+    std::shared_lock lck{ operationalMutex_ };
+    return operational_;
 }
 
 const Storage &SecondaryNode::storage() const
@@ -88,8 +88,8 @@ void SecondaryNode::reconnectToMaster()
 void SecondaryNode::disconnectMasterSession()
 {
     {
-        std::unique_lock lck{ validMutex_ };
-        valid_ = false;
+        std::unique_lock lck{ operationalMutex_ };
+        operational_ = false;
     }
     for (auto &connection : sessionConnections_)
         connection.disconnect();
@@ -115,8 +115,8 @@ void SecondaryNode::runMasterSession(boost::asio::ip::tcp::socket socket)
         {
             EN_LOGI << "master session operational";
             {
-                std::unique_lock lck{ validMutex_ };
-                valid_ = true;
+                std::unique_lock lck{ operationalMutex_ };
+                operational_ = true;
             }
         });
 

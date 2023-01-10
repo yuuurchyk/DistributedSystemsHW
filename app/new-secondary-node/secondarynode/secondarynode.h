@@ -30,7 +30,7 @@ public:
     void run();
 
     // thread safe
-    [[nodiscard]] bool valid() const;
+    [[nodiscard]] bool operational() const;
     const Storage     &storage() const;
 
 private:
@@ -55,8 +55,8 @@ private:
     std::shared_ptr<Proto2::Endpoint>     masterEndpoint_;
     const boost::posix_time::milliseconds masterReconnectInterval_;
 
-    mutable std::shared_mutex validMutex_;
-    bool                      valid_{};
+    mutable std::shared_mutex operationalMutex_;
+    bool                      operational_{};
 
     std::vector<boost::signals2::connection> sessionConnections_{};
     std::shared_ptr<MasterSession>           session_{};
