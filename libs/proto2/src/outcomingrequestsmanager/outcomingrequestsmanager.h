@@ -72,6 +72,9 @@ private:
     };
 
     std::unordered_map<size_t, std::shared_ptr<PendingRequest>> pendingRequests_;
+
+    boost::signals2::scoped_connection incomingFrameConnection_;
+    boost::signals2::scoped_connection invalidatedConnection_;
 };
 
 }    // namespace Proto2

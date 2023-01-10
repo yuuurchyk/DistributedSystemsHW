@@ -44,21 +44,22 @@ MasterSession::MasterSession(
 
 void MasterSession::establishConnections()
 {
-    endpoint_->invalidated.connect(
+    connections_.push_back(endpoint_->invalidated.connect(
         [this]()
         {
             EN_LOGW << "socket invalidated";
             invalidated();
-        });
+        }));
 
-    endpoint_->incoming_addMessage.connect(
+    connections_.push_back(endpoint_->incoming_addMessage.connect(
         [this](size_t msgId, std::string msg, Proto2::SharedPromise<Proto2::AddMessageStatus> response)
         {
             storage_.addMessage(msgId, std::move(msg));
             response->set_value(Proto2::AddMessageStatus::OK);
-        });
-    endpoint_->incoming_ping.connect([this](Proto2::Timestamp_t, Proto2::SharedPromise<Proto2::Timestamp_t> response)
-                                     { response->set_value(Proto2::getCurrentTimestamp()); });
+        }));
+    connections_.push_back(endpoint_->incoming_ping.connect(
+        [this](Proto2::Timestamp_t, Proto2::SharedPromise<Proto2::Timestamp_t> response)
+        { response->set_value(Proto2::getCurrentTimestamp()); }));
 }
 
 void MasterSession::askForMessages()

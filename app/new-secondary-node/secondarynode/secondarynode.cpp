@@ -17,11 +17,6 @@ std::shared_ptr<SecondaryNode> SecondaryNode::create(
         std::move(friendlyName), ioContext, std::move(masterAddress), std::move(masterReconnectInterval) } };
 }
 
-SecondaryNode::~SecondaryNode()
-{
-    disconnectMasterSession();
-}
-
 void SecondaryNode::run()
 {
     reconnectToMaster();
@@ -91,8 +86,6 @@ void SecondaryNode::disconnectMasterSession()
         std::unique_lock lck{ operationalMutex_ };
         operational_ = false;
     }
-    for (auto &connection : sessionConnections_)
-        connection.disconnect();
     session_ = {};
 }
 
@@ -102,7 +95,7 @@ void SecondaryNode::runMasterSession(boost::asio::ip::tcp::socket socket)
 
     session_ = MasterSession::create(friendlyName_, ioContext_, std::move(socket), storage_);
 
-    auto invalidatedConnection = session_->invalidated.connect(
+    invalidatedConnection_ = session_->invalidated.connect(
         [this]()
         {
             EN_LOGI << "master session invalidated";
@@ -110,7 +103,7 @@ void SecondaryNode::runMasterSession(boost::asio::ip::tcp::socket socket)
             reconnectToMaster();
         });
 
-    auto operationalConnection = session_->operational.connect(
+    operationalConnection_ = session_->operational.connect(
         [this]()
         {
             EN_LOGI << "master session operational";
@@ -119,9 +112,6 @@ void SecondaryNode::runMasterSession(boost::asio::ip::tcp::socket socket)
                 operational_ = true;
             }
         });
-
-    sessionConnections_.push_back(std::move(invalidatedConnection));
-    sessionConnections_.push_back(std::move(operationalConnection));
 
     session_->run();
 }

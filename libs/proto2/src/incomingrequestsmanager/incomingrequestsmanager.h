@@ -58,6 +58,8 @@ private:
     const std::shared_ptr<SocketWrapper> socketWrapper_;
 
     std::unordered_map<size_t, Context_t> registeredContexts_;
+
+    boost::signals2::scoped_connection incomingFrameConnection_;
 };
 
 }    // namespace Proto2

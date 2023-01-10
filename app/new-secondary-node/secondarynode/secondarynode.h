@@ -4,7 +4,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
@@ -25,7 +24,7 @@ public:
         boost::asio::io_context                  &ioContext,
         boost::asio::ip::tcp::endpoint            masterAddress,
         std::chrono::duration<size_t, std::milli> masterReconnectInterval);
-    ~SecondaryNode();
+    ~SecondaryNode() = default;
 
     void run();
 
@@ -58,6 +57,8 @@ private:
     mutable std::shared_mutex operationalMutex_;
     bool                      operational_{};
 
-    std::vector<boost::signals2::connection> sessionConnections_{};
-    std::shared_ptr<MasterSession>           session_{};
+    std::shared_ptr<MasterSession> session_{};
+
+    boost::signals2::scoped_connection invalidatedConnection_;
+    boost::signals2::scoped_connection operationalConnection_;
 };

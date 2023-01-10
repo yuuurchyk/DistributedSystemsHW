@@ -96,7 +96,7 @@ IncomingRequestsManager::IncomingRequestsManager(std::string id, std::shared_ptr
 
 void IncomingRequestsManager::establishConnections()
 {
-    socketWrapper_->incomingFrame.connect(
+    incomingFrameConnection_ = socketWrapper_->incomingFrame.connect(
         [this, weakSelf = weak_from_this()](boost::asio::const_buffer frame)
         {
             const auto self = weakSelf.lock();

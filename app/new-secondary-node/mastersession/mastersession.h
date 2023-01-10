@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
@@ -42,4 +43,6 @@ private:
     const std::shared_ptr<Proto2::Endpoint> endpoint_;
 
     Storage &storage_;
+
+    std::vector<boost::signals2::scoped_connection> connections_;
 };

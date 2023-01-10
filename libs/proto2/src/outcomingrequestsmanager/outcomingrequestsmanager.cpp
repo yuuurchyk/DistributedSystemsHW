@@ -122,24 +122,9 @@ OutcomingRequestsManager::OutcomingRequestsManager(
 
 void OutcomingRequestsManager::establishConnections()
 {
-    socketWrapper_->incomingFrame.connect(
-        [this, weakSelf = weak_from_this()](boost::asio::const_buffer frame)
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-            else
-                onIncomingFrame(frame);
-        });
-    socketWrapper_->invalidated.connect(
-        [this, weakSelf = weak_from_this()]()
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-            else
-                invalidateAll();
-        });
+    incomingFrameConnection_ =
+        socketWrapper_->incomingFrame.connect([this](boost::asio::const_buffer frame) { onIncomingFrame(frame); });
+    invalidatedConnection_ = socketWrapper_->invalidated.connect([this]() { invalidateAll(); });
 }
 
 void OutcomingRequestsManager::onExpired(size_t requestId)

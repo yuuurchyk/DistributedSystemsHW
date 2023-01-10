@@ -68,7 +68,8 @@ struct Endpoint::impl_t
     std::shared_ptr<IncomingRequestsManager>  incomingRequestsManager;
     std::shared_ptr<OutcomingRequestsManager> outcomingRequestsManager;
 
-    std::vector<boost::signals2::connection> connections;
+    boost::signals2::scoped_connection invalidatedConnection_;
+    boost::signals2::scoped_connection incomingRequestFrameConnection_;
 
 private:
     static thread_local std::seed_seq                                 engineSeq_;
@@ -104,11 +105,7 @@ std::shared_ptr<Endpoint> Endpoint::create(
     return self;
 }
 
-Endpoint::~Endpoint()
-{
-    for (auto &connection : impl().connections)
-        connection.disconnect();
-}
+Endpoint::~Endpoint() = default;
 
 void Endpoint::run()
 {
@@ -201,16 +198,15 @@ Endpoint::Endpoint(
 
 void Endpoint::establishConnections()
 {
-    auto invalidatedConnection = impl().socketWrapper->invalidated.connect(
+    impl().invalidatedConnection_ = impl().socketWrapper->invalidated.connect(
         [this, weakSelf = weak_from_this()]()
         {
             const auto self = weakSelf.lock();
             if (self != nullptr)
                 invalidated();
         });
-    impl().connections.push_back(std::move(invalidatedConnection));
 
-    auto incomingRequestFrameConnection = impl().incomingRequestsManager->incomingRequestFrame.connect(
+    impl().incomingRequestFrameConnection_ = impl().incomingRequestsManager->incomingRequestFrame.connect(
         [this, weakSelf = weak_from_this()](Frame::RequestFrame requestFrame)
         {
             const auto self = weakSelf.lock();
@@ -294,7 +290,6 @@ void Endpoint::establishConnections()
             }
             }
         });
-    impl().connections.push_back(std::move(incomingRequestFrameConnection));
 }
 
 auto Endpoint::impl() -> impl_t &
