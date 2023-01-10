@@ -13,12 +13,12 @@
 /**
  * @note all methods are thread safe
  */
-class MasterStorage
+class Storage
 {
-    DISABLE_COPY_MOVE(MasterStorage)
+    DISABLE_COPY_MOVE(Storage)
 public:
-    MasterStorage()  = default;
-    ~MasterStorage() = default;
+    Storage()  = default;
+    ~Storage() = default;
 
     /**
      * @brief adds message into storage
