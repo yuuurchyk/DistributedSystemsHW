@@ -47,7 +47,7 @@ private:
     {
         DISABLE_COPY_MOVE(Secondary)
 
-        Secondary(boost::asio::ip::tcp::socket, std::unique_ptr<NetUtils::IOContextPool::LoadGuard>);
+        Secondary(size_t id, boost::asio::ip::tcp::socket, std::unique_ptr<NetUtils::IOContextPool::LoadGuard>);
 
         size_t      id;
         std::string friendlyName;
@@ -55,8 +55,6 @@ private:
         SecondaryStatus                                     status{ SecondaryStatus::REGISTERING };
         std::shared_ptr<Endpoint>                           endpoint;
         std::unique_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard;
-
-        std::vector<boost::signals2::connection> connections;
     };
 
     boost::asio::io_context &ioContext_;
