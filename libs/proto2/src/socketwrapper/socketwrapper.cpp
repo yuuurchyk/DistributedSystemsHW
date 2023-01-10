@@ -15,6 +15,9 @@ std::shared_ptr<SocketWrapper>
 
 SocketWrapper::~SocketWrapper()
 {
+    // don't emit signal in dtor
+    socket_.close();
+    invalidated_ = true;
     invalidate();
 }
 
