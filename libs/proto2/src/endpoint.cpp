@@ -102,7 +102,10 @@ std::shared_ptr<Endpoint> Endpoint::create(
     return self;
 }
 
-Endpoint::~Endpoint() = default;
+Endpoint::~Endpoint()
+{
+    impl().socketWrapper->invalidate();
+}
 
 void Endpoint::run()
 {
