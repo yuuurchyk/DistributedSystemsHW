@@ -26,6 +26,8 @@ namespace Proto2
  *
  * @note outcoming requests functions are thread safe, however
  * communication with the socket is done in a single thread
+ *
+ * @note run() does not prolong the lifetime of Endpoint object
  */
 class Endpoint : public std::enable_shared_from_this<Endpoint>, private logger::StringIdEntity<Endpoint>
 {

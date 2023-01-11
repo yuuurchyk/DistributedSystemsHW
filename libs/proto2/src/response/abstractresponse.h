@@ -31,7 +31,7 @@ public:
     virtual void serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &constBufferSeq) const = 0;
 
     // note: all implementations of response should also have
-    // static std::unique_ptr<RequestClass> fromPayload(boost::asio::const_buffer)
+    // static std::shared_ptr<RequestClass> fromPayload(boost::asio::const_buffer)
 };
 
 }    // namespace Proto2::Response
