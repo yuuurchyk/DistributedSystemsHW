@@ -8,7 +8,7 @@ namespace Proto2::IncomingRequestContext
 class Ping final : public AbstractIncomingRequestContext
 {
 public:
-    [[nodiscard]] static std::shared_ptr<Ping> create(boost::asio::io_context &);
+    [[nodiscard]] static std::shared_ptr<Ping> create(boost::asio::io_context &executionContext);
 
     boost::promise<Timestamp_t> flushPromise();
 

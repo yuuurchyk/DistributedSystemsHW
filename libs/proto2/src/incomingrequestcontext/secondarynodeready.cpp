@@ -9,9 +9,9 @@
 namespace Proto2::IncomingRequestContext
 {
 
-std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::create(boost::asio::io_context &ioContext)
+std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::create(boost::asio::io_context &executionContext)
 {
-    auto self = std::shared_ptr<SecondaryNodeReady>{ new SecondaryNodeReady{ ioContext } };
+    auto self = std::shared_ptr<SecondaryNodeReady>{ new SecondaryNodeReady{ executionContext } };
 
     self->connectPromise();
 
@@ -27,7 +27,7 @@ void SecondaryNodeReady::connectPromise()
 {
     NetUtils::thenPost(
         promise_.get_future(),
-        ioContext_,
+        executionContext_,
         [this, weakSelf = weak_from_this()](boost::future<void> future)
         {
             const auto self = weakSelf.lock();

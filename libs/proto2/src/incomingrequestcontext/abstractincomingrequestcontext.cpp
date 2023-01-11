@@ -2,8 +2,8 @@
 
 namespace Proto2::IncomingRequestContext
 {
-AbstractIncomingRequestContext::AbstractIncomingRequestContext(boost::asio::io_context &ioContext)
-    : ioContext_{ ioContext }
+AbstractIncomingRequestContext::AbstractIncomingRequestContext(boost::asio::io_context &executionContext)
+    : executionContext_{ executionContext }
 {
 }
 

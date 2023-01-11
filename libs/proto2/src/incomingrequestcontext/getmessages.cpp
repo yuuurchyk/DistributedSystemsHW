@@ -8,9 +8,9 @@
 
 namespace Proto2::IncomingRequestContext
 {
-std::shared_ptr<GetMessages> GetMessages::create(boost::asio::io_context &ioContext)
+std::shared_ptr<GetMessages> GetMessages::create(boost::asio::io_context &executionContext)
 {
-    auto self = std::shared_ptr<GetMessages>{ new GetMessages{ ioContext } };
+    auto self = std::shared_ptr<GetMessages>{ new GetMessages{ executionContext } };
 
     self->connectPromise();
 
@@ -26,7 +26,7 @@ void GetMessages::connectPromise()
 {
     NetUtils::thenPost(
         promise_.get_future(),
-        ioContext_,
+        executionContext_,
         [this, weakSelf = weak_from_this()](boost::future<std::vector<std::string_view>> future)
         {
             const auto self = weakSelf.lock();
