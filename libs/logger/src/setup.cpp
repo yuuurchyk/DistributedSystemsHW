@@ -26,8 +26,7 @@ namespace keywords = boost::log::keywords;
 using backend_t = sinks::text_ostream_backend;
 using sink_t    = sinks::asynchronous_sink<
     backend_t,
-    sinks::unbounded_ordering_queue<
-        logging::attribute_value_ordering<unsigned int, std::less<unsigned int>>>>;
+    sinks::unbounded_ordering_queue<logging::attribute_value_ordering<unsigned int, std::less<unsigned int>>>>;
 
 namespace
 {
@@ -37,7 +36,7 @@ boost::shared_ptr<sink_t> sink;
 
 namespace logger
 {
-void setup(std::string programName)
+void setup(std::string programName, Severity minSeverity)
 {
     using namespace detail::attributes;
 
@@ -56,12 +55,23 @@ void setup(std::string programName)
     logging::core::get()->add_global_attribute(kUpTimeMs, UptimeMs{});
 
     ::sink.reset(new sink_t{ boost::make_shared<backend_t>(),
-                             keywords::order = logging::make_attr_ordering<unsigned int>(
-                                 kRecordId, std::less<unsigned int>()) });
+                             keywords::order =
+                                 logging::make_attr_ordering<unsigned int>(kRecordId, std::less<unsigned int>()) });
 
-    sink->locked_backend()->add_stream(
-        boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter{}));
+    sink->locked_backend()->add_stream(boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter{}));
     sink->set_formatter(&::logger::formatter);
+    sink->set_filter(
+        [minSeverity](const auto &attr_set)
+        {
+            if (attr_set[detail::attributes::kSeverity].extract_or_default(minSeverity) >= minSeverity)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        });
 
     boost::log::core::get()->add_sink(sink);
 }

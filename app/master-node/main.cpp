@@ -9,8 +9,8 @@
 #include "net-utils/iocontextpool.h"
 #include "net-utils/socketacceptor.h"
 
-#include "masterhttpsession.h"
-#include "masternode.h"
+#include "httpsession/httpsession.h"
+#include "masternode/masternode.h"
 
 struct CmdArgs
 {
@@ -76,34 +76,51 @@ int main(int argc, char **argv)
 {
     const auto args = readCmdArgs(argc, argv);
 
-    logger::setup(args.nodeName.empty() ? std::string{ "master-node" } : args.nodeName);
+    logger::setup(args.nodeName.empty() ? std::string{ "master-node" } : args.nodeName, logger::Severity::Info);
     BOOST_SCOPE_EXIT(void)
     {
         logger::teardown();
     }
     BOOST_SCOPE_EXIT_END
 
-    LOGI << "Using " << args.commWorkers << " internal communication threads";
-    auto secondariesPool = NetUtils::IOContextPool::create(args.commWorkers);
-    secondariesPool->runInSeparateThreads();
-
     LOGI << "Using " << args.httpWorkers << " http threads";
     auto httpWorkersPool = NetUtils::IOContextPool::create(3);
     httpWorkersPool->runInSeparateThreads();
 
-    auto utilityPool = NetUtils::IOContextPool::create(1);
+    auto utilityPool = NetUtils::IOContextPool::create(2);
     utilityPool->runInSeparateThreads();
+
+    auto masterNode = MasterNode::create(utilityPool->getNext());
+
     LOGI << "Internal communication port=" << args.commPort;
-    auto masterNode = MasterNode::create(utilityPool->getNext(), args.commPort, secondariesPool);
-    masterNode->run();
+    LOGI << "Using " << args.commWorkers << " internal communication threads";
+    auto secondariesPool = NetUtils::IOContextPool::create(args.commWorkers);
+    secondariesPool->runInSeparateThreads();
+
+    auto secondariesAcceptor = NetUtils::SocketAcceptor::create(
+        utilityPool->getNext(),
+        args.commPort,
+        [weakMasterNode = masterNode->weak_from_this()](
+            boost::asio::ip::tcp::socket socket, std::unique_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard)
+        {
+            auto masterNode = weakMasterNode.lock();
+            if (masterNode == nullptr)
+                return;
+
+            auto &secondaryContext = loadGuard->ioContext_;
+
+            masterNode->addSecondary(secondaryContext, std::move(socket), std::move(loadGuard));
+        },
+        secondariesPool);
+    secondariesAcceptor->run();
 
     LOGI << "Listening for http requests on port " << args.httpPort;
     auto context            = boost::asio::io_context{};
     auto httpSocketAcceptor = NetUtils::SocketAcceptor::create(
         context,
         args.httpPort,
-        [weakMasterNode = std::weak_ptr<MasterNode>{ masterNode }](
-            boost::asio::ip::tcp::socket socket, boost::asio::io_context &ioContext)
+        [weakMasterNode =
+             masterNode->weak_from_this()](boost::asio::ip::tcp::socket socket, boost::asio::io_context &ioContext)
         { MasterHttpSession::create(ioContext, std::move(socket), weakMasterNode)->run(); },
         httpWorkersPool);
     httpSocketAcceptor->run();

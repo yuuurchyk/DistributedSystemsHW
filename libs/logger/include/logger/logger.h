@@ -11,14 +11,14 @@
 
 #include "logger/detail/codelocation.hpp"
 #include "logger/detail/extractbasename.hpp"
-#include "logger/detail/severity.h"
 #include "logger/entity.hpp"
+#include "logger/severity.h"
 
 namespace logger
 {
 // NOTE: these functions should be called only from main thread at start and end
 // of the program
-void setup(std::string programName);
+void setup(std::string programName, Severity minSeverity = Severity::Debug);
 void teardown();
 
 namespace detail
@@ -29,13 +29,12 @@ namespace detail
               GlobalLogger,
               boost::log::sources::multi_thread_model<boost::log::aux::light_rw_mutex>,
               boost::log::sources::features<
-                  boost::log::sources::severity<detail::Severity>,
-                  detail::KeyValue<CodeFilenameKeywordGetter,
-                                   CodeFilenameAttrNameGetter,
-                                   attributes::code_file_name_t>,
-                  detail::KeyValue<CodeLineNumberKeywordGetter,
-                                   CodeLineNumberAttrNameGetter,
-                                   attributes::code_line_number_t>>>
+                  boost::log::sources::severity<Severity>,
+                  detail::KeyValue<CodeFilenameKeywordGetter, CodeFilenameAttrNameGetter, attributes::code_file_name_t>,
+                  detail::KeyValue<
+                      CodeLineNumberKeywordGetter,
+                      CodeLineNumberAttrNameGetter,
+                      attributes::code_line_number_t>>>
     {
         BOOST_LOG_FORWARD_LOGGER_MEMBERS_TEMPLATE(GlobalLogger)
     };
@@ -48,12 +47,13 @@ namespace detail
 #define _LOGIMPL(sev)                                                             \
     BOOST_LOG_WITH_PARAMS(                                                        \
         ::logger::detail::m_globalLogger::get(),                                  \
-        (boost::log::keywords::severity = ::logger::detail::Severity::sev)(       \
+        (boost::log::keywords::severity = ::logger::Severity::sev)(               \
             ::logger::detail::keywords::CodeFilename =                            \
                 ::logger::detail::extractBaseName(std::string_view{ __FILE__ }))( \
             ::logger::detail::keywords::CodeLineNumber =                          \
                 ::logger::detail::attributes::code_line_number_t{ __LINE__ }))
 
+#define LOGD _LOGIMPL(Debug)
 #define LOGI _LOGIMPL(Info)
 #define LOGW _LOGIMPL(Warning)
 #define LOGE _LOGIMPL(Error)

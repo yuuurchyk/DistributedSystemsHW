@@ -21,5 +21,6 @@ set_target_properties(
   PROPERTIES CXX_STANDARD 20
              CXX_STANDARD_REQUIRED ON
              CXX_EXTENSIONS OFF)
+target_include_directories(${PROJECT_NAME} PRIVATE .)
 
 install(TARGETS ${PROJECT_NAME})

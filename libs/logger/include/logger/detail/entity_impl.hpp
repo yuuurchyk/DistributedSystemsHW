@@ -11,7 +11,7 @@
 #include "logger/detail/attributes.h"
 #include "logger/detail/codelocation.hpp"
 #include "logger/detail/keyvaluefeature.hpp"
-#include "logger/detail/severity.h"
+#include "logger/severity.h"
 
 namespace logger::detail
 {
@@ -54,14 +54,12 @@ class EntityLogger
           char,
           EntityLogger,
           boost::log::sources::multi_thread_model<boost::log::aux::light_rw_mutex>,
-          boost::log::sources::features<boost::log::sources::severity<detail::Severity>,
-                                        boost::log::sources::channel<std::string_view>,
-                                        detail::KeyValue<CodeFilenameKeywordGetter,
-                                                         CodeFilenameAttrNameGetter,
-                                                         attributes::code_file_name_t>,
-                                        detail::KeyValue<CodeLineNumberKeywordGetter,
-                                                         CodeLineNumberAttrNameGetter,
-                                                         attributes::code_line_number_t>>>
+          boost::log::sources::features<
+              boost::log::sources::severity<Severity>,
+              boost::log::sources::channel<std::string_view>,
+              detail::KeyValue<CodeFilenameKeywordGetter, CodeFilenameAttrNameGetter, attributes::code_file_name_t>,
+              detail::
+                  KeyValue<CodeLineNumberKeywordGetter, CodeLineNumberAttrNameGetter, attributes::code_line_number_t>>>
 {
     BOOST_LOG_FORWARD_LOGGER_MEMBERS_TEMPLATE(EntityLogger)
 };
@@ -71,17 +69,13 @@ class NumIdEntityLogger
           char,
           NumIdEntityLogger,
           boost::log::sources::multi_thread_model<boost::log::aux::light_rw_mutex>,
-          boost::log::sources::features<boost::log::sources::severity<detail::Severity>,
-                                        boost::log::sources::channel<std::string_view>,
-                                        detail::KeyValue<NumIdKeywordGetter,
-                                                         NumIdAttrNameGetter,
-                                                         attributes::num_id_t>,
-                                        detail::KeyValue<CodeFilenameKeywordGetter,
-                                                         CodeFilenameAttrNameGetter,
-                                                         attributes::code_file_name_t>,
-                                        detail::KeyValue<CodeLineNumberKeywordGetter,
-                                                         CodeLineNumberAttrNameGetter,
-                                                         attributes::code_line_number_t>>>
+          boost::log::sources::features<
+              boost::log::sources::severity<Severity>,
+              boost::log::sources::channel<std::string_view>,
+              detail::KeyValue<NumIdKeywordGetter, NumIdAttrNameGetter, attributes::num_id_t>,
+              detail::KeyValue<CodeFilenameKeywordGetter, CodeFilenameAttrNameGetter, attributes::code_file_name_t>,
+              detail::
+                  KeyValue<CodeLineNumberKeywordGetter, CodeLineNumberAttrNameGetter, attributes::code_line_number_t>>>
 {
     BOOST_LOG_FORWARD_LOGGER_MEMBERS_TEMPLATE(NumIdEntityLogger)
 };
@@ -91,17 +85,13 @@ class StringIdEntityLogger
           char,
           StringIdEntityLogger,
           boost::log::sources::multi_thread_model<boost::log::aux::light_rw_mutex>,
-          boost::log::sources::features<boost::log::sources::severity<detail::Severity>,
-                                        boost::log::sources::channel<std::string_view>,
-                                        detail::KeyValue<StringIdKeywordGetter,
-                                                         StringIdAttrNameGetter,
-                                                         attributes::string_id_t>,
-                                        detail::KeyValue<CodeFilenameKeywordGetter,
-                                                         CodeFilenameAttrNameGetter,
-                                                         attributes::code_file_name_t>,
-                                        detail::KeyValue<CodeLineNumberKeywordGetter,
-                                                         CodeLineNumberAttrNameGetter,
-                                                         attributes::code_line_number_t>>>
+          boost::log::sources::features<
+              boost::log::sources::severity<Severity>,
+              boost::log::sources::channel<std::string_view>,
+              detail::KeyValue<StringIdKeywordGetter, StringIdAttrNameGetter, attributes::string_id_t>,
+              detail::KeyValue<CodeFilenameKeywordGetter, CodeFilenameAttrNameGetter, attributes::code_file_name_t>,
+              detail::
+                  KeyValue<CodeLineNumberKeywordGetter, CodeLineNumberAttrNameGetter, attributes::code_line_number_t>>>
 {
     BOOST_LOG_FORWARD_LOGGER_MEMBERS_TEMPLATE(StringIdEntityLogger)
 };

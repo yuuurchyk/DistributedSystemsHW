@@ -6,12 +6,13 @@
 #include <boost/program_options.hpp>
 #include <boost/scope_exit.hpp>
 
+#include "constants2/constants2.h"
 #include "logger/logger.h"
 #include "net-utils/iocontextpool.h"
 #include "net-utils/socketacceptor.h"
 
-#include "secondaryhttpsession.h"
-#include "secondarynode.h"
+#include "httpsession/httpsession.h"
+#include "secondarynode/secondarynode.h"
 
 struct CmdArgs
 {
@@ -76,36 +77,38 @@ int main(int argc, char **argv)
 {
     const auto args = readCmdArgs(argc, argv);
 
-    logger::setup(args.nodeName);
+    logger::setup(args.nodeName, logger::Severity::Info);
     BOOST_SCOPE_EXIT(void)
     {
         logger::teardown();
     }
     BOOST_SCOPE_EXIT_END
 
+    LOGI << "Master internal communication, ip=" << args.masterIp << ", port=" << args.masterCommPort;
+    auto context       = boost::asio::io_context{};
+    auto secondaryNode = SecondaryNode::create(
+        args.nodeName,
+        context,
+        boost::asio::ip::tcp::endpoint{ boost::asio::ip::address::from_string(args.masterIp), args.masterCommPort },
+        Constants2::kMasterReconnectTimeout);
+    secondaryNode->run();
+
     LOGI << "Using " << args.httpWorkers << " http threads";
     auto httpWorkersPool = NetUtils::IOContextPool::create(args.httpWorkers);
     httpWorkersPool->runInSeparateThreads();
 
+    LOGI << "Listening for http requests on port " << args.httpPort;
     auto utilityPool = NetUtils::IOContextPool::create(1);
     utilityPool->runInSeparateThreads();
-    LOGI << "Master internal communication, ip=" << args.masterIp << ", port=" << args.masterCommPort;
-    auto secondaryNode = SecondaryNode::create(
-        args.nodeName,
-        utilityPool->getNext(),
-        boost::asio::ip::tcp::endpoint{ boost::asio::ip::address::from_string(args.masterIp), args.masterCommPort });
-    secondaryNode->run();
-
-    LOGI << "Listening for http requests on port " << args.httpPort;
-    auto context            = boost::asio::io_context{};
     auto httpSocketAcceptor = NetUtils::SocketAcceptor::create(
-        context,
+        utilityPool->getNext(),
         args.httpPort,
         [weakSecondaryNode = std::weak_ptr<SecondaryNode>{ secondaryNode }](
             boost::asio::ip::tcp::socket socket, boost::asio::io_context &ioContext)
-        { SecondaryHttpSession::create(ioContext, std::move(socket), weakSecondaryNode)->run(); },
+        { HttpSession::create(ioContext, std::move(socket), weakSecondaryNode)->run(); },
         httpWorkersPool);
     httpSocketAcceptor->run();
+
     context.run();
 
     return 0;

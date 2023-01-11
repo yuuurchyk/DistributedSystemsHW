@@ -13,7 +13,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ./**.cpp ./**.h ./**.hpp)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE Boost::json Boost::program_options TBB::tbb
+  ${PROJECT_NAME} PRIVATE TBB::tbb Boost::json Boost::program_options
                           ${libsTargets})
 
 set_target_properties(
@@ -21,5 +21,6 @@ set_target_properties(
   PROPERTIES CXX_STANDARD 20
              CXX_STANDARD_REQUIRED ON
              CXX_EXTENSIONS OFF)
+target_include_directories(${PROJECT_NAME} PRIVATE .)
 
 install(TARGETS ${PROJECT_NAME})
