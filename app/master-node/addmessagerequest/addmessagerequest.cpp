@@ -26,11 +26,11 @@ AddMessageRequest::AddMessageRequest(
     size_t                    messageId,
     std::string_view          message,
     size_t                    writeConcern)
-    : logger::StringIdEntity<AddMessageRequest>{ "msg=" + std::string{ message } },
-      ioContext_{ ioContext },
+    : ioContext_{ ioContext },
       masterNode_{ std::move(masterNode) },
       writeConcern_{ writeConcern },
-      messageId_{ messageId }
+      messageId_{ messageId },
+      message_{ std::move(message) }
 {
 }
 
@@ -57,7 +57,7 @@ void AddMessageRequest::start()
     {
         requestMarkSuccess();
 
-        if (allSecondariesAnswered())
+        if (allSecondariesSuccessfullyAnswered())
         {
             EN_LOGI << "all secondaries answered, destroying request";
             return;
@@ -213,7 +213,15 @@ size_t AddMessageRequest::satisfiedWriteConcern() const
     return res;
 }
 
-bool AddMessageRequest::allSecondariesAnswered() const
+bool AddMessageRequest::allSecondariesSuccessfullyAnswered() const
 {
-    return statuses_.size() == secondariesSnapshot_.size();
+    auto successfulAnswers = size_t{ 0 };
+
+    for (const auto &[_, status] : statuses_)
+    {
+        if (status != Status::ERROR)
+            ++successfulAnswers;
+    }
+
+    return successfulAnswers == secondariesSnapshot_.size();
 }

@@ -15,7 +15,7 @@
 #include "secondary/secondarysnapshot.h"
 
 class AddMessageRequest : public std::enable_shared_from_this<AddMessageRequest>,
-                          private logger::StringIdEntity<AddMessageRequest>
+                          private logger::NumIdEntity<AddMessageRequest>
 {
     DISABLE_COPY_MOVE(AddMessageRequest)
 public:
@@ -39,7 +39,7 @@ private:
         size_t           writeConcern);
 
     [[nodiscard]] size_t satisfiedWriteConcern() const;
-    [[nodiscard]] bool   allSecondariesAnswered() const;
+    [[nodiscard]] bool   allSecondariesSuccessfullyAnswered() const;
 
     void start();
 
