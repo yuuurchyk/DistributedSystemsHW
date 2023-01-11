@@ -19,6 +19,7 @@ namespace Proto2
 class OutcomingRequestsManager : public std::enable_shared_from_this<OutcomingRequestsManager>,
                                  private logger::StringIdEntity<OutcomingRequestsManager>
 {
+    // TODO: refactor
     DISABLE_COPY_MOVE(OutcomingRequestsManager)
 public:
     [[nodiscard]] static std::shared_ptr<OutcomingRequestsManager>
