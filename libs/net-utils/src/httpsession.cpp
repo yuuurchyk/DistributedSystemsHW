@@ -35,7 +35,7 @@ void HttpSession::setDeadline()
 
     auto &timer = timer_.value();
 
-    EN_LOGI << "setting deadline timer";
+    EN_LOGD << "setting deadline timer";
     timer.expires_from_now(boost::posix_time::milliseconds{ timeoutMs_.value() });
     timer.async_wait(
         [this, self = shared_from_this()](const error_code &ec)
@@ -43,14 +43,14 @@ void HttpSession::setDeadline()
             if (ec)
                 return;
 
-            EN_LOGE << "timeout occured for request";
+            EN_LOGW << "timeout occured for request";
             socket_.close();
         });
 }
 
 void HttpSession::readRequest()
 {
-    EN_LOGI << "reading request";
+    EN_LOGD << "reading request";
     http::async_read(
         socket_,
         requestBuffer_,
@@ -59,13 +59,13 @@ void HttpSession::readRequest()
         {
             if (ec)
             {
-                EN_LOGE << "failed to read request";
+                EN_LOGW << "failed to read request";
                 if (timer_.has_value())
                     timer_.value().cancel();
             }
             else
             {
-                EN_LOGI << "successfully read request";
+                EN_LOGD << "successfully read request";
                 processRequest();
             }
         });
@@ -85,7 +85,7 @@ void HttpSession::writeResponse()
 
 void HttpSession::fallback(std::string reason)
 {
-    EN_LOGI << "invalid request, falling back";
+    EN_LOGW << "invalid request, falling back";
     response_.result(http::status::bad_request);
     response_.set(http::field::content_type, "text/plain");
     response_.body() = std::move(reason);

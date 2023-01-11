@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 {
     const auto args = readCmdArgs(argc, argv);
 
-    logger::setup(args.nodeName.empty() ? std::string{ "master-node" } : args.nodeName);
+    logger::setup(args.nodeName.empty() ? std::string{ "master-node" } : args.nodeName, logger::Severity::Info);
     BOOST_SCOPE_EXIT(void)
     {
         logger::teardown();

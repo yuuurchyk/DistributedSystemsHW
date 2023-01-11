@@ -108,7 +108,7 @@ void MasterNode::addSecondaryImpl(
                 [this, id, friendlyName = std::move(friendlyName), response = std::move(response), weakSelf]() mutable
                 {
                     const auto self = weakSelf.lock();
-                    if (self == nullptr)
+                    if (self != nullptr)
                         onIncomingSecondaryNodeReady(id, std::move(friendlyName), std::move(response));
                 });
         });

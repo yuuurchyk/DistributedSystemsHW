@@ -21,14 +21,14 @@ std::shared_ptr<MasterHttpSession> MasterHttpSession::create(
 
 void MasterHttpSession::processRequest()
 {
-    EN_LOGI << "Processing request";
+    EN_LOGD << "Processing request";
 
     response_.version(request_.version());
     response_.keep_alive(false);
 
     if (request_.method() == http::verb::get && request_.target() == "/messages")
     {
-        EN_LOGI << "valid request, retrieving list of messages";
+        EN_LOGD << "valid request, retrieving list of messages";
 
         response_.result(http::status::ok);
         response_.set(http::field::server, "Beast");
@@ -88,7 +88,7 @@ void MasterHttpSession::processRequest()
         if (node == nullptr)
             return fallback("node is dead (should not happen)");
 
-        EN_LOGI << "valid request, adding new message: " << message << ", writeConcern=" << writeConcern;
+        EN_LOGD << "valid request, adding new message: " << message << ", writeConcern=" << writeConcern;
 
         NetUtils::thenPost(
             node->addMessage(ioContext_, std::move(message), writeConcern),
