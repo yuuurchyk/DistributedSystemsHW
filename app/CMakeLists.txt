@@ -1,6 +1,2 @@
-add_subdirectory(master-node)
-add_subdirectory(secondary-node)
-add_subdirectory(test-master)
-add_subdirectory(test-secondary)
 add_subdirectory(new-master-node)
 add_subdirectory(new-secondary-node)
