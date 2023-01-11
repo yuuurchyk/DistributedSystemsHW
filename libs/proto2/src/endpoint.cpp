@@ -122,7 +122,7 @@ boost::future<AddMessageStatus> Endpoint::send_addMessage(size_t msgId, std::str
     auto request = Request::AddMessage::create(msgId, msg);
     auto context = OutcomingRequestContext::AddMessage::create();
 
-    auto future = context->future();
+    auto future = context->get_future();
 
     impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context), artificialDelay);
 
@@ -139,7 +139,7 @@ boost::future<std::vector<std::string>> Endpoint::send_getMessages(size_t startM
     auto request = Request::GetMessages::create(startMsgId);
     auto context = OutcomingRequestContext::GetMessages::create();
 
-    auto future = context->future();
+    auto future = context->get_future();
 
     impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context), artificialDelay);
 
@@ -156,7 +156,7 @@ boost::future<Timestamp_t> Endpoint::send_ping(Timestamp_t pingTimestamp)
     auto request = Request::Ping::create(pingTimestamp);
     auto context = OutcomingRequestContext::Ping::create();
 
-    auto future = context->future();
+    auto future = context->get_future();
 
     impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context), artificialDelay);
 
@@ -173,7 +173,7 @@ boost::future<void> Endpoint::send_secondaryNodeReady(std::string secondaryName)
     auto request = Request::SecondaryNodeReady::create(std::move(secondaryName));
     auto context = OutcomingRequestContext::SecondaryNodeReady::create();
 
-    auto future = context->future();
+    auto future = context->get_future();
 
     impl().outcomingRequestsManager->sendRequest(std::move(request), std::move(context), artificialDelay);
 

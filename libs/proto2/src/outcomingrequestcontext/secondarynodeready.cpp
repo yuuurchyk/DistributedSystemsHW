@@ -9,7 +9,7 @@ std::shared_ptr<SecondaryNodeReady> SecondaryNodeReady::create()
     return std::shared_ptr<SecondaryNodeReady>{ new SecondaryNodeReady{} };
 }
 
-boost::future<void> SecondaryNodeReady::future()
+boost::future<void> SecondaryNodeReady::get_future()
 {
     return promise_.get_future();
 }

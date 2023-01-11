@@ -10,7 +10,7 @@ class Ping final : public AbstractOutcomingRequestContext
 public:
     [[nodiscard]] static std::shared_ptr<Ping> create();
 
-    boost::future<Timestamp_t> future();
+    boost::future<Timestamp_t> get_future();
 
     void onResponseRecieved(boost::asio::const_buffer payload) override;
     void invalidate(InvalidationReason) override;

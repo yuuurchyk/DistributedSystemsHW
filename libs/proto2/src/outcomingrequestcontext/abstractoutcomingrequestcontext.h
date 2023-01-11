@@ -11,13 +11,15 @@
 
 namespace Proto2::OutcomingRequestContext
 {
-class AbstractOutcomingRequestContext : std::enable_shared_from_this<AbstractOutcomingRequestContext>
+class AbstractOutcomingRequestContext
 {
     DISABLE_COPY_MOVE(AbstractOutcomingRequestContext)
 public:
     AbstractOutcomingRequestContext()          = default;
     virtual ~AbstractOutcomingRequestContext() = default;
 
+    // TODO: handle promiseMarkFilled() and promiseFilled() solely in this class
+    // write virtual onResponseRecievedImpl(), invalidateImpl(), leave these not virtual
     virtual void onResponseRecieved(boost::asio::const_buffer payload) = 0;
 
     enum class InvalidationReason
