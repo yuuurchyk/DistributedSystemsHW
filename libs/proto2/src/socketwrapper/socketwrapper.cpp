@@ -5,42 +5,38 @@
 
 using error_code = boost::system::error_code;
 
+namespace
+{
+const error_code kAbortedErrorCode{ boost::asio::error::operation_aborted };
+
+}    // namespace
+
 namespace Proto2
 {
-std::shared_ptr<SocketWrapper>
-    SocketWrapper::create(std::string id, boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket)
+std::shared_ptr<SocketWrapper> SocketWrapper::create(
+    std::string                  id,
+    boost::asio::io_context     &executionContext,
+    boost::asio::ip::tcp::socket socket)
 {
-    return std::shared_ptr<SocketWrapper>{ new SocketWrapper{ std::move(id), ioContext, std::move(socket) } };
+    return std::shared_ptr<SocketWrapper>{ new SocketWrapper{ std::move(id), executionContext, std::move(socket) } };
 }
 
 SocketWrapper::~SocketWrapper()
 {
     // don't emit signal in dtor
-    socket_.close();
-    invalidated_ = true;
-    invalidate();
-}
 
-void SocketWrapper::writeFrame(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback_fn callback)
-{
-    auto pendingWrite = PendingWrite{ std::move(frame), std::move(callback) };
-    boost::asio::post(
-        ioContext_,
-        [this, pendingWrite = std::move(pendingWrite), self = shared_from_this()]() mutable
-        {
-            pendingWrites_.push(std::move(pendingWrite));
-            checkPendingWrites();
-        });
-}
+    if (!wasInvalidated())
+    {
+        invalidated_ = true;
+        socket_.close();
+    }
 
-void SocketWrapper::run()
-{
-    readFrameSize();
+    checkPendingWrites();
 }
 
 void SocketWrapper::invalidate()
 {
-    const auto firstTime = !invalidated_;
+    const auto firstTime = !wasInvalidated();
 
     if (firstTime)
     {
@@ -59,9 +55,34 @@ bool SocketWrapper::wasInvalidated() const
     return invalidated_;
 }
 
-boost::asio::io_context &SocketWrapper::ioContext()
+void SocketWrapper::writeFrame(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback_fn callback)
 {
-    return ioContext_;
+    auto pendingWrite = PendingWrite{ std::move(frame), std::move(callback) };
+    boost::asio::post(
+        executionContext_,
+        [this, pendingWrite = std::move(pendingWrite), weakSelf = weak_from_this()]() mutable
+        {
+            const auto self = weakSelf.lock();
+            if (self == nullptr)
+            {
+                pendingWrite.callback(kAbortedErrorCode, {});
+            }
+            else
+            {
+                pendingWrites_.push(std::move(pendingWrite));
+                checkPendingWrites();
+            }
+        });
+}
+
+void SocketWrapper::run()
+{
+    readFrameSize();
+}
+
+boost::asio::io_context &SocketWrapper::executionContext()
+{
+    return executionContext_;
 }
 
 SocketWrapper::PendingWrite::PendingWrite(std::vector<boost::asio::const_buffer> frame, WriteFrameCallback_fn callback)
@@ -69,8 +90,13 @@ SocketWrapper::PendingWrite::PendingWrite(std::vector<boost::asio::const_buffer>
 {
 }
 
-SocketWrapper::SocketWrapper(std::string id, boost::asio::io_context &ioContext, boost::asio::ip::tcp::socket socket)
-    : logger::StringIdEntity<SocketWrapper>{ std::move(id) }, ioContext_{ ioContext }, socket_{ std::move(socket) }
+SocketWrapper::SocketWrapper(
+    std::string                  id,
+    boost::asio::io_context     &executionContext,
+    boost::asio::ip::tcp::socket socket)
+    : logger::StringIdEntity<SocketWrapper>{ std::move(id) },
+      executionContext_{ executionContext },
+      socket_{ std::move(socket) }
 {
 }
 
@@ -80,12 +106,16 @@ void SocketWrapper::readFrameSize()
         socket_,
         boost::asio::buffer(&incomingFrameSize_, sizeof(size_t)),
         boost::asio::transfer_exactly(sizeof(size_t)),
-        [this, self = shared_from_this()](const error_code &ec, size_t)
+        [this, weakSelf = weak_from_this()](const error_code &ec, size_t)
         {
+            const auto self = weakSelf.lock();
+            if (self == nullptr)
+                return;
+
             if (ec)
             {
                 EN_LOGE << "Failed to read frame size, invalidating";
-                return invalidate();
+                invalidate();
             }
             else
             {
@@ -109,12 +139,16 @@ void SocketWrapper::readFrame()
         socket_,
         boost::asio::buffer(incomingFrameBuffer_.get(), incomingFrameSize_),
         boost::asio::transfer_exactly(incomingFrameSize_),
-        [this, self = shared_from_this()](const error_code &ec, size_t)
+        [this, weakSelf = weak_from_this()](const error_code &ec, size_t)
         {
+            const auto self = weakSelf.lock();
+            if (self == nullptr)
+                return;
+
             if (ec)
             {
                 EN_LOGE << "Failed to read incoming frame, invalidating";
-                return invalidate();
+                invalidate();
             }
             else
             {
@@ -126,19 +160,19 @@ void SocketWrapper::readFrame()
 
 void SocketWrapper::checkPendingWrites()
 {
-    if (writeInProgress_)
-        return;
-
-    if (invalidated_)
+    if (wasInvalidated())
     {
         while (!pendingWrites_.empty())
         {
             auto &pendingWrite = pendingWrites_.front();
-            pendingWrite.callback(error_code{ boost::asio::error::operation_aborted }, {});
+            pendingWrite.callback(kAbortedErrorCode, {});
             pendingWrites_.pop();
         }
         return;
     }
+
+    if (writeInProgress_)
+        return;
 
     if (pendingWrites_.empty())
         return;
@@ -165,9 +199,14 @@ void SocketWrapper::checkPendingWrites()
     boost::asio::async_write(
         socket_,
         std::move(frame),
-        [this, callback = std::move(callback), self = shared_from_this()](const error_code &ec, size_t transferred)
+        [this, callback = std::move(callback), weakSelf = weak_from_this()](const error_code &ec, size_t transferred)
         {
+            const auto self = weakSelf.lock();
+
             callback(ec, transferred);
+
+            if (self == nullptr)
+                return;
 
             if (ec)
             {

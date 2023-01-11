@@ -114,7 +114,7 @@ OutcomingRequestsManager::OutcomingRequestsManager(
     std::shared_ptr<SocketWrapper> socketWrapper,
     duration_milliseconds_t        responseTimeout)
     : logger::StringIdEntity<OutcomingRequestsManager>{ std::move(id) },
-      ioContext_{ socketWrapper->ioContext() },
+      ioContext_{ socketWrapper->executionContext() },
       socketWrapper_{ std::move(socketWrapper) },
       responseTimeout_{ responseTimeout }
 {

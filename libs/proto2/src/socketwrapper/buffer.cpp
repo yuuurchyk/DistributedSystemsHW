@@ -2,7 +2,6 @@
 
 namespace Proto2
 {
-
 size_t Buffer::size() const noexcept
 {
     return size_;

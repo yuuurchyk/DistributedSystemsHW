@@ -89,7 +89,7 @@ IncomingRequestsManager::PendingResponse::PendingResponse(
 
 IncomingRequestsManager::IncomingRequestsManager(std::string id, std::shared_ptr<SocketWrapper> socketWrapper)
     : logger::StringIdEntity<IncomingRequestsManager>{ std::move(id) },
-      ioContext_{ socketWrapper->ioContext() },
+      ioContext_{ socketWrapper->executionContext() },
       socketWrapper_{ std::move(socketWrapper) }
 {
 }
