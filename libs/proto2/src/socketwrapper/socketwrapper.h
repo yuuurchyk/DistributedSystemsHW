@@ -7,12 +7,10 @@
 #include <vector>
 
 #include <boost/asio.hpp>
-#include <boost/signals2.hpp>
 
 #include "logger/logger.h"
 #include "utils/copymove.h"
-
-#include "proto2/signal.h"
+#include "utils/signal.h"
 
 #include "socketwrapper/buffer.h"
 
@@ -62,8 +60,8 @@ public:
     boost::asio::io_context &executionContext();
 
 public:    // signals
-    signal<boost::asio::const_buffer> incomingFrame;
-    signal<>                          invalidated;
+    Utils::signal<boost::asio::const_buffer> incomingFrame;
+    Utils::signal<>                          invalidated;
 
 private:
     struct PendingWrite

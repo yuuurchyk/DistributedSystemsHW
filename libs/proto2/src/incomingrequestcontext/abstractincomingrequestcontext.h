@@ -3,12 +3,11 @@
 #include <memory>
 
 #include <boost/asio.hpp>
-#include <boost/signals2.hpp>
 #include <boost/thread.hpp>
 
 #include "utils/copymove.h"
+#include "utils/signal.h"
 
-#include "proto2/signal.h"
 #include "response/abstractresponse.h"
 
 namespace Proto2::IncomingRequestContext
@@ -24,8 +23,8 @@ public:
 
     // note: successor classes should emit these signals in thread that runs
     // execution context
-    signal<std::shared_ptr<Response::AbstractResponse>> responseRecieved;
-    signal<>                                            invalidResponseRecieved;
+    Utils::signal<std::shared_ptr<Response::AbstractResponse>> responseRecieved;
+    Utils::signal<>                                            invalidResponseRecieved;
 
 protected:
     /**

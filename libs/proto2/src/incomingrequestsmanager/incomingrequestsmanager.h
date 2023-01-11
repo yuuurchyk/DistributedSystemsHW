@@ -8,10 +8,10 @@
 
 #include "logger/logger.h"
 #include "utils/copymove.h"
+#include "utils/signal.h"
 
 #include "frame/frame.h"
 #include "incomingrequestcontext/abstractincomingrequestcontext.h"
-#include "proto2/signal.h"
 #include "response/abstractresponse.h"
 #include "socketwrapper/socketwrapper.h"
 
@@ -40,7 +40,7 @@ public:
     void registerContext(size_t responseId, Context_t context);
 
 public:    // signals
-    signal<Frame::RequestFrame> incomingRequestFrame;
+    Utils::signal<Frame::RequestFrame> incomingRequestFrame;
 
 private:
     struct PendingResponse
