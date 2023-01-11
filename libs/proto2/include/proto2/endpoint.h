@@ -32,8 +32,6 @@ class Endpoint : public std::enable_shared_from_this<Endpoint>, private logger::
     DISABLE_COPY_MOVE(Endpoint)
 
 public:
-    // TODO: make sure that socket does not grab itself, invalidate socket in dtor, add invalidate() method
-
     [[nodiscard]] static std::shared_ptr<Endpoint> create(
         std::string                                                 id,
         boost::asio::io_context                                    &ioContext,
