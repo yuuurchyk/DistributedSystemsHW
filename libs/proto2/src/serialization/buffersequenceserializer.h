@@ -12,7 +12,6 @@
 
 namespace Proto2
 {
-
 class BufferSequenceSerializer
 {
     DISABLE_COPY_MOVE(BufferSequenceSerializer)
@@ -22,11 +21,8 @@ public:
      *
      * @param seq - calls to serialize() methods populate the @p seq
      *
-     * @note add() methods don't copy the underlying memory, so make sure
+     * @note serializeWoOwnership() methods don't copy the underlying memory, so make sure
      * your objects live long enough for the buffers to stay valid
-     *
-     * @note serialize() methods does not prolong the life of passed objects,
-     * so make sure they stay alive long enough for the buffer to stay valid
      */
     BufferSequenceSerializer(std::vector<boost::asio::const_buffer> &seq);
     ~BufferSequenceSerializer() = default;
