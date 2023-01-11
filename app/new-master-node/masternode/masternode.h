@@ -34,20 +34,7 @@ public:    // usage interface
     const Storage &storage() const;
 
 public:
-    struct PingInfo
-    {
-        size_t                     secondaryId;
-        std::optional<std::string> secondaryName;
-
-        Proto2::Timestamp_t pingTimestamp;
-
-        bool                               pongSuccessful{};
-        std::optional<Proto2::Timestamp_t> pongTimestamp;    // in case successful
-        std::optional<std::string>         error;            // in case not successful
-    };
-
-    boost::future<void>                  addMessage(std::string message, size_t writeConcern);
-    boost::future<std::vector<PingInfo>> pingSecondaries();
+    boost::future<void> addMessage(boost::asio::io_context &executionContext, std::string message, size_t writeConcern);
 
     std::vector<SecondarySnapshot> secondariesSnapshot();
 

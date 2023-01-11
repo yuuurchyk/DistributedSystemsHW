@@ -2,11 +2,12 @@
 
 #include <utility>
 
-size_t Storage::addMessage(std::string message)
+std::pair<size_t, std::string_view> Storage::addMessage(std::string message)
 {
-    const auto id = nextMessageId_.fetch_add(1, std::memory_order_relaxed);
-    messages_.insert({ id, std::move(message) });
-    return id;
+    const auto id  = nextMessageId_.fetch_add(1, std::memory_order_relaxed);
+    auto       res = messages_.insert({ id, std::move(message) });
+
+    return std::make_pair(id, std::string_view{ res.first->second });
 }
 
 std::vector<std::string_view> Storage::getContiguousChunk(size_t startId) const

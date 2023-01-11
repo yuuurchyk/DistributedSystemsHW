@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <utility>
 
 #include <tbb/concurrent_unordered_map.h>
 
@@ -24,7 +25,7 @@ public:
      * @brief adds message into storage
      * @return size_t - id of added message (always increased)
      */
-    size_t addMessage(std::string);
+    std::pair<size_t, std::string_view> addMessage(std::string);
 
     /**
      * @brief get the contiguous chunk of messages starting from @p startId

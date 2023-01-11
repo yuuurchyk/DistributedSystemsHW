@@ -1,8 +1,34 @@
 #include "masternode/masternode.h"
 
+#include "addmessagerequest/addmessagerequest.h"
+
 std::shared_ptr<MasterNode> MasterNode::create(boost::asio::io_context &context)
 {
     return std::shared_ptr<MasterNode>{ new MasterNode{ context } };
+}
+
+boost::future<void>
+    MasterNode::addMessage(boost::asio::io_context &executionContext, std::string message, size_t writeConcern)
+{
+    auto [msgId, msgView] = storage_.addMessage(std::move(message));
+
+    auto request = AddMessageRequest::create(
+        executionContext, weak_from_this(), msgId, msgView, writeConcern <= 1 ? size_t{} : writeConcern - 1);
+
+    auto requestFuture = request->future();
+    request->run();
+
+    if (writeConcern <= 1)
+    {
+        // no confirmations need from secondaries, returning ready future
+        auto promise = boost::promise<void>{};
+        promise.set_value();
+        return promise.get_future();
+    }
+    else
+    {
+        return requestFuture;
+    }
 }
 
 void MasterNode::addSecondary(
