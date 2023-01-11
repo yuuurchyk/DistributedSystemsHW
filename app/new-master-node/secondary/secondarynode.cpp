@@ -1,4 +1,4 @@
-#include "secondarynode/secondarynode.h"
+#include "secondary/secondarynode.h"
 
 #include <utility>
 
@@ -29,7 +29,7 @@ const std::optional<std::string> &SecondaryNode::friendlyName() const
     return friendlyName_;
 }
 
-SecondaryNode::State SecondaryNode::state() const
+SecondaryState SecondaryNode::state() const
 {
     return state_;
 }
@@ -41,12 +41,12 @@ void SecondaryNode::setFriendlyName(std::string name)
 
 void SecondaryNode::setOperational()
 {
-    state_ = State::OPERATIONAL;
+    state_ = SecondaryState::OPERATIONAL;
 }
 
 void SecondaryNode::setInvalidated()
 {
-    state_ = State::INVALIDATED;
+    state_ = SecondaryState::INVALIDATED;
 }
 
 SecondaryNode::SecondaryNode(

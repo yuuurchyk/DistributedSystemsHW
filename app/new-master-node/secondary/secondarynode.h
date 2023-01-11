@@ -10,6 +10,7 @@
 #include "proto2/endpoint.h"
 #include "utils/copymove.h"
 
+#include "secondary/secondarystate.h"
 #include "storage/storage.h"
 
 class SecondaryNode
@@ -22,18 +23,11 @@ public:
         boost::asio::ip::tcp::socket,
         std::shared_ptr<NetUtils::IOContextPool::LoadGuard>);
 
-    enum class State
-    {
-        INVALIDATED,
-        REGISTERING,
-        OPERATIONAL
-    };
-
     std::shared_ptr<Proto2::Endpoint> endpoint();
 
     size_t                            id() const;
     const std::optional<std::string> &friendlyName() const;
-    State                             state() const;
+    SecondaryState                    state() const;
 
     void setFriendlyName(std::string);
     void setOperational();
@@ -49,7 +43,7 @@ private:
     const size_t               id_;
     std::optional<std::string> friendlyName_;
 
-    State state_{ State::REGISTERING };
+    SecondaryState state_{ SecondaryState::REGISTERING };
 
     boost::asio::io_context                &ioContext_;
     const std::shared_ptr<Proto2::Endpoint> endpoint_;

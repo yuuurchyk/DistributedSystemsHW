@@ -33,9 +33,10 @@ void MasterNode::addSecondaryImpl(
     boost::asio::ip::tcp::socket                        socket,
     std::shared_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard)
 {
-    const auto id        = secondaryIdCounter_++;
-    auto       secondary = SecondaryNode::create(id, secondaryContext, std::move(socket), std::move(loadGuard));
-    secondaries_[id]     = secondary;
+    const std::unique_lock lck{ secondariesMutex_ };
+    const auto             id = secondaryIdCounter_++;
+    auto secondary            = SecondaryNode::create(id, secondaryContext, std::move(socket), std::move(loadGuard));
+    secondaries_[id]          = secondary;
 
     auto &masterNodeContext = ioContext_;
 
@@ -95,6 +96,7 @@ void MasterNode::onInvalidated(size_t secondaryId)
 
     EN_LOGW << "secondary " << secondaryId << " invalidated";
 
+    const std::unique_lock lck{ secondariesMutex_ };
     it->second->setInvalidated();
     secondaries_.erase(secondaryId);
 }
@@ -115,10 +117,34 @@ void MasterNode::onIncomingSecondaryNodeReady(
 
     EN_LOGI << "registering node " << secondaryId << " as ready, friendlyName: " << friendlyName;
 
-    it->second->setFriendlyName(std::move(friendlyName));
-    it->second->setOperational();
+    {
+        const std::unique_lock lck{ secondariesMutex_ };
+        it->second->setFriendlyName(std::move(friendlyName));
+        it->second->setOperational();
+    }
 
     response->set_value();
+}
+
+std::vector<SecondarySnapshot> MasterNode::secondariesSnapshot()
+{
+    auto                   res = std::vector<SecondarySnapshot>{};
+    const std::shared_lock lck{ secondariesMutex_ };
+    res.reserve(secondaries_.size());
+
+    for (auto &[id, secondary] : secondaries_)
+    {
+        auto snapshot = SecondarySnapshot{};
+
+        snapshot.id           = id;
+        snapshot.state        = secondary->state();
+        snapshot.friendlyName = secondary->friendlyName();
+        snapshot.endpoint     = secondary->endpoint();
+
+        res.push_back(std::move(snapshot));
+    }
+
+    return res;
 }
 
 MasterNode::MasterNode(boost::asio::io_context &ioContext) : ioContext_{ ioContext } {}

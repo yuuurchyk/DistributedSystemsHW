@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -12,11 +13,12 @@
 #include "logger/logger.h"
 #include "net-utils/iocontextpool.h"
 #include "proto2/endpoint.h"
-#include "utils/copymove.h"
-
 #include "proto2/sharedpromise.h"
 #include "proto2/timestamp.h"
-#include "secondarynode/secondarynode.h"
+#include "utils/copymove.h"
+
+#include "secondary/secondarynode.h"
+#include "secondary/secondarysnapshot.h"
 #include "storage/storage.h"
 
 class MasterNode : public std::enable_shared_from_this<MasterNode>, private logger::Entity<MasterNode>
@@ -47,6 +49,8 @@ public:
     boost::future<void>                  addMessage(std::string message, size_t writeConcern);
     boost::future<std::vector<PingInfo>> pingSecondaries();
 
+    std::vector<SecondarySnapshot> secondariesSnapshot();
+
 private:
     MasterNode(boost::asio::io_context &);
 
@@ -66,6 +70,7 @@ private:
     boost::asio::io_context &ioContext_;
     size_t                   secondaryIdCounter_{};
 
+    std::shared_mutex                                          secondariesMutex_;
     std::unordered_map<size_t, std::shared_ptr<SecondaryNode>> secondaries_;
 
     Storage storage_;
