@@ -11,11 +11,11 @@
 
 #include "logger/logger.h"
 #include "utils/copymove.h"
+#include "utils/signal.h"
 
 #include "proto2/duration.h"
 #include "proto2/enums.h"
 #include "proto2/sharedpromise.h"
-#include "proto2/signal.h"
 #include "proto2/timestamp.h"
 
 namespace Proto2
@@ -44,7 +44,7 @@ public:
 
     void run();
 
-    signal<> invalidated;
+    Utils::signal<> invalidated;
 
 public:    // outcoming requests (thread safe)
     boost::future<AddMessageStatus>               send_addMessage(size_t msgId, std::string_view msg);
@@ -54,23 +54,23 @@ public:    // outcoming requests (thread safe)
 
 public:    // incoming requests (emitted in socket thread)
     // clang-format off
-    signal<
+    Utils::signal<
         size_t                          /*msgId*/,
         std::string                     /*msg*/,
         SharedPromise<AddMessageStatus> /*responseStatus*/
     > incoming_addMessage;
 
-    signal<
+    Utils::signal<
         size_t                                          /*startMsgId*/,
         SharedPromise<std::vector<std::string_view>>    /*messages*/
     > incoming_getMessages;
 
-    signal<
+    Utils::signal<
         Timestamp_t                 /*requestTimestamp*/,
         SharedPromise<Timestamp_t>  /*responseTimestamp*/
     > incoming_ping;
 
-    signal<
+    Utils::signal<
         std::string         /*secondaryNodeName*/,
         SharedPromise<void> /*ack*/
     > incoming_secondaryNodeReady;

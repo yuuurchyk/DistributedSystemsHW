@@ -27,12 +27,12 @@ void IncomingRequestsManager::registerContext(size_t responseId, Context_t conte
         return;
     }
 
-    context->responseRecieved.connect(signal<std::shared_ptr<Response::AbstractResponse>>::slot_type{
+    context->responseRecieved.connect(Utils::slot_type<std::shared_ptr<Response::AbstractResponse>>{
         &IncomingRequestsManager::onResponseRecieved, this, responseId, boost::placeholders::_1 }
                                           .track_foreign(weak_from_this()));
 
     context->invalidResponseRecieved.connect(
-        signal<>::slot_type{ &IncomingRequestsManager::onInvalidResponseRecieved, this, responseId }.track_foreign(
+        Utils::slot_type<>{ &IncomingRequestsManager::onInvalidResponseRecieved, this, responseId }.track_foreign(
             weak_from_this()));
 
     registeredContexts_.insert({ responseId, std::move(context) });
@@ -59,7 +59,7 @@ IncomingRequestsManager::IncomingRequestsManager(std::string id, std::shared_ptr
 
 void IncomingRequestsManager::establishConnections()
 {
-    socketWrapper_->incomingFrame.connect(signal<boost::asio::const_buffer>::slot_type{
+    socketWrapper_->incomingFrame.connect(Utils::slot_type<boost::asio::const_buffer>{
         &IncomingRequestsManager::onIncomingFrame, this, boost::placeholders::_1 }
                                               .track_foreign(weak_from_this()));
 }

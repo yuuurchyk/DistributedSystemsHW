@@ -5,11 +5,11 @@
 #include <vector>
 
 #include <boost/asio.hpp>
-#include <boost/signals2.hpp>
 
 #include "logger/logger.h"
 #include "proto2/endpoint.h"
 #include "utils/copymove.h"
+#include "utils/signal.h"
 
 #include "storage/storage.h"
 
@@ -25,8 +25,8 @@ public:
 
     void run();
 
-    boost::signals2::signal<void()> invalidated;
-    boost::signals2::signal<void()> operational;
+    Utils::signal<> invalidated;
+    Utils::signal<> operational;
 
 private:
     MasterSession(std::string, boost::asio::io_context &, boost::asio::ip::tcp::socket, Storage &);

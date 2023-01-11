@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <boost/signals2.hpp>
 #include <boost/thread.hpp>
 
 #include "logger/logger.h"

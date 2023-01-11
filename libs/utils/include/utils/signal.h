@@ -2,9 +2,12 @@
 
 #include <boost/signals2.hpp>
 
-namespace Proto2
+namespace Utils
 {
 template <typename... Args>
 using signal = boost::signals2::signal<void(Args...)>;
 
-}    // namespace Proto2
+template <typename... Args>
+using slot_type = typename signal<Args...>::slot_type;
+
+}    // namespace Utils
