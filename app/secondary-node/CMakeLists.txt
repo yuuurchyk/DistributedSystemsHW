@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
-project(new-secondary-node LANGUAGES CXX)
+project(secondary-node LANGUAGES CXX)
 
 find_package(
   Boost 1.80 EXACT
