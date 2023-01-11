@@ -17,6 +17,16 @@
 
 namespace Proto2
 {
+/**
+ * How to use the class?
+ * 1. react to incomingRequestFrame() signal
+ * 2. construct the response context and register it via registerContext()
+ *
+ * The class internally reacts to context signals and writes response through socket wrapper
+ *
+ * @note there are no thread safe methods, all calls should be done within
+ * socket wrapper execution context
+ */
 class IncomingRequestsManager : public std::enable_shared_from_this<IncomingRequestsManager>,
                                 private logger::StringIdEntity<IncomingRequestsManager>
 {
@@ -53,13 +63,13 @@ private:
 
     void onIncomingFrame(boost::asio::const_buffer frame);
 
+    void onResponseRecieved(size_t responseId, std::shared_ptr<Response::AbstractResponse> response);
+    void onInvalidResponseRecieved(size_t responseId);
+
 private:
-    boost::asio::io_context             &ioContext_;
     const std::shared_ptr<SocketWrapper> socketWrapper_;
 
     std::unordered_map<size_t, Context_t> registeredContexts_;
-
-    boost::signals2::scoped_connection incomingFrameConnection_;
 };
 
 }    // namespace Proto2
