@@ -27,48 +27,13 @@ void IncomingRequestsManager::registerContext(size_t responseId, Context_t conte
         return;
     }
 
-    context->responseRecieved.connect(
-        [this, responseId, weakSelf = weak_from_this()](std::shared_ptr<Response::AbstractResponse> response)
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
+    context->responseRecieved.connect(signal<std::shared_ptr<Response::AbstractResponse>>::slot_type{
+        &IncomingRequestsManager::onResponseRecieved, this, responseId, boost::placeholders::_1 }
+                                          .track_foreign(weak_from_this()));
 
-            boost::asio::post(
-                ioContext_,
-                [this, responseId, response = std::move(response), weakSelf = weak_from_this()]() mutable
-                {
-                    const auto self = weakSelf.lock();
-                    if (self == nullptr)
-                        return;
-
-                    if (const auto it = registeredContexts_.find(responseId); it != registeredContexts_.end())
-                        registeredContexts_.erase(it);
-                    if (response == nullptr)
-                        return;
-
-                    EN_LOGD << "writing response for request " << responseId << " through socket";
-
-                    auto pendingResponse = PendingResponse::create(responseId, std::move(response));
-
-                    auto responseFrame = Frame::constructResponseHeaderWoOwnership(pendingResponse->responseId);
-                    pendingResponse->response->serializePayloadWoOwnership(responseFrame);
-
-                    socketWrapper_->writeFrame(
-                        std::move(responseFrame),
-                        [pendingResponse = std::move(pendingResponse)](const error_code &, size_t) {});
-                });
-        });
     context->invalidResponseRecieved.connect(
-        [this, responseId, weakSelf = weak_from_this()]()
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-
-            if (const auto it = registeredContexts_.find(responseId); it != registeredContexts_.end())
-                registeredContexts_.erase(it);
-        });
+        signal<>::slot_type{ &IncomingRequestsManager::onInvalidResponseRecieved, this, responseId }.track_foreign(
+            weak_from_this()));
 
     registeredContexts_.insert({ responseId, std::move(context) });
 }
@@ -88,23 +53,15 @@ IncomingRequestsManager::PendingResponse::PendingResponse(
 }
 
 IncomingRequestsManager::IncomingRequestsManager(std::string id, std::shared_ptr<SocketWrapper> socketWrapper)
-    : logger::StringIdEntity<IncomingRequestsManager>{ std::move(id) },
-      ioContext_{ socketWrapper->executionContext() },
-      socketWrapper_{ std::move(socketWrapper) }
+    : logger::StringIdEntity<IncomingRequestsManager>{ std::move(id) }, socketWrapper_{ std::move(socketWrapper) }
 {
 }
 
 void IncomingRequestsManager::establishConnections()
 {
-    incomingFrameConnection_ = socketWrapper_->incomingFrame.connect(
-        [this, weakSelf = weak_from_this()](boost::asio::const_buffer frame)
-        {
-            const auto self = weakSelf.lock();
-            if (self == nullptr)
-                return;
-
-            onIncomingFrame(frame);
-        });
+    socketWrapper_->incomingFrame.connect(signal<boost::asio::const_buffer>::slot_type{
+        &IncomingRequestsManager::onIncomingFrame, this, boost::placeholders::_1 }
+                                              .track_foreign(weak_from_this()));
 }
 
 void IncomingRequestsManager::onIncomingFrame(boost::asio::const_buffer frame)
@@ -128,6 +85,33 @@ void IncomingRequestsManager::onIncomingFrame(boost::asio::const_buffer frame)
     {
         EN_LOGW << "failed to parse request frame";
     }
+}
+
+void IncomingRequestsManager::onResponseRecieved(
+    size_t                                      responseId,
+    std::shared_ptr<Response::AbstractResponse> response)
+{
+    if (const auto it = registeredContexts_.find(responseId); it != registeredContexts_.end())
+        registeredContexts_.erase(it);
+    if (response == nullptr)
+        return;
+
+    EN_LOGD << "writing response for request " << responseId << " through socket";
+
+    auto pendingResponse = PendingResponse::create(responseId, std::move(response));
+
+    auto responseFrame = Frame::constructResponseHeaderWoOwnership(pendingResponse->responseId);
+    pendingResponse->response->serializePayloadWoOwnership(responseFrame);
+
+    socketWrapper_->writeFrame(
+        std::move(responseFrame), [pendingResponse = std::move(pendingResponse)](const error_code &, size_t) {});
+}
+
+void IncomingRequestsManager::onInvalidResponseRecieved(size_t responseId)
+{
+    // don't send anything through socket, since recieved response is invalid
+    if (const auto it = registeredContexts_.find(responseId); it != registeredContexts_.end())
+        registeredContexts_.erase(it);
 }
 
 }    // namespace Proto2
