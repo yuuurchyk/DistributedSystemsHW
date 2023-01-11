@@ -22,8 +22,8 @@ public:
     // note: all successors should have flushPromise() method,
     // which will return the promise to response
 
-    // NOTE: this signals should be emitted within the thread that runs the
-    // io context
+    // note: successor classes should emit these signals in thread that runs
+    // execution context
     signal<std::shared_ptr<Response::AbstractResponse>> responseRecieved;
     signal<>                                            invalidResponseRecieved;
 
@@ -34,11 +34,11 @@ protected:
      * @param ioContext - signals will be emitted in a thread where
      * provided @p ioContext runs
      */
-    AbstractIncomingRequestContext(boost::asio::io_context &ioContext);
+    AbstractIncomingRequestContext(boost::asio::io_context &executionContext);
 
     virtual void connectPromise() = 0;
 
-    boost::asio::io_context &ioContext_;
+    boost::asio::io_context &executionContext_;
 };
 
 }    // namespace Proto2::IncomingRequestContext

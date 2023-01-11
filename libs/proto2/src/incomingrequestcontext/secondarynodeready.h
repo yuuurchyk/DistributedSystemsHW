@@ -7,7 +7,7 @@ namespace Proto2::IncomingRequestContext
 class SecondaryNodeReady final : public AbstractIncomingRequestContext
 {
 public:
-    [[nodiscard]] static std::shared_ptr<SecondaryNodeReady> create(boost::asio::io_context &);
+    [[nodiscard]] static std::shared_ptr<SecondaryNodeReady> create(boost::asio::io_context &executionContext);
 
     boost::promise<void> flushPromise();
 

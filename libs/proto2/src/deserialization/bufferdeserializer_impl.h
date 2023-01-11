@@ -6,7 +6,6 @@
 
 namespace Proto2
 {
-
 template <typename T>
     requires std::is_integral_v<T> || std::is_enum_v<T>
 std::optional<T> BufferDeserializer::deserialize()

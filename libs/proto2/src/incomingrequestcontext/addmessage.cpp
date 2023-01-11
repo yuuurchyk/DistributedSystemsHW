@@ -8,10 +8,9 @@
 
 namespace Proto2::IncomingRequestContext
 {
-
-std::shared_ptr<AddMessage> AddMessage::create(boost::asio::io_context &ioContext)
+std::shared_ptr<AddMessage> AddMessage::create(boost::asio::io_context &executionContext)
 {
-    auto self = std::shared_ptr<AddMessage>{ new AddMessage{ ioContext } };
+    auto self = std::shared_ptr<AddMessage>{ new AddMessage{ executionContext } };
 
     self->connectPromise();
 
@@ -27,7 +26,7 @@ void AddMessage::connectPromise()
 {
     NetUtils::thenPost(
         promise_.get_future(),
-        ioContext_,
+        executionContext_,
         [this, weakSelf = weak_from_this()](boost::future<AddMessageStatus> future)
         {
             const auto self = weakSelf.lock();

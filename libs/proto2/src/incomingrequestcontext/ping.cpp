@@ -8,9 +8,9 @@
 
 namespace Proto2::IncomingRequestContext
 {
-std::shared_ptr<Ping> Ping::create(boost::asio::io_context &ioContext)
+std::shared_ptr<Ping> Ping::create(boost::asio::io_context &executionContext)
 {
-    auto self = std::shared_ptr<Ping>{ new Ping{ ioContext } };
+    auto self = std::shared_ptr<Ping>{ new Ping{ executionContext } };
 
     self->connectPromise();
 
@@ -26,7 +26,7 @@ void Ping::connectPromise()
 {
     NetUtils::thenPost(
         promise_.get_future(),
-        ioContext_,
+        executionContext_,
         [this, weakSelf = weak_from_this()](boost::future<Timestamp_t> future)
         {
             const auto self = weakSelf.lock();

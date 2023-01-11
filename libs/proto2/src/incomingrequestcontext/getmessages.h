@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 #include <vector>
 
 #include "incomingrequestcontext/abstractincomingrequestcontext.h"
@@ -10,7 +10,7 @@ namespace Proto2::IncomingRequestContext
 class GetMessages final : public AbstractIncomingRequestContext
 {
 public:
-    [[nodiscard]] static std::shared_ptr<GetMessages> create(boost::asio::io_context &);
+    [[nodiscard]] static std::shared_ptr<GetMessages> create(boost::asio::io_context &executionContext);
 
     boost::promise<std::vector<std::string_view>> flushPromise();
 

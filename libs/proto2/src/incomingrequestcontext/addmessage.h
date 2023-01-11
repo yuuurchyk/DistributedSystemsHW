@@ -8,7 +8,7 @@ namespace Proto2::IncomingRequestContext
 class AddMessage final : public AbstractIncomingRequestContext
 {
 public:
-    [[nodiscard]] static std::shared_ptr<AddMessage> create(boost::asio::io_context &);
+    [[nodiscard]] static std::shared_ptr<AddMessage> create(boost::asio::io_context &executionContext);
 
     boost::promise<AddMessageStatus> flushPromise();
 

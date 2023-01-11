@@ -4,7 +4,6 @@
 
 namespace Proto2::Frame
 {
-
 std::optional<EventType> parseEventType(boost::asio::const_buffer frame)
 {
     auto deserializer = BufferDeserializer{ frame };
@@ -30,7 +29,7 @@ std::optional<EventType> parseEventType(boost::asio::const_buffer frame)
             return eventType;
         else
             return {};
-        }
+    }
     else
     {
         return {};

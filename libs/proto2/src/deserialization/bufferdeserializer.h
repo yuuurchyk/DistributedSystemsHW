@@ -9,7 +9,6 @@
 
 namespace Proto2
 {
-
 class BufferDeserializer
 {
 public:
