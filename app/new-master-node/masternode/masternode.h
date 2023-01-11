@@ -24,7 +24,7 @@
 class MasterNode : public std::enable_shared_from_this<MasterNode>, private logger::Entity<MasterNode>
 {
 public:    // usage interface
-    [[nodiscard]] std::shared_ptr<MasterNode> create(boost::asio::io_context &);
+    [[nodiscard]] static std::shared_ptr<MasterNode> create(boost::asio::io_context &);
 
     void addSecondary(
         boost::asio::io_context &secondaryContext,
