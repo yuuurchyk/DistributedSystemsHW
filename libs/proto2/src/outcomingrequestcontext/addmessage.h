@@ -10,7 +10,7 @@ class AddMessage final : public AbstractOutcomingRequestContext
 public:
     [[nodiscard]] static std::shared_ptr<AddMessage> create();
 
-    boost::future<AddMessageStatus> future();
+    boost::future<AddMessageStatus> get_future();
 
     void onResponseRecieved(boost::asio::const_buffer payload) override;
     void invalidate(InvalidationReason) override;

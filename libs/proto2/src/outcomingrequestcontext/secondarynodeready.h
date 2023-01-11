@@ -9,7 +9,7 @@ class SecondaryNodeReady final : public AbstractOutcomingRequestContext
 public:
     [[nodiscard]] static std::shared_ptr<SecondaryNodeReady> create();
 
-    boost::future<void> future();
+    boost::future<void> get_future();
 
     void onResponseRecieved(boost::asio::const_buffer payload) override;
     void invalidate(InvalidationReason) override;

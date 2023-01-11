@@ -4,13 +4,12 @@
 
 namespace Proto2::OutcomingRequestContext
 {
-
 std::shared_ptr<GetMessages> GetMessages::create()
 {
     return std::shared_ptr<GetMessages>{ new GetMessages{} };
 }
 
-boost::future<std::vector<std::string>> GetMessages::future()
+boost::future<std::vector<std::string>> GetMessages::get_future()
 {
     return promise_.get_future();
 }

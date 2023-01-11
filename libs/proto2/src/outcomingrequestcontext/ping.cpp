@@ -4,13 +4,12 @@
 
 namespace Proto2::OutcomingRequestContext
 {
-
 std::shared_ptr<Ping> Ping::create()
 {
     return std::shared_ptr<Ping>{ new Ping{} };
 }
 
-boost::future<Timestamp_t> Ping::future()
+boost::future<Timestamp_t> Ping::get_future()
 {
     return promise_.get_future();
 }

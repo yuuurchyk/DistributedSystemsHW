@@ -2,7 +2,6 @@
 
 namespace Proto2::OutcomingRequestContext
 {
-
 void AbstractOutcomingRequestContext::promiseMarkFilled()
 {
     promiseFilled_ = true;

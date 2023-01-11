@@ -12,7 +12,7 @@ class GetMessages final : public AbstractOutcomingRequestContext
 public:
     [[nodiscard]] static std::shared_ptr<GetMessages> create();
 
-    boost::future<std::vector<std::string>> future();
+    boost::future<std::vector<std::string>> get_future();
 
     void onResponseRecieved(boost::asio::const_buffer payload) override;
     void invalidate(InvalidationReason) override;

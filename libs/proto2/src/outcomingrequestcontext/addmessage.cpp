@@ -7,13 +7,12 @@
 
 namespace Proto2::OutcomingRequestContext
 {
-
 std::shared_ptr<AddMessage> AddMessage::create()
 {
     return std::shared_ptr<AddMessage>{ new AddMessage{} };
 }
 
-boost::future<AddMessageStatus> AddMessage::future()
+boost::future<AddMessageStatus> AddMessage::get_future()
 {
     return promise_.get_future();
 }
