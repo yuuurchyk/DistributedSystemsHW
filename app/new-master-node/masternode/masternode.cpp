@@ -64,6 +64,8 @@ void MasterNode::addSecondaryImpl(
     auto secondary            = SecondaryNode::create(id, secondaryContext, std::move(socket), std::move(loadGuard));
     secondaries_[id]          = secondary;
 
+    EN_LOGI << "adding secondary: id=" << id;
+
     auto &masterNodeContext = ioContext_;
 
     auto endpoint = secondary->endpoint();
