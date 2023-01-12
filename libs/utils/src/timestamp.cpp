@@ -1,8 +1,8 @@
-#include "proto2/timestamp.h"
+#include "utils/timestamp.h"
 
 #include <chrono>
 
-namespace Proto2
+namespace Utils
 {
 Timestamp_t getCurrentTimestamp()
 {
@@ -14,4 +14,4 @@ Timestamp_t getCurrentTimestamp()
     return timestamp;
 }
 
-}    // namespace Proto2
+}    // namespace Utils

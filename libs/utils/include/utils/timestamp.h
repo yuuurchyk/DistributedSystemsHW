@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace Proto2
+namespace Utils
 {
 using Timestamp_t = uint64_t;
 /**
@@ -10,4 +10,4 @@ using Timestamp_t = uint64_t;
  */
 Timestamp_t getCurrentTimestamp();
 
-}    // namespace Proto2
+}    // namespace Utils

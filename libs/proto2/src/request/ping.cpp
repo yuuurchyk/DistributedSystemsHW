@@ -5,7 +5,7 @@
 
 namespace Proto2::Request
 {
-std::shared_ptr<Ping> Ping::create(Timestamp_t timestamp)
+std::shared_ptr<Ping> Ping::create(Utils::Timestamp_t timestamp)
 {
     return std::shared_ptr<Ping>{ new Ping{ timestamp } };
 }
@@ -14,7 +14,7 @@ std::shared_ptr<Ping> Ping::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 
-    auto optTimestamp = deserializer.deserialize<Timestamp_t>();
+    auto optTimestamp = deserializer.deserialize<Utils::Timestamp_t>();
 
     if (!optTimestamp.has_value() || !deserializer.atEnd())
         return {};
@@ -29,7 +29,7 @@ void Ping::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &s
     serializer.serializeWoOwnership(timestamp_);
 }
 
-Timestamp_t Ping::timestamp() const noexcept
+Utils::Timestamp_t Ping::timestamp() const noexcept
 {
     return timestamp_;
 }
@@ -40,6 +40,6 @@ const OpCode &Ping::opCode() const
     return kOpCode;
 }
 
-Ping::Ping(Timestamp_t timestamp) : timestamp_{ timestamp } {}
+Ping::Ping(Utils::Timestamp_t timestamp) : timestamp_{ timestamp } {}
 
 }    // namespace Proto2::Request
