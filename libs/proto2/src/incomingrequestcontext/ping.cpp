@@ -17,7 +17,7 @@ std::shared_ptr<Ping> Ping::create(boost::asio::io_context &executionContext)
     return self;
 }
 
-boost::promise<Timestamp_t> Ping::flushPromise()
+boost::promise<Utils::Timestamp_t> Ping::flushPromise()
 {
     return std::move(promise_);
 }
@@ -27,7 +27,7 @@ void Ping::connectPromise()
     NetUtils::thenPost(
         promise_.get_future(),
         executionContext_,
-        [this, weakSelf = weak_from_this()](boost::future<Timestamp_t> future)
+        [this, weakSelf = weak_from_this()](boost::future<Utils::Timestamp_t> future)
         {
             const auto self = weakSelf.lock();
             if (self == nullptr)

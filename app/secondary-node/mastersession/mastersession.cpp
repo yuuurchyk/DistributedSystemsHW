@@ -58,8 +58,8 @@ void MasterSession::establishConnections()
             response->set_value(Proto2::AddMessageStatus::OK);
         }));
     connections_.push_back(
-        endpoint_->incoming_ping.connect([this](Proto2::Timestamp_t, Utils::SharedPromise<Proto2::Timestamp_t> response)
-                                         { response->set_value(Proto2::getCurrentTimestamp()); }));
+        endpoint_->incoming_ping.connect([this](Utils::Timestamp_t, Utils::SharedPromise<Utils::Timestamp_t> response)
+                                         { response->set_value(Utils::getCurrentTimestamp()); }));
 }
 
 void MasterSession::askForMessages()

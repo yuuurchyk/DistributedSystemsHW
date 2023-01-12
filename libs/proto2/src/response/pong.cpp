@@ -6,7 +6,7 @@
 namespace Proto2::Response
 {
 
-std::shared_ptr<Pong> Pong::create(Timestamp_t timestamp)
+std::shared_ptr<Pong> Pong::create(Utils::Timestamp_t timestamp)
 {
     return std::shared_ptr<Pong>{ new Pong{ timestamp } };
 }
@@ -15,7 +15,7 @@ std::shared_ptr<Pong> Pong::fromPayload(boost::asio::const_buffer buffer)
 {
     auto deserializer = BufferDeserializer{ buffer };
 
-    const auto optTimestamp = deserializer.deserialize<Timestamp_t>();
+    const auto optTimestamp = deserializer.deserialize<Utils::Timestamp_t>();
 
     if (!optTimestamp.has_value() || !deserializer.atEnd())
         return {};
@@ -30,7 +30,7 @@ void Pong::serializePayloadWoOwnership(std::vector<boost::asio::const_buffer> &s
     serializer.serializeWoOwnership(timestamp_);
 }
 
-Timestamp_t Pong::timestamp() const
+Utils::Timestamp_t Pong::timestamp() const
 {
     return timestamp_;
 }
@@ -41,6 +41,6 @@ const OpCode &Pong::opCode() const
     return kOpCode;
 }
 
-Pong::Pong(Timestamp_t timestamp) : timestamp_{ timestamp } {}
+Pong::Pong(Utils::Timestamp_t timestamp) : timestamp_{ timestamp } {}
 
 }    // namespace Proto2::Response

@@ -136,7 +136,7 @@ boost::future<std::vector<std::string>> Endpoint::send_getMessages(size_t startM
     return future;
 }
 
-boost::future<Timestamp_t> Endpoint::send_ping(Timestamp_t pingTimestamp)
+boost::future<Utils::Timestamp_t> Endpoint::send_ping(Utils::Timestamp_t pingTimestamp)
 {
     const auto artificialDelay = impl().chooseSendDelay();
 

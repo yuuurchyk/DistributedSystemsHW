@@ -13,10 +13,10 @@
 #include "utils/copymove.h"
 #include "utils/sharedpromise.h"
 #include "utils/signal.h"
+#include "utils/timestamp.h"
 
 #include "proto2/duration.h"
 #include "proto2/enums.h"
-#include "proto2/timestamp.h"
 
 namespace Proto2
 {
@@ -47,32 +47,32 @@ public:
     Utils::signal<> invalidated;
 
 public:    // outcoming requests (thread safe)
-    boost::future<AddMessageStatus>               send_addMessage(size_t msgId, std::string_view msg);
-    boost::future<std::vector<std::string>>       send_getMessages(size_t startMsgId);
-    boost::future<Timestamp_t /*pong timestamp*/> send_ping(Timestamp_t pingTimestamp);
-    boost::future<void>                           send_secondaryNodeReady(std::string secondaryName);
+    boost::future<AddMessageStatus>                      send_addMessage(size_t msgId, std::string_view msg);
+    boost::future<std::vector<std::string>>              send_getMessages(size_t startMsgId);
+    boost::future<Utils::Timestamp_t /*pong timestamp*/> send_ping(Utils::Timestamp_t pingTimestamp);
+    boost::future<void>                                  send_secondaryNodeReady(std::string secondaryName);
 
 public:    // incoming requests (emitted in socket thread)
     // clang-format off
     Utils::signal<
-        size_t                          /*msgId*/,
-        std::string                     /*msg*/,
-        Utils::SharedPromise<AddMessageStatus> /*responseStatus*/
+        size_t                                  /*msgId*/,
+        std::string                             /*msg*/,
+        Utils::SharedPromise<AddMessageStatus>  /*responseStatus*/
     > incoming_addMessage;
 
     Utils::signal<
-        size_t                                          /*startMsgId*/,
-        Utils::SharedPromise<std::vector<std::string_view>>    /*messages*/
+        size_t                                              /*startMsgId*/,
+        Utils::SharedPromise<std::vector<std::string_view>> /*messages*/
     > incoming_getMessages;
 
     Utils::signal<
-        Timestamp_t                 /*requestTimestamp*/,
-        Utils::SharedPromise<Timestamp_t>  /*responseTimestamp*/
+        Utils::Timestamp_t                          /*requestTimestamp*/,
+        Utils::SharedPromise<Utils::Timestamp_t>    /*responseTimestamp*/
     > incoming_ping;
 
     Utils::signal<
-        std::string         /*secondaryNodeName*/,
-        Utils::SharedPromise<void> /*ack*/
+        std::string                 /*secondaryNodeName*/,
+        Utils::SharedPromise<void>  /*ack*/
     > incoming_secondaryNodeReady;
     // clang-format on
 

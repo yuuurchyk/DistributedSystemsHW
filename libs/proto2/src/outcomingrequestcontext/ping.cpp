@@ -9,7 +9,7 @@ std::shared_ptr<Ping> Ping::create()
     return std::shared_ptr<Ping>{ new Ping{} };
 }
 
-boost::future<Timestamp_t> Ping::get_future()
+boost::future<Utils::Timestamp_t> Ping::get_future()
 {
     return promise_.get_future();
 }
