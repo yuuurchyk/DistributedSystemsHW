@@ -31,11 +31,11 @@ struct Endpoint::impl_t
     DISABLE_COPY_MOVE(impl_t)
 
     impl_t(
-        std::string                                                 endpointId,
-        boost::asio::io_context                                    &ioContext,
-        boost::asio::ip::tcp::socket                                socket,
-        duration_milliseconds_t                                     responseTimeout,
-        std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds)
+        std::string                                                               endpointId,
+        boost::asio::io_context                                                  &ioContext,
+        boost::asio::ip::tcp::socket                                              socket,
+        Utils::duration_milliseconds_t                                            responseTimeout,
+        std::pair<Utils::duration_milliseconds_t, Utils::duration_milliseconds_t> artificialSendDelayBounds)
         : ioContext{ ioContext },
           socketWrapper{ SocketWrapper::create(endpointId, ioContext, std::move(socket)) },
           incomingRequestsManager{ IncomingRequestsManager::create(endpointId, socketWrapper) },
@@ -46,11 +46,11 @@ struct Endpoint::impl_t
     }
 
     // thread safe
-    duration_milliseconds_t chooseSendDelay()
+    Utils::duration_milliseconds_t chooseSendDelay()
     {
         auto distribution = std::uniform_int_distribution<size_t>{ artificialSendDelayBounds_.first.count(),
                                                                    artificialSendDelayBounds_.second.count() };
-        return duration_milliseconds_t{ distribution(engine_) };
+        return Utils::duration_milliseconds_t{ distribution(engine_) };
     }
 
     boost::asio::io_context                  &ioContext;
@@ -62,9 +62,9 @@ struct Endpoint::impl_t
     boost::signals2::scoped_connection incomingRequestFrameConnection_;
 
 private:
-    static thread_local std::seed_seq                                 engineSeq_;
-    static thread_local std::mt19937                                  engine_;
-    const std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds_;
+    static thread_local std::seed_seq                                               engineSeq_;
+    static thread_local std::mt19937                                                engine_;
+    const std::pair<Utils::duration_milliseconds_t, Utils::duration_milliseconds_t> artificialSendDelayBounds_;
 
     std::uniform_int_distribution<size_t> sendDelayDistribution_;
 };
@@ -75,11 +75,11 @@ thread_local std::seed_seq Endpoint::impl_t::engineSeq_{ std::hash<std::thread::
 thread_local std::mt19937  Endpoint::impl_t::engine_{ engineSeq_ };
 
 std::shared_ptr<Endpoint> Endpoint::create(
-    std::string                                                 id,
-    boost::asio::io_context                                    &ioContext,
-    boost::asio::ip::tcp::socket                                socket,
-    duration_milliseconds_t                                     outcomingRequestTimeout,
-    std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds)
+    std::string                                                               id,
+    boost::asio::io_context                                                  &ioContext,
+    boost::asio::ip::tcp::socket                                              socket,
+    Utils::duration_milliseconds_t                                            outcomingRequestTimeout,
+    std::pair<Utils::duration_milliseconds_t, Utils::duration_milliseconds_t> artificialSendDelayBounds)
 {
     if (artificialSendDelayBounds.first.count() > artificialSendDelayBounds.second.count())
     {
@@ -171,11 +171,11 @@ boost::future<void> Endpoint::send_secondaryNodeReady(std::string secondaryName)
 }
 
 Endpoint::Endpoint(
-    std::string                                                 id,
-    boost::asio::io_context                                    &ioContext,
-    boost::asio::ip::tcp::socket                                socket,
-    duration_milliseconds_t                                     responseTimeout,
-    std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds)
+    std::string                                                               id,
+    boost::asio::io_context                                                  &ioContext,
+    boost::asio::ip::tcp::socket                                              socket,
+    Utils::duration_milliseconds_t                                            responseTimeout,
+    std::pair<Utils::duration_milliseconds_t, Utils::duration_milliseconds_t> artificialSendDelayBounds)
     : StringIdEntity<Endpoint>{ id },
       TW5VNznK_{ std::make_unique<impl_t>(
           id,

@@ -11,11 +11,11 @@
 
 #include "logger/logger.h"
 #include "utils/copymove.h"
+#include "utils/duration.h"
 #include "utils/sharedpromise.h"
 #include "utils/signal.h"
 #include "utils/timestamp.h"
 
-#include "proto2/duration.h"
 #include "proto2/enums.h"
 
 namespace Proto2
@@ -35,11 +35,11 @@ class Endpoint : public std::enable_shared_from_this<Endpoint>, private logger::
 
 public:
     [[nodiscard]] static std::shared_ptr<Endpoint> create(
-        std::string                                                 id,
-        boost::asio::io_context                                    &ioContext,
-        boost::asio::ip::tcp::socket                                socket,
-        duration_milliseconds_t                                     outcomingRequestTimeout,
-        std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds);
+        std::string                                                               id,
+        boost::asio::io_context                                                  &ioContext,
+        boost::asio::ip::tcp::socket                                              socket,
+        Utils::duration_milliseconds_t                                            outcomingRequestTimeout,
+        std::pair<Utils::duration_milliseconds_t, Utils::duration_milliseconds_t> artificialSendDelayBounds);
     ~Endpoint();
 
     void run();
@@ -81,8 +81,8 @@ private:
         std::string,
         boost::asio::io_context &,
         boost::asio::ip::tcp::socket,
-        duration_milliseconds_t                                     outcomingRequestTimeout,
-        std::pair<duration_milliseconds_t, duration_milliseconds_t> artificialSendDelayBounds);
+        Utils::duration_milliseconds_t                                            outcomingRequestTimeout,
+        std::pair<Utils::duration_milliseconds_t, Utils::duration_milliseconds_t> artificialSendDelayBounds);
 
     void establishConnections();
 
