@@ -11,11 +11,11 @@
 
 #include "logger/logger.h"
 #include "utils/copymove.h"
+#include "utils/sharedpromise.h"
 #include "utils/signal.h"
 
 #include "proto2/duration.h"
 #include "proto2/enums.h"
-#include "proto2/sharedpromise.h"
 #include "proto2/timestamp.h"
 
 namespace Proto2
@@ -57,22 +57,22 @@ public:    // incoming requests (emitted in socket thread)
     Utils::signal<
         size_t                          /*msgId*/,
         std::string                     /*msg*/,
-        SharedPromise<AddMessageStatus> /*responseStatus*/
+        Utils::SharedPromise<AddMessageStatus> /*responseStatus*/
     > incoming_addMessage;
 
     Utils::signal<
         size_t                                          /*startMsgId*/,
-        SharedPromise<std::vector<std::string_view>>    /*messages*/
+        Utils::SharedPromise<std::vector<std::string_view>>    /*messages*/
     > incoming_getMessages;
 
     Utils::signal<
         Timestamp_t                 /*requestTimestamp*/,
-        SharedPromise<Timestamp_t>  /*responseTimestamp*/
+        Utils::SharedPromise<Timestamp_t>  /*responseTimestamp*/
     > incoming_ping;
 
     Utils::signal<
         std::string         /*secondaryNodeName*/,
-        SharedPromise<void> /*ack*/
+        Utils::SharedPromise<void> /*ack*/
     > incoming_secondaryNodeReady;
     // clang-format on
 

@@ -24,16 +24,6 @@
 #include "incomingrequestcontext/ping.h"
 #include "incomingrequestcontext/secondarynodeready.h"
 
-namespace
-{
-template <typename T>
-Proto2::SharedPromise<T> makeSharedPromise(boost::promise<T> promise)
-{
-    return std::make_shared<boost::promise<T>>(std::move(promise));
-}
-
-}    // namespace
-
 namespace Proto2
 {
 struct Endpoint::impl_t
@@ -222,7 +212,7 @@ void Endpoint::establishConnections()
                     break;
 
                 auto context = IncomingRequestContext::AddMessage::create(impl().ioContext);
-                auto promise = makeSharedPromise(context->flushPromise());
+                auto promise = Utils::makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
                 const auto msgId = request->messageId();
@@ -241,7 +231,7 @@ void Endpoint::establishConnections()
                     break;
 
                 auto context = IncomingRequestContext::GetMessages::create(impl().ioContext);
-                auto promise = makeSharedPromise(context->flushPromise());
+                auto promise = Utils::makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
                 const auto startMsgId = request->startMessageId();
@@ -259,7 +249,7 @@ void Endpoint::establishConnections()
                     break;
 
                 auto context = IncomingRequestContext::Ping::create(impl().ioContext);
-                auto promise = makeSharedPromise(context->flushPromise());
+                auto promise = Utils::makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
                 const auto pingTimestamp = request->timestamp();
@@ -277,7 +267,7 @@ void Endpoint::establishConnections()
                     break;
 
                 auto context = IncomingRequestContext::SecondaryNodeReady::create(impl().ioContext);
-                auto promise = makeSharedPromise(context->flushPromise());
+                auto promise = Utils::makeSharedPromise(context->flushPromise());
                 impl().incomingRequestsManager->registerContext(requestFrame.requestId, std::move(context));
 
                 auto secondaryNodeName = request->flushSecondaryNodeName();

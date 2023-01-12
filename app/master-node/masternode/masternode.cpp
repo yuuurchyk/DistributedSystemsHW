@@ -88,7 +88,7 @@ void MasterNode::addSecondaryImpl(
 
     endpoint->incoming_getMessages.connect(
         [this, &masterNodeContext, weakSelf = weak_from_this()](
-            size_t startMsgId, Proto2::SharedPromise<std::vector<std::string_view>> response) mutable
+            size_t startMsgId, Utils::SharedPromise<std::vector<std::string_view>> response) mutable
         {
             boost::asio::post(
                 masterNodeContext,
@@ -101,7 +101,7 @@ void MasterNode::addSecondaryImpl(
         });
     endpoint->incoming_secondaryNodeReady.connect(
         [this, &masterNodeContext, id, weakSelf = weak_from_this()](
-            std::string friendlyName, Proto2::SharedPromise<void> response) mutable
+            std::string friendlyName, Utils::SharedPromise<void> response) mutable
         {
             boost::asio::post(
                 masterNodeContext,
@@ -129,15 +129,15 @@ void MasterNode::onInvalidated(size_t secondaryId)
     secondaries_.erase(secondaryId);
 }
 
-void MasterNode::onIncomingGetMessages(size_t startMsgId, Proto2::SharedPromise<std::vector<std::string_view>> response)
+void MasterNode::onIncomingGetMessages(size_t startMsgId, Utils::SharedPromise<std::vector<std::string_view>> response)
 {
     response->set_value(storage().getContiguousChunk(startMsgId));
 }
 
 void MasterNode::onIncomingSecondaryNodeReady(
-    size_t                      secondaryId,
-    std::string                 friendlyName,
-    Proto2::SharedPromise<void> response)
+    size_t                     secondaryId,
+    std::string                friendlyName,
+    Utils::SharedPromise<void> response)
 {
     const auto it = secondaries_.find(secondaryId);
     if (it == secondaries_.end())
