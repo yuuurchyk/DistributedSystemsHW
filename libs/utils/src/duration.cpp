@@ -1,11 +1,10 @@
-#include "proto2/duration.h"
+#include "utils/duration.h"
 
-namespace Proto2
+namespace Utils
 {
-
 boost::posix_time::milliseconds toPosixTime(duration_milliseconds_t duration)
 {
     return boost::posix_time::milliseconds{ duration.count() };
 }
 
-}    // namespace Proto2
+}    // namespace Utils

@@ -8,6 +8,7 @@
 #include "constants2/constants2.h"
 #include "net-utils/launchwithdelay.h"
 #include "net-utils/thenpost.h"
+#include "utils/duration.h"
 
 std::shared_ptr<AddMessageRequest> AddMessageRequest::create(
     boost::asio::io_context  &ioContext,
@@ -134,7 +135,7 @@ void AddMessageRequest::sendRequestToSecondaries()
         EN_LOGI << "write concern is not satisfied, but there is not secondaries to query, waiting...";
         NetUtils::launchWithDelay(
             ioContext_,
-            boost::posix_time::milliseconds{ Constants2::kMasterReconnectTimeout.count() },
+            Utils::toPosixTime(Constants2::kMasterReconnectTimeout),
             [this, self = shared_from_this()]() { start(); });
     }
 }

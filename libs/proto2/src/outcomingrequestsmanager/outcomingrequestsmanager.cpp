@@ -16,7 +16,7 @@ namespace Proto2
 std::shared_ptr<OutcomingRequestsManager> OutcomingRequestsManager::create(
     std::string                    id,
     std::shared_ptr<SocketWrapper> socketWrapper,
-    duration_milliseconds_t        responseTimeout)
+    Utils::duration_milliseconds_t responseTimeout)
 {
     auto self = std::shared_ptr<OutcomingRequestsManager>{ new OutcomingRequestsManager{
         std::move(id), std::move(socketWrapper), responseTimeout } };
@@ -32,9 +32,9 @@ OutcomingRequestsManager::~OutcomingRequestsManager()
 }
 
 void OutcomingRequestsManager::sendRequest(
-    Request_t               request,
-    Context_t               context,
-    duration_milliseconds_t artificialDelay)
+    Request_t                      request,
+    Context_t                      context,
+    Utils::duration_milliseconds_t artificialDelay)
 {
     boost::asio::post(
         ioContext_,
@@ -47,9 +47,9 @@ void OutcomingRequestsManager::sendRequest(
 }
 
 void OutcomingRequestsManager::sendRequestImpl(
-    Request_t               request,
-    Context_t               context,
-    duration_milliseconds_t artificialDelay)
+    Request_t                      request,
+    Context_t                      context,
+    Utils::duration_milliseconds_t artificialDelay)
 {
     auto pendingRequest =
         PendingRequest::create(ioContext_, ++requestIdCounter_, std::move(request), std::move(context));
@@ -67,7 +67,7 @@ void OutcomingRequestsManager::sendRequestImpl(
     auto frame = Frame::constructRequestHeaderWoOwnership(pendingRequest->requestId, pendingRequest->request->opCode());
     pendingRequest->request->serializePayloadWoOwnership(frame);
 
-    pendingRequest->timeoutTimer.expires_from_now(toPosixTime(responseTimeout_));
+    pendingRequest->timeoutTimer.expires_from_now(Utils::toPosixTime(responseTimeout_));
     pendingRequest->timeoutTimer.async_wait(
         [this, requestId = pendingRequest->requestId, weakSelf = weak_from_this()](const error_code &ec)
         {
@@ -86,7 +86,7 @@ void OutcomingRequestsManager::sendRequestImpl(
 
     NetUtils::launchWithDelay(
         ioContext_,
-        toPosixTime(artificialDelay),
+        Utils::toPosixTime(artificialDelay),
         [this,
          frame = std::move(frame),
          requestId,
@@ -112,7 +112,7 @@ void OutcomingRequestsManager::sendRequestImpl(
 OutcomingRequestsManager::OutcomingRequestsManager(
     std::string                    id,
     std::shared_ptr<SocketWrapper> socketWrapper,
-    duration_milliseconds_t        responseTimeout)
+    Utils::duration_milliseconds_t responseTimeout)
     : logger::StringIdEntity<OutcomingRequestsManager>{ std::move(id) },
       ioContext_{ socketWrapper->executionContext() },
       socketWrapper_{ std::move(socketWrapper) },
