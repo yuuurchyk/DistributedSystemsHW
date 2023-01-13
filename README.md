@@ -1,5 +1,7 @@
 # DistributedSystemsHW
 
+## TODO: propertly update readme, add problem description
+
 ## TODO:
 * docker container
 
