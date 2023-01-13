@@ -22,7 +22,7 @@ void SecondaryNodeReady::onResponseRecieved(boost::asio::const_buffer payload)
     auto response = Response::SecondaryNodeReady::fromPayload(payload);
     if (response == nullptr)
     {
-        invalidate(InvalidationReason::BAD_FRAME);
+        invalidate(InvalidationReason::BAD_RESPONSE_FRAME);
     }
     else
     {

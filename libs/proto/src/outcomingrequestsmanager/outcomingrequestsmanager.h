@@ -15,10 +15,9 @@
 
 namespace Proto
 {
-class OutcomingRequestsManager : public std::enable_shared_from_this<OutcomingRequestsManager>,
-                                 private logger::StringIdEntity<OutcomingRequestsManager>
+class OutcomingRequestsManager final : public std::enable_shared_from_this<OutcomingRequestsManager>,
+                                       private logger::StringIdEntity<OutcomingRequestsManager>
 {
-    // TODO: refactor
     DISABLE_COPY_MOVE(OutcomingRequestsManager)
 public:
     [[nodiscard]] static std::shared_ptr<OutcomingRequestsManager>
@@ -42,12 +41,11 @@ private:
 
     void sendRequestImpl(Request_t, Context_t, Utils::duration_milliseconds_t artificialDelay);
 
-    void onExpired(size_t requestId);
-    void onResponseRecieved(size_t requestId, boost::asio::const_buffer payload);
     void onIncomingFrame(boost::asio::const_buffer frame);
-    void onPeerDisconnected(size_t requestId);
+    void onResponseRecieved(size_t requestId, boost::asio::const_buffer payload);
 
-    void invalidateAll();
+    void invalidatePendingRequest(size_t requestId, OutcomingRequestContext::InvalidationReason);
+    void invalidateAllPendingRequests(OutcomingRequestContext::InvalidationReason);
 
 private:
     boost::asio::io_context             &ioContext_;
@@ -75,9 +73,6 @@ private:
     };
 
     std::unordered_map<size_t, std::shared_ptr<PendingRequest>> pendingRequests_;
-
-    boost::signals2::scoped_connection incomingFrameConnection_;
-    boost::signals2::scoped_connection invalidatedConnection_;
 };
 
 }    // namespace Proto

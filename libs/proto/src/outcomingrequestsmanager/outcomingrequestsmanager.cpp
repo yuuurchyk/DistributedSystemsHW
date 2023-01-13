@@ -8,11 +8,10 @@
 #include "frame/frame.h"
 
 using error_code         = boost::system::error_code;
-using InvalidationReason = Proto::OutcomingRequestContext::AbstractOutcomingRequestContext::InvalidationReason;
+using InvalidationReason = Proto::OutcomingRequestContext::InvalidationReason;
 
 namespace Proto
 {
-
 std::shared_ptr<OutcomingRequestsManager> OutcomingRequestsManager::create(
     std::string                    id,
     std::shared_ptr<SocketWrapper> socketWrapper,
@@ -28,7 +27,7 @@ std::shared_ptr<OutcomingRequestsManager> OutcomingRequestsManager::create(
 
 OutcomingRequestsManager::~OutcomingRequestsManager()
 {
-    invalidateAll();
+    invalidateAllPendingRequests(InvalidationReason::PEER_DISCONNECTED);
 }
 
 void OutcomingRequestsManager::sendRequest(
@@ -42,8 +41,15 @@ void OutcomingRequestsManager::sendRequest(
          request = std::move(request),
          context = std::move(context),
          artificialDelay,
-         self = shared_from_this()]() mutable
-        { sendRequestImpl(std::move(request), std::move(context), artificialDelay); });
+         weakSelf = weak_from_this()]() mutable
+        {
+            const auto self = weakSelf.lock();
+
+            if (self == nullptr)
+                context->invalidate(InvalidationReason::PEER_DISCONNECTED);
+            else
+                sendRequestImpl(std::move(request), std::move(context), artificialDelay);
+        });
 }
 
 void OutcomingRequestsManager::sendRequestImpl(
@@ -52,7 +58,7 @@ void OutcomingRequestsManager::sendRequestImpl(
     Utils::duration_milliseconds_t artificialDelay)
 {
     auto pendingRequest =
-        PendingRequest::create(ioContext_, ++requestIdCounter_, std::move(request), std::move(context));
+        PendingRequest::create(ioContext_, requestIdCounter_++, std::move(request), std::move(context));
 
     if (const auto it = pendingRequests_.find(pendingRequest->requestId); it != pendingRequests_.end())
     {
@@ -78,7 +84,7 @@ void OutcomingRequestsManager::sendRequestImpl(
             if (self == nullptr)
                 return;
 
-            onExpired(requestId);
+            invalidatePendingRequest(requestId, InvalidationReason::TIMEOUT);
         });
 
     const auto requestId = pendingRequest->requestId;
@@ -99,7 +105,7 @@ void OutcomingRequestsManager::sendRequestImpl(
 
             if (socketWrapper_->wasInvalidated())
             {
-                onPeerDisconnected(requestId);
+                invalidatePendingRequest(requestId, InvalidationReason::PEER_DISCONNECTED);
             }
             else
             {
@@ -122,22 +128,13 @@ OutcomingRequestsManager::OutcomingRequestsManager(
 
 void OutcomingRequestsManager::establishConnections()
 {
-    incomingFrameConnection_ =
-        socketWrapper_->incomingFrame.connect([this](boost::asio::const_buffer frame) { onIncomingFrame(frame); });
-    invalidatedConnection_ = socketWrapper_->invalidated.connect([this]() { invalidateAll(); });
-}
+    socketWrapper_->incomingFrame.connect(Utils::slot_type<boost::asio::const_buffer>{
+        &OutcomingRequestsManager::onIncomingFrame, this, boost::placeholders::_1 }
+                                              .track_foreign(weak_from_this()));
 
-void OutcomingRequestsManager::onExpired(size_t requestId)
-{
-    EN_LOGD << "onExpired(requestId=" << requestId << ")";
-
-    const auto it = pendingRequests_.find(requestId);
-    if (it == pendingRequests_.end())
-        return;
-
-    auto &pendingRequest = it->second;
-    pendingRequest->context->invalidate(InvalidationReason::TIMEOUT);
-    pendingRequests_.erase(it);
+    socketWrapper_->invalidated.connect(Utils::slot_type<>{
+        &OutcomingRequestsManager::invalidateAllPendingRequests, this, InvalidationReason::PEER_DISCONNECTED }
+                                            .track_foreign(weak_from_this()));
 }
 
 void OutcomingRequestsManager::onResponseRecieved(size_t requestId, boost::asio::const_buffer payload)
@@ -177,28 +174,30 @@ void OutcomingRequestsManager::onIncomingFrame(boost::asio::const_buffer frame)
     onResponseRecieved(responseFrame.requestId, responseFrame.payload);
 }
 
-void OutcomingRequestsManager::onPeerDisconnected(size_t requestId)
+void OutcomingRequestsManager::invalidatePendingRequest(size_t requestId, InvalidationReason reason)
 {
+    EN_LOGW << "invalidatePendingRequest(requestId=" << requestId << ", reason=" << reason << ")";
+
     const auto it = pendingRequests_.find(requestId);
     if (it == pendingRequests_.end())
         return;
 
-    EN_LOGW << "onPeerDisconnected(requestId=" << requestId << ")";
-
     auto &pendingRequest = it->second;
     pendingRequest->timeoutTimer.cancel();
-    pendingRequest->context->invalidate(InvalidationReason::PEER_DISCONNECTED);
+    pendingRequest->context->invalidate(reason);
+
+    pendingRequests_.erase(it);
 }
 
-void OutcomingRequestsManager::invalidateAll()
+void OutcomingRequestsManager::invalidateAllPendingRequests(InvalidationReason reason)
 {
     for (auto &[requestId, pendingRequest] : pendingRequests_)
     {
-        EN_LOGW << "peer disconnected for request " << requestId;
-
+        EN_LOGW << "invalidating request with id " << requestId << ", reason=" << reason;
         pendingRequest->timeoutTimer.cancel();
-        pendingRequest->context->invalidate(InvalidationReason::PEER_DISCONNECTED);
+        pendingRequest->context->invalidate(reason);
     }
+
     pendingRequests_.clear();
 }
 

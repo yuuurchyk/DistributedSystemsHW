@@ -2,25 +2,25 @@
 
 #include <exception>
 
-namespace Proto
+namespace Proto::Exceptions
 {
 struct ResponseException : std::exception
 {
 };
 
-struct BadFrameException : ResponseException
+struct BadResponseFrame : ResponseException
 {
     const char *what() const noexcept override { return "Bad response frame format"; }
 };
 
-struct TimeoutException : ResponseException
+struct Timeout : ResponseException
 {
     const char *what() const noexcept override { return "Timeout occured for request"; }
 };
 
-struct PeerDisconnectedException : ResponseException
+struct PeerDisconnected : ResponseException
 {
     const char *what() const noexcept override { return "Peer disconnected"; }
 };
 
-}    // namespace Proto
+}    // namespace Proto::Exceptions

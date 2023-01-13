@@ -9,6 +9,8 @@
 
 #include "proto/exceptions.h"
 
+#include "outcomingrequestcontext/invalidationreason.h"
+
 namespace Proto::OutcomingRequestContext
 {
 class AbstractOutcomingRequestContext
@@ -21,13 +23,6 @@ public:
     // TODO: handle promiseMarkFilled() and promiseFilled() solely in this class
     // write virtual onResponseRecievedImpl(), invalidateImpl(), leave these not virtual
     virtual void onResponseRecieved(boost::asio::const_buffer payload) = 0;
-
-    enum class InvalidationReason
-    {
-        TIMEOUT,
-        BAD_FRAME,
-        PEER_DISCONNECTED
-    };
 
     virtual void invalidate(InvalidationReason) = 0;
 
@@ -53,14 +48,14 @@ void AbstractOutcomingRequestContext::invalidatePromise(boost::promise<T> &promi
         switch (reason)
         {
         case InvalidationReason::TIMEOUT:
-            throw TimeoutException{};
-        case InvalidationReason::BAD_FRAME:
-            throw BadFrameException{};
+            throw Exceptions::Timeout{};
+        case InvalidationReason::BAD_RESPONSE_FRAME:
+            throw Exceptions::BadResponseFrame{};
         case InvalidationReason::PEER_DISCONNECTED:
-            throw PeerDisconnectedException{};
+            throw Exceptions::PeerDisconnected{};
         }
     }
-    catch (const ResponseException &)
+    catch (const Exceptions::ResponseException &)
     {
         promiseMarkFilled();
         promise.set_exception(std::current_exception());
