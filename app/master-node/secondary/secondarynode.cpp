@@ -2,19 +2,19 @@
 
 #include <utility>
 
-#include "constants2/constants2.h"
+#include "constants/constants.h"
 
 std::shared_ptr<SecondaryNode> SecondaryNode::create(
     size_t                                              id,
-    boost::asio::io_context                            &ioContext,
+    boost::asio::io_context                            &executionContext,
     boost::asio::ip::tcp::socket                        socket,
     std::shared_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard)
 {
     return std::shared_ptr<SecondaryNode>{ new SecondaryNode{
-        id, ioContext, std::move(socket), std::move(loadGuard) } };
+        id, executionContext, std::move(socket), std::move(loadGuard) } };
 }
 
-std::shared_ptr<Proto2::Endpoint> SecondaryNode::endpoint()
+std::shared_ptr<Proto::Endpoint> SecondaryNode::endpoint()
 {
     return endpoint_;
 }
@@ -51,17 +51,17 @@ void SecondaryNode::setInvalidated()
 
 SecondaryNode::SecondaryNode(
     size_t                                              id,
-    boost::asio::io_context                            &ioContext,
+    boost::asio::io_context                            &executionContext,
     boost::asio::ip::tcp::socket                        socket,
     std::shared_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard)
     : id_{ id },
-      ioContext_{ ioContext },
-      endpoint_{ Proto2::Endpoint::create(
+      executionContext_{ executionContext },
+      endpoint_{ Proto::Endpoint::create(
           "sec_" + std::to_string(id),
-          ioContext,
+          executionContext,
           std::move(socket),
-          Constants2::kOutcomingRequestTimeout,
-          Constants2::kArtificialSendDelayBounds) },
+          Constants::kOutcomingRequestTimeout,
+          Constants::kArtificialSendDelayBounds) },
       loadGuard_{ std::move(loadGuard) }
 {
 }

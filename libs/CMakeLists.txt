@@ -7,8 +7,8 @@ endmacro()
 add_lib_target(utils)
 add_lib_target(logger)
 add_lib_target(net-utils)
-add_lib_target(proto2)
-add_lib_target(constants2)
+add_lib_target(proto)
+add_lib_target(constants)
 
 set(libsTargets
     ${libsTargets}

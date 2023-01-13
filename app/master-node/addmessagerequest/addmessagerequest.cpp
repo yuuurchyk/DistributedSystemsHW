@@ -5,9 +5,10 @@
 #include <unordered_set>
 #include <utility>
 
-#include "constants2/constants2.h"
+#include "constants/constants.h"
 #include "net-utils/launchwithdelay.h"
 #include "net-utils/thenpost.h"
+#include "utils/duration.h"
 
 std::shared_ptr<AddMessageRequest> AddMessageRequest::create(
     boost::asio::io_context  &ioContext,
@@ -119,7 +120,7 @@ void AddMessageRequest::sendRequestToSecondaries()
             secondary.endpoint->send_addMessage(messageId_, message_),
             ioContext_,
             [this, secondaryId = secondary.id, self = shared_from_this()](
-                boost::future<Proto2::AddMessageStatus> future)
+                boost::future<Proto::AddMessageStatus> future)
             {
                 onResponseRecieved(secondaryId, std::move(future));
 
@@ -134,7 +135,7 @@ void AddMessageRequest::sendRequestToSecondaries()
         EN_LOGI << "write concern is not satisfied, but there is not secondaries to query, waiting...";
         NetUtils::launchWithDelay(
             ioContext_,
-            boost::posix_time::milliseconds{ Constants2::kMasterReconnectTimeout.count() },
+            Utils::toPosixTime(Constants::kMasterReconnectTimeout),
             [this, self = shared_from_this()]() { start(); });
     }
 }
@@ -169,7 +170,7 @@ void AddMessageRequest::requestMarkFailure()
     }
 }
 
-void AddMessageRequest::onResponseRecieved(size_t secondaryId, boost::future<Proto2::AddMessageStatus> response)
+void AddMessageRequest::onResponseRecieved(size_t secondaryId, boost::future<Proto::AddMessageStatus> response)
 {
     auto &status = statuses_[secondaryId];
 
@@ -177,11 +178,11 @@ void AddMessageRequest::onResponseRecieved(size_t secondaryId, boost::future<Pro
     {
         switch (response.get())
         {
-        case Proto2::AddMessageStatus::OK:
+        case Proto::AddMessageStatus::OK:
             EN_LOGI << "Recieved ok response from secondary node " << secondaryId;
             status = Status::ADDED;
             break;
-        case Proto2::AddMessageStatus::NOT_ALLOWED:
+        case Proto::AddMessageStatus::NOT_ALLOWED:
             EN_LOGW << "Recieved not allowed response from secondary node " << secondaryId;
             status = Status::NOT_ADDED;
             break;

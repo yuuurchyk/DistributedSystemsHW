@@ -6,7 +6,7 @@
 #include <boost/program_options.hpp>
 #include <boost/scope_exit.hpp>
 
-#include "constants2/constants2.h"
+#include "constants/constants.h"
 #include "logger/logger.h"
 #include "net-utils/iocontextpool.h"
 #include "net-utils/socketacceptor.h"
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
         args.nodeName,
         context,
         boost::asio::ip::tcp::endpoint{ boost::asio::ip::address::from_string(args.masterIp), args.masterCommPort },
-        Constants2::kMasterReconnectTimeout);
+        Constants::kMasterReconnectTimeout);
     secondaryNode->run();
 
     LOGI << "Using " << args.httpWorkers << " http threads";

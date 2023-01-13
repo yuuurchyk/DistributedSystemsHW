@@ -8,36 +8,37 @@
 using namespace boost::beast;
 
 std::shared_ptr<HttpSession> HttpSession::create(
-    boost::asio::io_context     &ioContext,
+    boost::asio::io_context     &executionContext,
     boost::asio::ip::tcp::socket socket,
     std::weak_ptr<SecondaryNode> secondaryNode)
 {
-    return std::shared_ptr<HttpSession>{ new HttpSession{ ioContext, std::move(socket), std::move(secondaryNode) } };
+    return std::shared_ptr<HttpSession>{ new HttpSession{
+        executionContext, std::move(socket), std::move(secondaryNode) } };
 }
 
 HttpSession::HttpSession(
-    boost::asio::io_context     &ioContext,
+    boost::asio::io_context     &executionContext,
     boost::asio::ip::tcp::socket socket,
     std::weak_ptr<SecondaryNode> weakNode)
-    : NetUtils::HttpSession{ ioContext, std::move(socket) }, weakNode_{ std::move(weakNode) }
+    : NetUtils::HttpSession{ executionContext, std::move(socket) }, weakNode_{ std::move(weakNode) }
 {
 }
 
 void HttpSession::processRequest()
 {
-    EN_LOGI << "Processing request";
+    EN_LOGD << "Processing request";
 
     response_.version(request_.version());
     response_.keep_alive(false);
 
     if (request_.method() == http::verb::get && request_.target() == "/messages")
     {
-        EN_LOGI << "valid request, retrieving list of messages";
+        EN_LOGD << "valid request, retrieving list of messages";
         response_.result(http::status::ok);
         response_.set(http::field::server, "Beast");
         response_.set(http::field::content_type, "application/json");
 
-        if (auto node = weakNode_.lock(); node == nullptr)
+        if (const auto node = weakNode_.lock(); node == nullptr)
         {
             return fallback("node is dead (should not happen)");
         }

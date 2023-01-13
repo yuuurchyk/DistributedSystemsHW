@@ -40,7 +40,7 @@ CmdArgs readCmdArgs(int argc, char **argv)
         ("comm-port",    po::value<unsigned short>(&args.commPort)->required(),  "internal communication port")
 
         ("http-workers", po::value<size_t>(&args.httpWorkers)->default_value(3), "number of http threads to use")
-        ("comm-workers", po::value<size_t>(&args.httpWorkers)->default_value(3), "number of internal communication threads to use");
+        ("comm-workers", po::value<size_t>(&args.commWorkers)->default_value(3), "number of internal communication threads to use");
     // clang-format on
 
     po::variables_map vm;

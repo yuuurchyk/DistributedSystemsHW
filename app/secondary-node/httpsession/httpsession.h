@@ -10,7 +10,7 @@ class HttpSession final : public NetUtils::HttpSession
 {
 public:
     [[nodiscard]] static std::shared_ptr<HttpSession> create(
-        boost::asio::io_context     &ioContext,
+        boost::asio::io_context     &executionContext,
         boost::asio::ip::tcp::socket socket,
         std::weak_ptr<SecondaryNode> secondaryNode);
 

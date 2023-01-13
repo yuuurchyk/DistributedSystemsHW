@@ -7,15 +7,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include <boost/signals2.hpp>
 #include <boost/thread.hpp>
 
 #include "logger/logger.h"
 #include "net-utils/iocontextpool.h"
-#include "proto2/endpoint.h"
-#include "proto2/sharedpromise.h"
-#include "proto2/timestamp.h"
+#include "proto/endpoint.h"
 #include "utils/copymove.h"
+#include "utils/sharedpromise.h"
 
 #include "secondary/secondarynode.h"
 #include "secondary/secondarysnapshot.h"
@@ -47,11 +45,9 @@ private:
         std::shared_ptr<NetUtils::IOContextPool::LoadGuard>);
 
     void onInvalidated(size_t secondaryId);
-    void onIncomingGetMessages(size_t startMsgId, Proto2::SharedPromise<std::vector<std::string_view>> response);
-    void onIncomingSecondaryNodeReady(
-        size_t                      secondaryId,
-        std::string                 friendlyName,
-        Proto2::SharedPromise<void> response);
+    void onIncomingGetMessages(size_t startMsgId, Utils::SharedPromise<std::vector<std::string_view>> response);
+    void
+        onIncomingSecondaryNodeReady(size_t secondaryId, std::string friendlyName, Utils::SharedPromise<void> response);
 
 private:
     boost::asio::io_context &ioContext_;

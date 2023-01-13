@@ -1,6 +1,7 @@
 version: "3.8"
 services:
-  server-node:
+  master:
+    container_name: "master"
     build:
       context: "."
       target: "deploy"
@@ -9,12 +10,29 @@ services:
         ENABLE_BOOST: "true"
         ENABLE_TBB: "true"
         ENABLE_NINJA: "true"
-    entrypoint: "server"
-    # ports:
-    #   - "8001:8001"
-  
-  client-node:
-    scale: 2
+    entrypoint: [
+      "master-node",
+      "--name",
+      "master",
+      "--http-port",
+      "80",
+      "--comm-port",
+      "6000",
+      "--http-workers",
+      "3",
+      "--comm-workers",
+      "3"
+    ]
+    ports:
+      - "80"
+    expose:
+      - "6000"
+    networks:
+      distr-systems-hw:
+        ipv4_address: "10.5.0.100"
+
+  secondary-1:
+    container_name: "bonnie"
     build:
       context: "."
       target: "deploy"
@@ -23,6 +41,62 @@ services:
         ENABLE_BOOST: "true"
         ENABLE_TBB: "true"
         ENABLE_NINJA: "true"
-    entrypoint: "client"
-    # ports:
-    #   - "8001:8001"
+    entrypoint: [
+      "secondary-node",
+      "--name",
+      "bonnie",
+      "--http-port",
+      "80",
+      "--http-workers",
+      "3",
+      "--master-ip",
+      "10.5.0.100",
+      "--master-comm-port",
+      "6000"
+    ]
+    ports:
+      - "80"
+    expose:
+      - "6000"
+    networks:
+      distr-systems-hw:
+        ipv4_address: "10.5.0.101"
+
+  secondary-2:
+    container_name: "clyde_"
+    build:
+      context: "."
+      target: "deploy"
+      args:
+        ENABLE_CMAKE: "true"
+        ENABLE_BOOST: "true"
+        ENABLE_TBB: "true"
+        ENABLE_NINJA: "true"
+    entrypoint: [
+      "secondary-node",
+      "--name",
+      "clyde_",
+      "--http-port",
+      "80",
+      "--http-workers",
+      "3",
+      "--master-ip",
+      "10.5.0.100",
+      "--master-comm-port",
+      "6000"
+    ]
+    ports:
+      - "80"
+    expose:
+      - "6000"
+    networks:
+      distr-systems-hw:
+        ipv4_address: "10.5.0.102"
+
+networks:
+  distr-systems-hw:
+    driver: "bridge"
+    ipam:
+      config:
+        - subnet: "10.5.0.0/16"
+          gateway: "10.5.0.1"

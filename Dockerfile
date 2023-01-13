@@ -311,10 +311,11 @@ FROM final AS deploy
 COPY . /app
 
 WORKDIR /app
-RUN cmake -S . -B build -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -Dlogreplication-build-tests=OFF
+RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 RUN cmake --build build --target install
+
+WORKDIR /
+RUN rm -rf /app
 # ----------------------
 # terminal stages end
 # ----------------------
