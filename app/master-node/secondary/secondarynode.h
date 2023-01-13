@@ -19,7 +19,7 @@ class SecondaryNode
 public:
     [[nodiscard]] static std::shared_ptr<SecondaryNode> create(
         size_t                   id,
-        boost::asio::io_context &ioContext,    // (related to socket)
+        boost::asio::io_context &executionContext,    // (related to socket)
         boost::asio::ip::tcp::socket,
         std::shared_ptr<NetUtils::IOContextPool::LoadGuard>);
 
@@ -45,7 +45,7 @@ private:
 
     SecondaryState state_{ SecondaryState::REGISTERING };
 
-    boost::asio::io_context               &ioContext_;
+    boost::asio::io_context               &executionContext_;
     const std::shared_ptr<Proto::Endpoint> endpoint_;
 
     const std::shared_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard_;
