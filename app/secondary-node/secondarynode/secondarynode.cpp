@@ -2,6 +2,7 @@
 
 #include "net-utils/launchwithdelay.h"
 #include "net-utils/thenpost.h"
+#include "utils/signal.h"
 
 #include <utility>
 
@@ -9,12 +10,12 @@ using error_code = boost::system::error_code;
 
 std::shared_ptr<SecondaryNode> SecondaryNode::create(
     std::string                               friendlyName,
-    boost::asio::io_context                  &ioContext,
+    boost::asio::io_context                  &executionContext,
     boost::asio::ip::tcp::endpoint            masterAddress,
     std::chrono::duration<size_t, std::milli> masterReconnectInterval)
 {
     return std::shared_ptr<SecondaryNode>{ new SecondaryNode{
-        std::move(friendlyName), ioContext, std::move(masterAddress), std::move(masterReconnectInterval) } };
+        std::move(friendlyName), executionContext, std::move(masterAddress), std::move(masterReconnectInterval) } };
 }
 
 void SecondaryNode::run()
@@ -35,11 +36,11 @@ const Storage &SecondaryNode::storage() const
 
 SecondaryNode::SecondaryNode(
     std::string                               friendlyName,
-    boost::asio::io_context                  &ioContext,
+    boost::asio::io_context                  &executionContext,
     boost::asio::ip::tcp::endpoint            masterAddress,
     std::chrono::duration<size_t, std::milli> masterReconnectInterval)
     : friendlyName_{ std::move(friendlyName) },
-      ioContext_{ ioContext },
+      executionContext_{ executionContext },
       masterAddress_{ std::move(masterAddress) },
       masterReconnectInterval_{ masterReconnectInterval.count() }
 {
@@ -49,7 +50,7 @@ void SecondaryNode::reconnectToMaster()
 {
     EN_LOGI << "reconnecting to master node";
 
-    auto socket = std::make_shared<boost::asio::ip::tcp::socket>(ioContext_);
+    auto socket = std::make_shared<boost::asio::ip::tcp::socket>(executionContext_);
 
     socket->async_connect(
         masterAddress_,
@@ -63,7 +64,7 @@ void SecondaryNode::reconnectToMaster()
             {
                 EN_LOGI << "failed to connect to master, schedule reconnect";
                 NetUtils::launchWithDelay(
-                    ioContext_,
+                    executionContext_,
                     masterReconnectInterval_,
                     [this, weakSelf = weak_from_this()]()
                     {
@@ -82,36 +83,38 @@ void SecondaryNode::reconnectToMaster()
 
 void SecondaryNode::disconnectMasterSession()
 {
-    {
-        std::unique_lock lck{ operationalMutex_ };
-        operational_ = false;
-    }
     session_ = {};
+
+    std::unique_lock lck{ operationalMutex_ };
+    operational_ = false;
 }
 
 void SecondaryNode::runMasterSession(boost::asio::ip::tcp::socket socket)
 {
     disconnectMasterSession();
 
-    session_ = MasterSession::create(friendlyName_, ioContext_, std::move(socket), storage_);
+    session_ = MasterSession::create(friendlyName_, executionContext_, std::move(socket), storage_);
 
-    invalidatedConnection_ = session_->invalidated.connect(
-        [this]()
-        {
-            EN_LOGI << "master session invalidated";
-            disconnectMasterSession();
-            reconnectToMaster();
-        });
-
-    operationalConnection_ = session_->operational.connect(
-        [this]()
-        {
-            EN_LOGI << "master session operational";
-            {
-                std::unique_lock lck{ operationalMutex_ };
-                operational_ = true;
-            }
-        });
+    session_->invalidated.connect(
+        Utils::slot_type<>{ &SecondaryNode::onSessionInvalidated, this }.track_foreign(weak_from_this()));
+    session_->operational.connect(
+        Utils::slot_type<>{ &SecondaryNode::onSessionOperational, this }.track_foreign(weak_from_this()));
 
     session_->run();
+}
+
+void SecondaryNode::onSessionInvalidated()
+{
+    EN_LOGI << "master session invalidated";
+
+    disconnectMasterSession();
+    reconnectToMaster();
+}
+
+void SecondaryNode::onSessionOperational()
+{
+    EN_LOGI << "master session operational";
+
+    std::unique_lock lck{ operationalMutex_ };
+    operational_ = true;
 }

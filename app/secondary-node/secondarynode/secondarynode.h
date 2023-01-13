@@ -6,10 +6,8 @@
 #include <string>
 
 #include <boost/asio.hpp>
-#include <boost/signals2.hpp>
 
 #include "logger/logger.h"
-#include "proto/endpoint.h"
 #include "utils/copymove.h"
 
 #include "mastersession/mastersession.h"
@@ -21,7 +19,7 @@ class SecondaryNode : public std::enable_shared_from_this<SecondaryNode>, privat
 public:
     [[nodiscard]] static std::shared_ptr<SecondaryNode> create(
         std::string                               friendlyName,
-        boost::asio::io_context                  &ioContext,
+        boost::asio::io_context                  &executionContext,
         boost::asio::ip::tcp::endpoint            masterAddress,
         std::chrono::duration<size_t, std::milli> masterReconnectInterval);
     ~SecondaryNode() = default;
@@ -44,21 +42,20 @@ private:
     void disconnectMasterSession();
     void runMasterSession(boost::asio::ip::tcp::socket);
 
+    void onSessionInvalidated();
+    void onSessionOperational();
+
 private:
     const std::string friendlyName_;
 
     Storage storage_;
 
-    boost::asio::io_context              &ioContext_;
+    boost::asio::io_context              &executionContext_;
     const boost::asio::ip::tcp::endpoint  masterAddress_;
-    std::shared_ptr<Proto::Endpoint>      masterEndpoint_;
     const boost::posix_time::milliseconds masterReconnectInterval_;
 
     mutable std::shared_mutex operationalMutex_;
     bool                      operational_{};
 
     std::shared_ptr<MasterSession> session_{};
-
-    boost::signals2::scoped_connection invalidatedConnection_;
-    boost::signals2::scoped_connection operationalConnection_;
 };
