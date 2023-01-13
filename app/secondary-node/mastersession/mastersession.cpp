@@ -44,22 +44,21 @@ MasterSession::MasterSession(
 
 void MasterSession::establishConnections()
 {
-    connections_.push_back(endpoint_->invalidated.connect(
-        [this]()
-        {
-            EN_LOGW << "socket invalidated";
-            invalidated();
-        }));
+    endpoint_->invalidated.connect(
+        Utils::slot_type<>{ &MasterSession::onEndpointInvalidated, this }.track_foreign(weak_from_this()));
 
-    connections_.push_back(endpoint_->incoming_addMessage.connect(
-        [this](size_t msgId, std::string msg, Utils::SharedPromise<Proto::AddMessageStatus> response)
-        {
-            storage_.addMessage(msgId, std::move(msg));
-            response->set_value(Proto::AddMessageStatus::OK);
-        }));
-    connections_.push_back(
-        endpoint_->incoming_ping.connect([this](Utils::Timestamp_t, Utils::SharedPromise<Utils::Timestamp_t> response)
-                                         { response->set_value(Utils::getCurrentTimestamp()); }));
+    endpoint_->incoming_addMessage.connect(
+        Utils::slot_type<size_t, std::string, Utils::SharedPromise<Proto::AddMessageStatus>>{
+            &MasterSession::onIncomingAddMessage,
+            this,
+            boost::placeholders::_1,
+            boost::placeholders::_2,
+            boost::placeholders::_3 }
+            .track_foreign(weak_from_this()));
+
+    endpoint_->incoming_ping.connect(Utils::slot_type<Utils::Timestamp_t, Utils::SharedPromise<Utils::Timestamp_t>>{
+        &MasterSession::onIncomingPing, this, boost::placeholders::_1, boost::placeholders::_2 }
+                                         .track_foreign(weak_from_this()));
 }
 
 void MasterSession::askForMessages()
@@ -115,4 +114,24 @@ void MasterSession::notifyOperational()
                 notifyOperational();
             }
         });
+}
+
+void MasterSession::onEndpointInvalidated()
+{
+    EN_LOGW << "socket invalidated";
+    invalidated();
+}
+
+void MasterSession::onIncomingAddMessage(
+    size_t                                        msgId,
+    std::string                                   msg,
+    Utils::SharedPromise<Proto::AddMessageStatus> response)
+{
+    storage_.addMessage(msgId, std::move(msg));
+    response->set_value(Proto::AddMessageStatus::OK);
+}
+
+void MasterSession::onIncomingPing(Utils::Timestamp_t, Utils::SharedPromise<Utils::Timestamp_t> response)
+{
+    response->set_value(Utils::getCurrentTimestamp());
 }
