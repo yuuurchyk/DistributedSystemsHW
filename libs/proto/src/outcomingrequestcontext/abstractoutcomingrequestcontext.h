@@ -20,11 +20,8 @@ public:
     AbstractOutcomingRequestContext()          = default;
     virtual ~AbstractOutcomingRequestContext() = default;
 
-    // TODO: handle promiseMarkFilled() and promiseFilled() solely in this class
-    // write virtual onResponseRecievedImpl(), invalidateImpl(), leave these not virtual
     virtual void onResponseRecieved(boost::asio::const_buffer payload) = 0;
-
-    virtual void invalidate(InvalidationReason) = 0;
+    virtual void invalidate(InvalidationReason)                        = 0;
 
 protected:
     void promiseMarkFilled();
