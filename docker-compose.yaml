@@ -1,6 +1,7 @@
 version: "3.8"
 services:
-  server-node:
+  master:
+    container_name: "master-node"
     build:
       context: "."
       target: "deploy"
@@ -9,20 +10,29 @@ services:
         ENABLE_BOOST: "true"
         ENABLE_TBB: "true"
         ENABLE_NINJA: "true"
-    entrypoint: "server"
-    # ports:
-    #   - "8001:8001"
-  
-  client-node:
-    scale: 2
-    build:
-      context: "."
-      target: "deploy"
-      args:
-        ENABLE_CMAKE: "true"
-        ENABLE_BOOST: "true"
-        ENABLE_TBB: "true"
-        ENABLE_NINJA: "true"
-    entrypoint: "client"
-    # ports:
-    #   - "8001:8001"
+    entrypoint: [
+      "master-node",
+      "--name",
+      "master",
+      "--http-port",
+      "80",
+      "--comm-port",
+      "6000",
+      "--http-workers",
+      "3",
+      "--comm-workers",
+      "3"
+    ]
+    ports:
+      - "80:8000" # master http port
+    networks:
+      distr-systems-hw:
+        ipv4_address: "192.168.0.100"
+
+networks:
+  distr-systems-hw:
+    driver: "bridge"
+    ipam:
+      config:
+        - subnet: "192.168.0.0/24"
+          gateway: "192.168.0.1"
