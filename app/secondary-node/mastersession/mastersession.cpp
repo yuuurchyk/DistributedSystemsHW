@@ -7,12 +7,12 @@
 
 std::shared_ptr<MasterSession> MasterSession::create(
     std::string                  friendlyName,
-    boost::asio::io_context     &ioContext,
+    boost::asio::io_context     &executionContext,
     boost::asio::ip::tcp::socket socket,
     Storage                     &storage)
 {
     auto self = std::shared_ptr<MasterSession>{ new MasterSession{
-        std::move(friendlyName), ioContext, std::move(socket), storage } };
+        std::move(friendlyName), executionContext, std::move(socket), storage } };
 
     self->establishConnections();
 
@@ -27,14 +27,14 @@ void MasterSession::run()
 
 MasterSession::MasterSession(
     std::string                  friendlyName,
-    boost::asio::io_context     &ioContext,
+    boost::asio::io_context     &executionContext,
     boost::asio::ip::tcp::socket socket,
     Storage                     &storage)
     : friendlyName_{ std::move(friendlyName) },
-      ioContext_{ ioContext },
+      executionContext_{ executionContext },
       endpoint_{ Proto::Endpoint::create(
           "master",
-          ioContext,
+          executionContext,
           std::move(socket),
           Constants::kOutcomingRequestTimeout,
           Constants::kArtificialSendDelayBounds) },
@@ -69,7 +69,7 @@ void MasterSession::askForMessages()
 
     NetUtils::thenPost(
         endpoint_->send_getMessages(gap),
-        ioContext_,
+        executionContext_,
         [this, gap, weakSelf = weak_from_this()](boost::future<std::vector<std::string>> response)
         {
             const auto self = weakSelf.lock();
@@ -97,7 +97,7 @@ void MasterSession::notifyOperational()
 
     NetUtils::thenPost(
         endpoint_->send_secondaryNodeReady(friendlyName_),
-        ioContext_,
+        executionContext_,
         [this, weakSelf = weak_from_this()](boost::future<void> response)
         {
             const auto self = weakSelf.lock();

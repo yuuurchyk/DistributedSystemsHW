@@ -28,7 +28,7 @@ public:
      */
     [[nodiscard]] static std::shared_ptr<MasterSession> create(
         std::string                  friendlyName,
-        boost::asio::io_context     &ioContext,
+        boost::asio::io_context     &executionContext,
         boost::asio::ip::tcp::socket socket,
         Storage                     &storage);
 
@@ -52,7 +52,7 @@ private:
 private:
     const std::string friendlyName_;
 
-    boost::asio::io_context               &ioContext_;
+    boost::asio::io_context               &executionContext_;
     const std::shared_ptr<Proto::Endpoint> endpoint_;
 
     Storage &storage_;
