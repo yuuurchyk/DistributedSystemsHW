@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   master:
-    container_name: "master-node"
+    container_name: "master"
     build:
       context: "."
       target: "deploy"
@@ -24,15 +24,79 @@ services:
       "3"
     ]
     ports:
-      - "80:8000" # master http port
+      - "80"
+    expose:
+      - "6000"
     networks:
       distr-systems-hw:
-        ipv4_address: "192.168.0.100"
+        ipv4_address: "10.5.0.100"
+
+  secondary-1:
+    container_name: "bonnie"
+    build:
+      context: "."
+      target: "deploy"
+      args:
+        ENABLE_CMAKE: "true"
+        ENABLE_BOOST: "true"
+        ENABLE_TBB: "true"
+        ENABLE_NINJA: "true"
+    entrypoint: [
+      "secondary-node",
+      "--name",
+      "bonnie",
+      "--http-port",
+      "80",
+      "--http-workers",
+      "3",
+      "--master-ip",
+      "10.5.0.100",
+      "--master-comm-port",
+      "6000"
+    ]
+    ports:
+      - "80"
+    expose:
+      - "6000"
+    networks:
+      distr-systems-hw:
+        ipv4_address: "10.5.0.101"
+
+  secondary-2:
+    container_name: "clyde_"
+    build:
+      context: "."
+      target: "deploy"
+      args:
+        ENABLE_CMAKE: "true"
+        ENABLE_BOOST: "true"
+        ENABLE_TBB: "true"
+        ENABLE_NINJA: "true"
+    entrypoint: [
+      "secondary-node",
+      "--name",
+      "clyde_",
+      "--http-port",
+      "80",
+      "--http-workers",
+      "3",
+      "--master-ip",
+      "10.5.0.100",
+      "--master-comm-port",
+      "6000"
+    ]
+    ports:
+      - "80"
+    expose:
+      - "6000"
+    networks:
+      distr-systems-hw:
+        ipv4_address: "10.5.0.102"
 
 networks:
   distr-systems-hw:
     driver: "bridge"
     ipam:
       config:
-        - subnet: "192.168.0.0/24"
-          gateway: "192.168.0.1"
+        - subnet: "10.5.0.0/16"
+          gateway: "10.5.0.1"
