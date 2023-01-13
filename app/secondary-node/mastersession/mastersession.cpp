@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "constants2/constants2.h"
+#include "constants/constants.h"
 #include "net-utils/thenpost.h"
 
 std::shared_ptr<MasterSession> MasterSession::create(
@@ -36,8 +36,8 @@ MasterSession::MasterSession(
           "master",
           ioContext,
           std::move(socket),
-          Constants2::kOutcomingRequestTimeout,
-          Constants2::kArtificialSendDelayBounds) },
+          Constants::kOutcomingRequestTimeout,
+          Constants::kArtificialSendDelayBounds) },
       storage_{ storage }
 {
 }

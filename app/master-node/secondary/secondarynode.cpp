@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "constants2/constants2.h"
+#include "constants/constants.h"
 
 std::shared_ptr<SecondaryNode> SecondaryNode::create(
     size_t                                              id,
@@ -60,8 +60,8 @@ SecondaryNode::SecondaryNode(
           "sec_" + std::to_string(id),
           ioContext,
           std::move(socket),
-          Constants2::kOutcomingRequestTimeout,
-          Constants2::kArtificialSendDelayBounds) },
+          Constants::kOutcomingRequestTimeout,
+          Constants::kArtificialSendDelayBounds) },
       loadGuard_{ std::move(loadGuard) }
 {
 }

@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <utility>
 
-#include "constants2/constants2.h"
+#include "constants/constants.h"
 #include "net-utils/launchwithdelay.h"
 #include "net-utils/thenpost.h"
 #include "utils/duration.h"
@@ -135,7 +135,7 @@ void AddMessageRequest::sendRequestToSecondaries()
         EN_LOGI << "write concern is not satisfied, but there is not secondaries to query, waiting...";
         NetUtils::launchWithDelay(
             ioContext_,
-            Utils::toPosixTime(Constants2::kMasterReconnectTimeout),
+            Utils::toPosixTime(Constants::kMasterReconnectTimeout),
             [this, self = shared_from_this()]() { start(); });
     }
 }
