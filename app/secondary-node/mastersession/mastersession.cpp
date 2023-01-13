@@ -32,7 +32,7 @@ MasterSession::MasterSession(
     Storage                     &storage)
     : friendlyName_{ std::move(friendlyName) },
       ioContext_{ ioContext },
-      endpoint_{ Proto2::Endpoint::create(
+      endpoint_{ Proto::Endpoint::create(
           "master",
           ioContext,
           std::move(socket),
@@ -52,10 +52,10 @@ void MasterSession::establishConnections()
         }));
 
     connections_.push_back(endpoint_->incoming_addMessage.connect(
-        [this](size_t msgId, std::string msg, Utils::SharedPromise<Proto2::AddMessageStatus> response)
+        [this](size_t msgId, std::string msg, Utils::SharedPromise<Proto::AddMessageStatus> response)
         {
             storage_.addMessage(msgId, std::move(msg));
-            response->set_value(Proto2::AddMessageStatus::OK);
+            response->set_value(Proto::AddMessageStatus::OK);
         }));
     connections_.push_back(
         endpoint_->incoming_ping.connect([this](Utils::Timestamp_t, Utils::SharedPromise<Utils::Timestamp_t> response)

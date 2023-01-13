@@ -8,7 +8,7 @@
 #include <boost/thread.hpp>
 
 #include "logger/logger.h"
-#include "proto2/enums.h"
+#include "proto/enums.h"
 #include "utils/copymove.h"
 
 #include "masternode/masternode.h"
@@ -49,7 +49,7 @@ private:
     void requestMarkSuccess();
     void requestMarkFailure();
 
-    void onResponseRecieved(size_t secondaryId, boost::future<Proto2::AddMessageStatus> response);
+    void onResponseRecieved(size_t secondaryId, boost::future<Proto::AddMessageStatus> response);
     void onAllResponsesRecieved();
 
 private:

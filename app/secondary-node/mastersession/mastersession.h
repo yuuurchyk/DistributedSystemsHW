@@ -7,7 +7,7 @@
 #include <boost/asio.hpp>
 
 #include "logger/logger.h"
-#include "proto2/endpoint.h"
+#include "proto/endpoint.h"
 #include "utils/copymove.h"
 #include "utils/signal.h"
 
@@ -39,8 +39,8 @@ private:
 private:
     const std::string friendlyName_;
 
-    boost::asio::io_context                &ioContext_;
-    const std::shared_ptr<Proto2::Endpoint> endpoint_;
+    boost::asio::io_context               &ioContext_;
+    const std::shared_ptr<Proto::Endpoint> endpoint_;
 
     Storage &storage_;
 

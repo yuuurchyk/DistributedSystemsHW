@@ -11,7 +11,7 @@
 
 #include "logger/logger.h"
 #include "net-utils/iocontextpool.h"
-#include "proto2/endpoint.h"
+#include "proto/endpoint.h"
 #include "utils/copymove.h"
 #include "utils/sharedpromise.h"
 

@@ -120,7 +120,7 @@ void AddMessageRequest::sendRequestToSecondaries()
             secondary.endpoint->send_addMessage(messageId_, message_),
             ioContext_,
             [this, secondaryId = secondary.id, self = shared_from_this()](
-                boost::future<Proto2::AddMessageStatus> future)
+                boost::future<Proto::AddMessageStatus> future)
             {
                 onResponseRecieved(secondaryId, std::move(future));
 
@@ -170,7 +170,7 @@ void AddMessageRequest::requestMarkFailure()
     }
 }
 
-void AddMessageRequest::onResponseRecieved(size_t secondaryId, boost::future<Proto2::AddMessageStatus> response)
+void AddMessageRequest::onResponseRecieved(size_t secondaryId, boost::future<Proto::AddMessageStatus> response)
 {
     auto &status = statuses_[secondaryId];
 
@@ -178,11 +178,11 @@ void AddMessageRequest::onResponseRecieved(size_t secondaryId, boost::future<Pro
     {
         switch (response.get())
         {
-        case Proto2::AddMessageStatus::OK:
+        case Proto::AddMessageStatus::OK:
             EN_LOGI << "Recieved ok response from secondary node " << secondaryId;
             status = Status::ADDED;
             break;
-        case Proto2::AddMessageStatus::NOT_ALLOWED:
+        case Proto::AddMessageStatus::NOT_ALLOWED:
             EN_LOGW << "Recieved not allowed response from secondary node " << secondaryId;
             status = Status::NOT_ADDED;
             break;

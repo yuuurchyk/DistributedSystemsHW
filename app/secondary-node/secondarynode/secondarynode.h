@@ -9,7 +9,7 @@
 #include <boost/signals2.hpp>
 
 #include "logger/logger.h"
-#include "proto2/endpoint.h"
+#include "proto/endpoint.h"
 #include "utils/copymove.h"
 
 #include "mastersession/mastersession.h"
@@ -51,7 +51,7 @@ private:
 
     boost::asio::io_context              &ioContext_;
     const boost::asio::ip::tcp::endpoint  masterAddress_;
-    std::shared_ptr<Proto2::Endpoint>     masterEndpoint_;
+    std::shared_ptr<Proto::Endpoint>      masterEndpoint_;
     const boost::posix_time::milliseconds masterReconnectInterval_;
 
     mutable std::shared_mutex operationalMutex_;

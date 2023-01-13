@@ -14,7 +14,7 @@ std::shared_ptr<SecondaryNode> SecondaryNode::create(
         id, ioContext, std::move(socket), std::move(loadGuard) } };
 }
 
-std::shared_ptr<Proto2::Endpoint> SecondaryNode::endpoint()
+std::shared_ptr<Proto::Endpoint> SecondaryNode::endpoint()
 {
     return endpoint_;
 }
@@ -56,7 +56,7 @@ SecondaryNode::SecondaryNode(
     std::shared_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard)
     : id_{ id },
       ioContext_{ ioContext },
-      endpoint_{ Proto2::Endpoint::create(
+      endpoint_{ Proto::Endpoint::create(
           "sec_" + std::to_string(id),
           ioContext,
           std::move(socket),

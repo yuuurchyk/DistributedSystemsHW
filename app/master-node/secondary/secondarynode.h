@@ -7,7 +7,7 @@
 #include <boost/asio.hpp>
 
 #include "net-utils/iocontextpool.h"
-#include "proto2/endpoint.h"
+#include "proto/endpoint.h"
 #include "utils/copymove.h"
 
 #include "secondary/secondarystate.h"
@@ -23,7 +23,7 @@ public:
         boost::asio::ip::tcp::socket,
         std::shared_ptr<NetUtils::IOContextPool::LoadGuard>);
 
-    std::shared_ptr<Proto2::Endpoint> endpoint();
+    std::shared_ptr<Proto::Endpoint> endpoint();
 
     size_t                            id() const;
     const std::optional<std::string> &friendlyName() const;
@@ -45,8 +45,8 @@ private:
 
     SecondaryState state_{ SecondaryState::REGISTERING };
 
-    boost::asio::io_context                &ioContext_;
-    const std::shared_ptr<Proto2::Endpoint> endpoint_;
+    boost::asio::io_context               &ioContext_;
+    const std::shared_ptr<Proto::Endpoint> endpoint_;
 
     const std::shared_ptr<NetUtils::IOContextPool::LoadGuard> loadGuard_;
 };
