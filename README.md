@@ -6,8 +6,8 @@ TODO: add problem description
 
 ```docker compose up``` launches the following containers:
 * ```master``` (ip ```10.5.0.100```)
-* ```bonnie``` (secondary 1, ip ```10.5.0.100```)
-* ```clyde_``` (secondary 2, ip ```10.5.0.100```)
+* ```bonnie``` (secondary 1, ip ```10.5.0.101```)
+* ```clyde_``` (secondary 2, ip ```10.5.0.102```)
 
 ## API
 
