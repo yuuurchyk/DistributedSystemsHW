@@ -157,3 +157,188 @@ master  | [  34.621s] [master,cd640] [         addmessagerequest.cpp:182 ][AddMe
 master  | [  34.621s] [master,cd640] [         addmessagerequest.cpp:148 ][AddMessageRequest,id=0]            [Info] : marking request as success
 master  | [  34.621s] [master,cd640] [         addmessagerequest.cpp:63  ][AddMessageRequest,id=0]            [Info] : all secondaries answered, destroying request
 ```
+
+## Example Usage
+
+* Start Master + Secondary1
+* send (Msg1, WriteConcern=1) - Ok
+* send (Msg2, WriteConcern=2) - Ok
+* send (Msg3, WriteConcern=3) - Wait
+* send (Msg4, WriteConcern=1) - Ok
+* Start Secondary2
+* Check messages on Secondary2 - [Msg1, Msg2, Msg3, Msg4]
+
+Command line output:
+
+```bash
+>>> docker compose up master
+[+] Running 1/0
+ ⠿ Container master  Created                                                                                                                                                                                                                                               0.0s
+Attaching to master
+master  | [   0.000s] [master,15b00] [                      main.cpp:86  ]                                    [Info] : Using 3 http threads
+master  | [   0.000s] [master,15b00] [                      main.cpp:95  ]                                    [Info] : Internal communication port=6000
+master  | [   0.000s] [master,15b00] [                      main.cpp:96  ]                                    [Info] : Using 3 internal communication threads
+master  | [   0.000s] [master,15b00] [                      main.cpp:117 ]                                    [Info] : Listening for http requests on port 80
+master  | [   9.388s] [master,9640 ] [            socketacceptor.cpp:107 ][NetUtils::SocketAcceptor]          [Info] : Accepting incoming connection
+master  | [   9.388s] [master,a640 ] [                masternode.cpp:67  ][MasterNode]                        [Info] : adding secondary: id=0
+master  | [  10.644s] [master,8640 ] [                  endpoint.cpp:239 ][Proto::Endpoint,id=sec_0]          [Info] : incoming_getMessages(startMsgId=0)
+master  | [  11.663s] [master,8640 ] [                  endpoint.cpp:275 ][Proto::Endpoint,id=sec_0]          [Info] : incoming_secondaryNodeReady(secondaryNodeName='bonnie')
+master  | [  11.663s] [master,a640 ] [                masternode.cpp:146 ][MasterNode]                        [Info] : registering node 0 as ready, friendlyName: bonnie
+master  | [  20.012s] [master,15b00] [            socketacceptor.cpp:77  ][NetUtils::SocketAcceptor]          [Info] : Accepting incoming connection
+master  | [  20.020s] [master,d640 ] [         addmessagerequest.cpp:148 ][AddMessageRequest,id=0]            [Info] : marking request as success
+master  | [  20.020s] [master,d640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=0, msg='Msg1') (artificially delayed by 1765ms)
+master  | [  21.521s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=0, reason=InvalidationReason::TIMEOUT)
+master  | [  21.521s] [master,d640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=0]            [Warn] : Recieved error from secondary node 0
+master  | [  21.521s] [master,d640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=0, msg='Msg1') (artificially delayed by 1512ms)
+master  | [  21.786s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 0, but it is not marked as pending
+master  | [  23.021s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=1, reason=InvalidationReason::TIMEOUT)
+master  | [  23.021s] [master,d640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=0]            [Warn] : Recieved error from secondary node 0
+master  | [  23.021s] [master,d640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=0, msg='Msg1') (artificially delayed by 1143ms)
+master  | [  23.034s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 1, but it is not marked as pending
+master  | [  24.165s] [master,d640 ] [         addmessagerequest.cpp:182 ][AddMessageRequest,id=0]            [Info] : Recieved ok response from secondary node 0
+master  | [  24.165s] [master,d640 ] [         addmessagerequest.cpp:63  ][AddMessageRequest,id=0]            [Info] : all secondaries answered, destroying request
+master  | [  24.230s] [master,15b00] [            socketacceptor.cpp:77  ][NetUtils::SocketAcceptor]          [Info] : Accepting incoming connection
+master  | [  24.230s] [master,c640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=1, msg='Msg2') (artificially delayed by 1232ms)
+master  | [  25.463s] [master,c640 ] [         addmessagerequest.cpp:182 ][AddMessageRequest,id=1]            [Info] : Recieved ok response from secondary node 0
+master  | [  25.463s] [master,c640 ] [         addmessagerequest.cpp:148 ][AddMessageRequest,id=1]            [Info] : marking request as success
+master  | [  25.463s] [master,c640 ] [         addmessagerequest.cpp:63  ][AddMessageRequest,id=1]            [Info] : all secondaries answered, destroying request
+master  | [  28.853s] [master,15b00] [            socketacceptor.cpp:77  ][NetUtils::SocketAcceptor]          [Info] : Accepting incoming connection
+master  | [  28.853s] [master,b640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=2, msg='Msg3') (artificially delayed by 1562ms)
+master  | [  30.353s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=4, reason=InvalidationReason::TIMEOUT)
+master  | [  30.353s] [master,b640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=2]            [Warn] : Recieved error from secondary node 0
+master  | [  30.353s] [master,b640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=2, msg='Msg3') (artificially delayed by 1971ms)
+master  | [  30.415s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 4, but it is not marked as pending
+master  | [  31.853s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=5, reason=InvalidationReason::TIMEOUT)
+master  | [  31.854s] [master,b640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=2]            [Warn] : Recieved error from secondary node 0
+master  | [  31.854s] [master,b640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=2, msg='Msg3') (artificially delayed by 1788ms)
+master  | [  32.325s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 5, but it is not marked as pending
+master  | [  33.354s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=6, reason=InvalidationReason::TIMEOUT)
+master  | [  33.354s] [master,b640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=2]            [Warn] : Recieved error from secondary node 0
+master  | [  33.354s] [master,b640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=2, msg='Msg3') (artificially delayed by 1862ms)
+master  | [  33.642s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 6, but it is not marked as pending
+master  | [  34.854s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=7, reason=InvalidationReason::TIMEOUT)
+master  | [  34.854s] [master,b640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=2]            [Warn] : Recieved error from secondary node 0
+master  | [  34.854s] [master,b640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=2, msg='Msg3') (artificially delayed by 1726ms)
+master  | [  35.216s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 7, but it is not marked as pending
+master  | [  35.262s] [master,15b00] [            socketacceptor.cpp:77  ][NetUtils::SocketAcceptor]          [Info] : Accepting incoming connection
+master  | [  35.262s] [master,d640 ] [         addmessagerequest.cpp:148 ][AddMessageRequest,id=3]            [Info] : marking request as success
+master  | [  35.262s] [master,d640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=3, msg='Msg4') (artificially delayed by 1507ms)
+master  | [  36.355s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=8, reason=InvalidationReason::TIMEOUT)
+master  | [  36.355s] [master,b640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=2]            [Warn] : Recieved error from secondary node 0
+master  | [  36.355s] [master,b640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=2, msg='Msg3') (artificially delayed by 1520ms)
+master  | [  36.581s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 8, but it is not marked as pending
+master  | [  36.762s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=9, reason=InvalidationReason::TIMEOUT)
+master  | [  36.762s] [master,d640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=3]            [Warn] : Recieved error from secondary node 0
+master  | [  36.762s] [master,d640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=3, msg='Msg4') (artificially delayed by 1458ms)
+master  | [  36.770s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 9, but it is not marked as pending
+master  | [  37.855s] [master,8640 ] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : invalidatePendingRequest(requestId=10, reason=InvalidationReason::TIMEOUT)
+master  | [  37.855s] [master,b640 ] [         addmessagerequest.cpp:193 ][AddMessageRequest,id=2]            [Warn] : Recieved error from secondary node 0
+master  | [  37.855s] [master,b640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_0]          [Info] : sending addMessage(msgId=2, msg='Msg3') (artificially delayed by 1250ms)
+master  | [  37.875s] [master,8640 ] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=sec_0] [Warn] : Recieved response for request 10, but it is not marked as pending
+master  | [  38.221s] [master,d640 ] [         addmessagerequest.cpp:182 ][AddMessageRequest,id=3]            [Info] : Recieved ok response from secondary node 0
+master  | [  38.221s] [master,d640 ] [         addmessagerequest.cpp:63  ][AddMessageRequest,id=3]            [Info] : all secondaries answered, destroying request
+master  | [  39.106s] [master,b640 ] [         addmessagerequest.cpp:182 ][AddMessageRequest,id=2]            [Info] : Recieved ok response from secondary node 0
+master  | [  39.106s] [master,b640 ] [         addmessagerequest.cpp:135 ][AddMessageRequest,id=2]            [Info] : write concern is not satisfied, but there is not secondaries to query, waiting...
+master  | [  42.106s] [master,b640 ] [         addmessagerequest.cpp:135 ][AddMessageRequest,id=2]            [Info] : write concern is not satisfied, but there is not secondaries to query, waiting...
+master  | [  45.106s] [master,b640 ] [         addmessagerequest.cpp:135 ][AddMessageRequest,id=2]            [Info] : write concern is not satisfied, but there is not secondaries to query, waiting...
+master  | [  48.106s] [master,b640 ] [         addmessagerequest.cpp:135 ][AddMessageRequest,id=2]            [Info] : write concern is not satisfied, but there is not secondaries to query, waiting...
+master  | [  48.873s] [master,9640 ] [            socketacceptor.cpp:107 ][NetUtils::SocketAcceptor]          [Info] : Accepting incoming connection
+master  | [  48.873s] [master,a640 ] [                masternode.cpp:67  ][MasterNode]                        [Info] : adding secondary: id=1
+master  | [  50.672s] [master,7640 ] [                  endpoint.cpp:239 ][Proto::Endpoint,id=sec_1]          [Info] : incoming_getMessages(startMsgId=0)
+master  | [  51.107s] [master,b640 ] [                  endpoint.cpp:109 ][Proto::Endpoint,id=sec_1]          [Info] : sending addMessage(msgId=2, msg='Msg3') (artificially delayed by 1446ms)
+master  | [  52.059s] [master,7640 ] [                  endpoint.cpp:239 ][Proto::Endpoint,id=sec_1]          [Info] : incoming_getMessages(startMsgId=0)
+master  | [  52.553s] [master,b640 ] [         addmessagerequest.cpp:182 ][AddMessageRequest,id=2]            [Info] : Recieved ok response from secondary node 1
+master  | [  52.553s] [master,b640 ] [         addmessagerequest.cpp:148 ][AddMessageRequest,id=2]            [Info] : marking request as success
+master  | [  52.553s] [master,b640 ] [         addmessagerequest.cpp:63  ][AddMessageRequest,id=2]            [Info] : all secondaries answered, destroying request
+master  | [  52.908s] [master,7640 ] [                  endpoint.cpp:239 ][Proto::Endpoint,id=sec_1]          [Info] : incoming_getMessages(startMsgId=0)
+master  | [  54.469s] [master,7640 ] [                  endpoint.cpp:275 ][Proto::Endpoint,id=sec_1]          [Info] : incoming_secondaryNodeReady(secondaryNodeName='clyde_')
+master  | [  54.469s] [master,a640 ] [                masternode.cpp:146 ][MasterNode]                        [Info] : registering node 1 as ready, friendlyName: clyde_
+master  | [  55.786s] [master,7640 ] [                  endpoint.cpp:275 ][Proto::Endpoint,id=sec_1]          [Info] : incoming_secondaryNodeReady(secondaryNodeName='clyde_')
+master  | [  55.786s] [master,a640 ] [                masternode.cpp:146 ][MasterNode]                        [Info] : registering node 1 as ready, friendlyName: clyde_
+```
+
+```bash
+>>> docker compose up secondary-1
+[+] Running 1/0
+ ⠿ Container bonnie  Created                                                                                                                                                                                                                                               0.0s
+Attaching to bonnie
+bonnie  | [   0.000s] [bonnie,3db00] [                      main.cpp:87  ]                                    [Info] : Master internal communication, ip=10.5.0.100, port=6000
+bonnie  | [   0.000s] [bonnie,3db00] [             secondarynode.cpp:51  ][SecondaryNode]                     [Info] : reconnecting to master node
+bonnie  | [   0.000s] [bonnie,3db00] [                      main.cpp:96  ]                                    [Info] : Using 3 http threads
+bonnie  | [   0.000s] [bonnie,3db00] [                      main.cpp:100 ]                                    [Info] : Listening for http requests on port 80
+bonnie  | [   0.000s] [bonnie,3db00] [             secondarynode.cpp:78  ][SecondaryNode]                     [Info] : connected to master node, establising endpoint
+bonnie  | [   0.000s] [bonnie,3db00] [             mastersession.cpp:68  ][MasterSession]                     [Info] : asking master for messages, starting from messageId=0
+bonnie  | [   0.000s] [bonnie,3db00] [                  endpoint.cpp:126 ][Proto::Endpoint,id=master]         [Info] : sending getMessages(startMsgId=0) (artificially delayed by 1256ms)
+bonnie  | [   1.257s] [bonnie,3db00] [             mastersession.cpp:81  ][MasterSession]                     [Info] : Successfully retrieved messages from master, filling storage
+bonnie  | [   1.257s] [bonnie,3db00] [             secondarynode.cpp:116 ][SecondaryNode]                     [Info] : master session operational
+bonnie  | [   1.257s] [bonnie,3db00] [             mastersession.cpp:96  ][MasterSession]                     [Info] : sending friendly name to master
+bonnie  | [   1.257s] [bonnie,3db00] [                  endpoint.cpp:160 ][Proto::Endpoint,id=master]         [Info] : sending secondaryNodeReady(secondaryName='bonnie') (artificially delayed by 1018ms)
+bonnie  | [   2.276s] [bonnie,3db00] [             mastersession.cpp:109 ][MasterSession]                     [Info] : recieved ack from master on secondaryNodeReady request
+bonnie  | [  12.398s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=0, msg='Msg1')
+bonnie  | [  13.646s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=0, msg='Msg1')
+bonnie  | [  13.646s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 0, already present
+bonnie  | [  14.777s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=0, msg='Msg1')
+bonnie  | [  14.777s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 0, already present
+bonnie  | [  16.075s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=1, msg='Msg2')
+bonnie  | [  21.027s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=2, msg='Msg3')
+bonnie  | [  22.937s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=2, msg='Msg3')
+bonnie  | [  22.937s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 2, already present
+bonnie  | [  24.254s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=2, msg='Msg3')
+bonnie  | [  24.254s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 2, already present
+bonnie  | [  25.829s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=2, msg='Msg3')
+bonnie  | [  25.829s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 2, already present
+bonnie  | [  27.193s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=2, msg='Msg3')
+bonnie  | [  27.193s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 2, already present
+bonnie  | [  27.382s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=3, msg='Msg4')
+bonnie  | [  28.487s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=2, msg='Msg3')
+bonnie  | [  28.487s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 2, already present
+bonnie  | [  28.833s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=3, msg='Msg4')
+bonnie  | [  28.833s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 3, already present
+bonnie  | [  29.718s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=2, msg='Msg3')
+bonnie  | [  29.718s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 2, already present
+```
+
+```bash
+>>> docker compose up secondary-2
+[+] Running 1/0
+ ⠿ Container clyde_  Created                                                                                                                                                                                                                                               0.0s
+Attaching to clyde_
+clyde_  | [   0.000s] [clyde_,bfb00] [                      main.cpp:87  ]                                    [Info] : Master internal communication, ip=10.5.0.100, port=6000
+clyde_  | [   0.000s] [clyde_,bfb00] [             secondarynode.cpp:51  ][SecondaryNode]                     [Info] : reconnecting to master node
+clyde_  | [   0.000s] [clyde_,bfb00] [                      main.cpp:96  ]                                    [Info] : Using 3 http threads
+clyde_  | [   0.000s] [clyde_,bfb00] [                      main.cpp:100 ]                                    [Info] : Listening for http requests on port 80
+clyde_  | [   0.000s] [clyde_,bfb00] [             secondarynode.cpp:78  ][SecondaryNode]                     [Info] : connected to master node, establising endpoint
+clyde_  | [   0.000s] [clyde_,bfb00] [             mastersession.cpp:68  ][MasterSession]                     [Info] : asking master for messages, starting from messageId=0
+clyde_  | [   0.000s] [clyde_,bfb00] [                  endpoint.cpp:126 ][Proto::Endpoint,id=master]         [Info] : sending getMessages(startMsgId=0) (artificially delayed by 1799ms)
+clyde_  | [   1.501s] [clyde_,bfb00] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=master] [Warn] : invalidatePendingRequest(requestId=0, reason=InvalidationReason::TIMEOUT)
+clyde_  | [   1.501s] [clyde_,bfb00] [             mastersession.cpp:88  ][MasterSession]                     [Warn] : Failed to recieve messages from master, retrying
+clyde_  | [   1.501s] [clyde_,bfb00] [             mastersession.cpp:68  ][MasterSession]                     [Info] : asking master for messages, starting from messageId=0
+clyde_  | [   1.501s] [clyde_,bfb00] [                  endpoint.cpp:126 ][Proto::Endpoint,id=master]         [Info] : sending getMessages(startMsgId=0) (artificially delayed by 1685ms)
+clyde_  | [   1.800s] [clyde_,bfb00] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=master] [Warn] : Recieved response for request 0, but it is not marked as pending
+clyde_  | [   3.002s] [clyde_,bfb00] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=master] [Warn] : invalidatePendingRequest(requestId=1, reason=InvalidationReason::TIMEOUT)
+clyde_  | [   3.002s] [clyde_,bfb00] [             mastersession.cpp:88  ][MasterSession]                     [Warn] : Failed to recieve messages from master, retrying
+clyde_  | [   3.002s] [clyde_,bfb00] [             mastersession.cpp:68  ][MasterSession]                     [Info] : asking master for messages, starting from messageId=0
+clyde_  | [   3.002s] [clyde_,bfb00] [                  endpoint.cpp:126 ][Proto::Endpoint,id=master]         [Info] : sending getMessages(startMsgId=0) (artificially delayed by 1033ms)
+clyde_  | [   3.187s] [clyde_,bfb00] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=master] [Warn] : Recieved response for request 1, but it is not marked as pending
+clyde_  | [   3.680s] [clyde_,bfb00] [                  endpoint.cpp:221 ][Proto::Endpoint,id=master]         [Info] : incoming_addMessage(msgId=2, msg='Msg3')
+clyde_  | [   4.036s] [clyde_,bfb00] [             mastersession.cpp:81  ][MasterSession]                     [Info] : Successfully retrieved messages from master, filling storage
+clyde_  | [   4.036s] [clyde_,bfb00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 2, already present
+clyde_  | [   4.036s] [clyde_,bfb00] [             secondarynode.cpp:116 ][SecondaryNode]                     [Info] : master session operational
+clyde_  | [   4.036s] [clyde_,bfb00] [             mastersession.cpp:96  ][MasterSession]                     [Info] : sending friendly name to master
+clyde_  | [   4.036s] [clyde_,bfb00] [                  endpoint.cpp:160 ][Proto::Endpoint,id=master]         [Info] : sending secondaryNodeReady(secondaryName='clyde_') (artificially delayed by 1561ms)
+clyde_  | [   5.536s] [clyde_,bfb00] [  outcomingrequestsmanager.cpp:179 ][Proto::OutcomingRequestsManager,id=master] [Warn] : invalidatePendingRequest(requestId=3, reason=InvalidationReason::TIMEOUT)
+clyde_  | [   5.536s] [clyde_,bfb00] [             mastersession.cpp:113 ][MasterSession]                     [Warn] : failed to recieve ack from master on secondaryNodeReady request, retrying
+clyde_  | [   5.536s] [clyde_,bfb00] [             mastersession.cpp:96  ][MasterSession]                     [Info] : sending friendly name to master
+clyde_  | [   5.536s] [clyde_,bfb00] [                  endpoint.cpp:160 ][Proto::Endpoint,id=master]         [Info] : sending secondaryNodeReady(secondaryName='clyde_') (artificially delayed by 1377ms)
+clyde_  | [   5.597s] [clyde_,bfb00] [  outcomingrequestsmanager.cpp:147 ][Proto::OutcomingRequestsManager,id=master] [Warn] : Recieved response for request 3, but it is not marked as pending
+clyde_  | [   6.914s] [clyde_,bfb00] [             mastersession.cpp:109 ][MasterSession]                     [Info] : recieved ack from master on secondaryNodeReady request
+clyde_  | [  14.856s] [clyde_,b4640] [            socketacceptor.cpp:77  ][NetUtils::SocketAcceptor]          [Info] : Accepting incoming connection
+```
+
+Request results:
+
+![request1](./img/request1.png)
+![request2](./img/request2.png)
+![request3](./img/request3.png)
+![request4](./img/request4.png)
+![request5](./img/request5.png)
