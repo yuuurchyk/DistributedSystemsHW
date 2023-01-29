@@ -10,7 +10,7 @@ This repo contains an implementation of ```replicated log with write concern``` 
 * both master and secondary nodes has an API for retrieving the list of messages. Messages should be displayed until the first "gap" (e.g. if for some reason older message arrived first, it should not be displayed in the output until all the previous messages have arrived)
 
 While looking easy, the task has a few tricky aspects:
-* master should recieve acknowledge from secondary when replicating the message. If the secondary hasn't acknowledged the message, it should be resent (which might lead to duplication and order inconsistency, both of which should be properly handled)
+* master should recieve acknowledge from secondary when replicating the message. If master hasn't recieved the acknowledgement, master should resend the message (which might lead to duplication and order inconsistency, both of which should be properly handled)
 * secondary node should query the missed messages from master node when reconnecting
 * the system should be resistant to any secondary node failure/disconnect (master node is considered to be online all the time)
 
