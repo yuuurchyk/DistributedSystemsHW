@@ -1,6 +1,18 @@
 # DistributedSystemsHW
 
-TODO: add problem description
+## Problem Description
+
+This repo contains an implementation of ```replicated log with write concern``` task. It is stated as follows:
+* there is one master node and arbitrary number of secondary nodes
+* master node has an API to add a message
+* each message that is added to master node is replicated across all secondary nodes
+* you can specify a write concern ```N``` for each message. If you do that, the request will not return until there are ```N - 1``` confirmations from secondary nodes (confirmation from master node itself is also needed)
+* both master and secondary nodes has an API for retrieving the list of messages. Messages should be displayed until the first "gap" (e.g. if for some reason older message arrived first, it should not be displayed in the output until all the previous messages have arrived)
+
+While looking easy, the task has a few tricky aspects:
+* master should recieve acknowledge from secondary when replicating the message. If the secondary hasn't acknowledged the message, it should be resent (which might lead to duplication and order inconsistency, both of which should be properly handled)
+* secondary node should query the missed messages from master node when reconnecting
+* the system should be resistant to any secondary node failure/disconnect (master node is considered to be online all the time)
 
 ## Docker Compose
 
@@ -23,9 +35,11 @@ TODO: add problem description
 ## Implementation Details
 
 * communication with secondary node happens via tcp socket (there is a single tcp connection associated with a partcular secondary where all the communication takes place)
-* when sth is written through socket, a random delay between ```1000ms``` and ```2000ms``` is introduced. Note that response from the socket is considered timed out if there is no answer within ```1500ms```, so some requests will be resent (probably multiple times)
+* when sth is written through socket, a random delay between ```1000ms``` and ```2000ms``` is introduced (this is done to model inconsistencies, network delay and high load of the nodes). Note that response from the socket is considered timed out if there is no answer within ```1500ms```, so some requests will be resent (probably multiple times)
 * secondary tries to reconnect to master if the connection is dropped
 * when secondary connects to master, it queries the messages. After the messages have been recieved, secondary sends a ```SecondaryNodeReady``` request to master, which informs the master that this particular secondary has become operational
+
+* libraries used: ```boost::asio```, ```boost::thread```
 
 ## Thread Model
 
