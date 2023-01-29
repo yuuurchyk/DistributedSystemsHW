@@ -170,7 +170,7 @@ master  | [  34.621s] [master,cd640] [         addmessagerequest.cpp:63  ][AddMe
 
 Command line output:
 
-```bash
+```
 >>> docker compose up master
 [+] Running 1/0
  ⠿ Container master  Created                                                                                                                                                                                                                                               0.0s
@@ -257,7 +257,7 @@ master  | [  55.786s] [master,7640 ] [                  endpoint.cpp:275 ][Proto
 master  | [  55.786s] [master,a640 ] [                masternode.cpp:146 ][MasterNode]                        [Info] : registering node 1 as ready, friendlyName: clyde_
 ```
 
-```bash
+```
 >>> docker compose up secondary-1
 [+] Running 1/0
  ⠿ Container bonnie  Created                                                                                                                                                                                                                                               0.0s
@@ -298,7 +298,7 @@ bonnie  | [  29.718s] [bonnie,3db00] [                  endpoint.cpp:221 ][Proto
 bonnie  | [  29.718s] [bonnie,3db00] [                   storage.cpp:10  ][Storage]                           [Warn] : failed to insert message with id 2, already present
 ```
 
-```bash
+```
 >>> docker compose up secondary-2
 [+] Running 1/0
  ⠿ Container clyde_  Created                                                                                                                                                                                                                                               0.0s
