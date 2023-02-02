@@ -66,6 +66,10 @@ void MasterHttpSession::processRequest()
     {
         EN_LOGD << "valid request, ping secondaries";
 
+        response_.result(http::status::ok);
+        response_.set(http::field::server, "Beast");
+        response_.set(http::field::content_type, "application/json");
+
         auto node = weakNode_.lock();
         if (node == nullptr)
             return fallback("node is dead (should not happen)");
