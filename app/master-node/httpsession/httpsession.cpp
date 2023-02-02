@@ -1,6 +1,7 @@
 #include "httpsession/httpsession.h"
 
 #include <exception>
+#include <sstream>
 #include <utility>
 
 #include <boost/beast.hpp>
@@ -60,6 +61,56 @@ void MasterHttpSession::processRequest()
 
         response_.content_length(response_.body().size());
         return writeResponse();
+    }
+    else if (request_.method() == http::verb::get && request_.target() == "/pingSecondaries")
+    {
+        EN_LOGD << "valid request, ping secondaries";
+
+        auto node = weakNode_.lock();
+        if (node == nullptr)
+            return fallback("node is dead (should not happen)");
+
+        NetUtils::thenPost(
+            node->pingSecondaries(ioContext_),
+            ioContext_,
+            [this, self = shared_from_this()](boost::future<std::vector<MasterNode::PingResult>> resultFuture)
+            {
+                if (!resultFuture.has_value())
+                    return fallback("error occured for request");
+
+                auto result = resultFuture.get();
+
+                auto resultJson = boost::json::array{};
+
+                for (auto &entry : result)
+                {
+                    auto obj = boost::json::object{};
+
+                    obj["secondaryId"] = entry.secondaryId;
+                    if (entry.secondaryFriendlyName.has_value())
+                        obj["friendlyName"] = std::move(entry.secondaryFriendlyName.value());
+
+                    {
+                        auto strm = std::stringstream{};
+                        strm << entry.secondaryState;
+                        obj["state"] = std::move(strm).str();
+                    }
+
+                    obj["pingTimestamp"] = entry.pingTimestamp;
+
+                    if (entry.pongTimestamp.has_value())
+                        obj["pongTimestamp"] = entry.pongTimestamp.value();
+                    if (entry.exceptionString.has_value())
+                        obj["exceptionString"] = std::move(entry.exceptionString.value());
+
+                    resultJson.push_back(std::move(obj));
+                }
+
+                response_.body() = boost::json::serialize(resultJson);
+
+                response_.content_length(response_.body().size());
+                return writeResponse();
+            });
     }
     else if (request_.method() == http::verb::post && request_.target() == "/newMessage")
     {

@@ -5,6 +5,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include <boost/exception/all.hpp>
+
 #include "constants/constants.h"
 #include "net-utils/launchwithdelay.h"
 #include "net-utils/thenpost.h"
@@ -119,8 +121,7 @@ void AddMessageRequest::sendRequestToSecondaries()
         NetUtils::thenPost(
             secondary.endpoint->send_addMessage(messageId_, message_),
             ioContext_,
-            [this, secondaryId = secondary.id, self = shared_from_this()](
-                boost::future<Proto::AddMessageStatus> future)
+            [this, secondaryId = secondary.id, self = shared_from_this()](boost::future<Proto::AddMessageStatus> future)
             {
                 onResponseRecieved(secondaryId, std::move(future));
 
@@ -162,11 +163,11 @@ void AddMessageRequest::requestMarkFailure()
 
     try
     {
-        throw std::logic_error{ "internal request error" };
+        BOOST_THROW_EXCEPTION(std::logic_error{ "internal request error" });
     }
     catch (const std::exception &e)
     {
-        promise_.set_exception(std::current_exception());
+        promise_.set_exception(boost::current_exception());
     }
 }
 

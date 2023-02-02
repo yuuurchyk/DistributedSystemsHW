@@ -1,6 +1,7 @@
 #include "masternode/masternode.h"
 
 #include "addmessagerequest/addmessagerequest.h"
+#include "net-utils/thenpost.h"
 
 std::shared_ptr<MasterNode> MasterNode::create(boost::asio::io_context &context)
 {
@@ -29,6 +30,85 @@ boost::future<void>
     {
         return requestFuture;
     }
+}
+
+boost::future<std::vector<MasterNode::PingResult>>
+    MasterNode::pingSecondaries(boost::asio::io_context &executionContext)
+{
+    const auto pingTimestamp = Utils::getCurrentTimestamp();
+
+    auto snapshot = secondariesSnapshot();
+
+    if (snapshot.empty())
+    {
+        auto promise = boost::promise<std::vector<MasterNode::PingResult>>{};
+        promise.set_value({});
+        auto future = promise.get_future();
+        return future;
+    }
+
+    auto responses = std::vector<boost::future<Utils::Timestamp_t>>{};
+    responses.reserve(snapshot.size());
+
+    for (auto &secondary : snapshot)
+        responses.push_back(secondary.endpoint->send_ping(pingTimestamp));
+
+    auto promise = Utils::makeSharedPromise(boost::promise<std::vector<PingResult>>{});
+    auto future  = promise->get_future();
+
+    NetUtils::thenPost(
+        boost::when_all(responses.begin(), responses.end()),
+        executionContext,
+        [pingTimestamp, snapshot = std::move(snapshot), promise](
+            boost::future<std::vector<boost::future<Utils::Timestamp_t>>> responsesFuture) mutable
+        {
+            auto responses = std::vector<boost::future<Utils::Timestamp_t>>{};
+            try
+            {
+                responses = responsesFuture.get();
+            }
+            catch (...)
+            {
+                promise->set_exception(boost::current_exception());
+                return;
+            }
+
+            auto pingResults = std::vector<PingResult>{};
+            pingResults.reserve(responses.size());
+
+            for (auto i = size_t{}; i < responses.size(); ++i)
+            {
+                auto       &responseFuture = responses.at(i);
+                const auto &secondary      = snapshot.at(i);
+
+                auto pingResult = PingResult{};
+
+                pingResult.secondaryId           = secondary.id;
+                pingResult.secondaryFriendlyName = secondary.friendlyName;
+                pingResult.secondaryState        = secondary.state;
+
+                pingResult.pingTimestamp = pingTimestamp;
+
+                try
+                {
+                    pingResult.pongTimestamp = responseFuture.get();
+                }
+                catch (const boost::exception &e)
+                {
+                    pingResult.exceptionString = boost::diagnostic_information(e);
+                }
+                catch (const std::exception &e)
+                {
+                    pingResult.exceptionString = boost::diagnostic_information(e);
+                }
+
+                pingResults.push_back(std::move(pingResult));
+            }
+
+            promise->set_value(std::move(pingResults));
+        });
+
+    return future;
 }
 
 void MasterNode::addSecondary(

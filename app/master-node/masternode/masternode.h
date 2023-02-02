@@ -14,9 +14,11 @@
 #include "proto/endpoint.h"
 #include "utils/copymove.h"
 #include "utils/sharedpromise.h"
+#include "utils/timestamp.h"
 
 #include "secondary/secondarynode.h"
 #include "secondary/secondarysnapshot.h"
+#include "secondary/secondarystate.h"
 #include "storage/storage.h"
 
 class MasterNode : public std::enable_shared_from_this<MasterNode>, private logger::Entity<MasterNode>
@@ -33,6 +35,19 @@ public:    // usage interface
 
 public:
     boost::future<void> addMessage(boost::asio::io_context &executionContext, std::string message, size_t writeConcern);
+
+    struct PingResult
+    {
+        size_t                     secondaryId;
+        std::optional<std::string> secondaryFriendlyName;
+        SecondaryState             secondaryState;
+
+        Utils::Timestamp_t                pingTimestamp;
+        std::optional<Utils::Timestamp_t> pongTimestamp;
+
+        std::optional<std::string> exceptionString;
+    };
+    boost::future<std::vector<PingResult>> pingSecondaries(boost::asio::io_context &executionContext);
 
     std::vector<SecondarySnapshot> secondariesSnapshot();
 

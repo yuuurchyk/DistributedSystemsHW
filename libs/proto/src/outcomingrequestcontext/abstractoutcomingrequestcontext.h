@@ -45,17 +45,17 @@ void AbstractOutcomingRequestContext::invalidatePromise(boost::promise<T> &promi
         switch (reason)
         {
         case InvalidationReason::TIMEOUT:
-            throw Exceptions::Timeout{};
+            BOOST_THROW_EXCEPTION(Exceptions::Timeout{});
         case InvalidationReason::BAD_RESPONSE_FRAME:
-            throw Exceptions::BadResponseFrame{};
+            BOOST_THROW_EXCEPTION(Exceptions::BadResponseFrame{});
         case InvalidationReason::PEER_DISCONNECTED:
-            throw Exceptions::PeerDisconnected{};
+            BOOST_THROW_EXCEPTION(Exceptions::PeerDisconnected{});
         }
     }
     catch (const Exceptions::ResponseException &)
     {
         promiseMarkFilled();
-        promise.set_exception(std::current_exception());
+        promise.set_exception(boost::current_exception());
     }
 }
 

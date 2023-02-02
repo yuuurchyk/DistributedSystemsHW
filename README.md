@@ -27,6 +27,7 @@ While looking easy, the task has a few tricky aspects:
 
 * ```GET /messages```
 * ```POST /newMessage``` with the following json body: ```{"message": "string", "writeConcern": unsigned int}```
+* ```GET /pingSecondaries``` with response of the following form: ```[{"secondaryId":1,"friendlyName":"bonnie","state":"SecondaryState::OPERATIONAL","pingTimestamp":1675341508180,"pongTimestamp":1675341509423}, ...]```
 
 ### Secondary Node
 
